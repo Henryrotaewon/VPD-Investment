@@ -1,9 +1,9 @@
-name: VPD Early Warning POC
+name: VPD Early Warning Operations
 
 on:
   workflow_dispatch:
   schedule:
-    # Phase-1 POC: re-check only the small VPD-derived watchlist every 15 minutes.
+    # Operations: re-check the VPD-derived watchlist every 15 minutes.
     - cron: '*/15 * * * *'
 
 permissions:
@@ -37,10 +37,3 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scanner/early_warning_watch.py
-
-      - name: Send ZKC and OPG 15-minute final test report
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python scanner/early_warning_report_test.py
