@@ -1,0 +1,4 @@
+Trigger point-in-time replay for ZKC/KNC/SKR historical validation.
+Requested: 2026-08-30 KST
+Targets: 2026-08-29 07:20, 2026-08-29 17:50, 2026-08-30 07:20 KST
+No Telegram notification.
