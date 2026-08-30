@@ -55,3 +55,13 @@ jobs:
             git commit -m "Update WPI5 and VWPI5 validation"
             git push origin main
           fi
+      - name: Send Telegram failure alert
+        if: ${{ failure() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          MSG="🚨 VPD Scanner FAILED\nRepo: ${GITHUB_REPOSITORY}\nRun: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\nEvent: ${GITHUB_EVENT_NAME}\nCommit: ${GITHUB_SHA}"
+          curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MSG}"
