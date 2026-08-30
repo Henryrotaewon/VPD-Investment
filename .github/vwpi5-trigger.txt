@@ -1,0 +1,5 @@
+VWPI5 incremental effect trigger
+Run: 2026-08-30 22:36 KST
+Control: VPDReplay>=65 AND MaxPriceReturn<=10
+Test: Control + VWPI5>=20
+Purpose: measure pure incremental effect without re-running VPD scanner or Telegram
