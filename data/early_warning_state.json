@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-08-30T15:36:37.440150+09:00",
+  "updated_at": "2026-08-30T20:52:18.596603+09:00",
   "coins": {
     "ZKC": {
-      "level": "ORANGE",
-      "updated_at": "2026-08-30T15:36:37.440150+09:00",
-      "EWScore": 72
+      "level": "QUIET",
+      "updated_at": "2026-08-30T20:52:18.596603+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "OPG": {
-      "level": "ORANGE",
-      "updated_at": "2026-08-30T15:36:37.440150+09:00",
-      "EWScore": 66
+      "level": "QUIET",
+      "updated_at": "2026-08-30T20:52:18.596603+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     }
   }
 }
