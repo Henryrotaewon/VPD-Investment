@@ -18,6 +18,18 @@
     },
     {
       "Rank": 2,
+      "coin": "CPOOL",
+      "VPD": 83.0,
+      "MaxPriceReturn%": 15.77,
+      "WPI5": 0.9,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.7089,
+      "UpperWickTotal5": 1.6786,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 3,
       "coin": "DKA",
       "VPD": 83.0,
       "MaxPriceReturn%": 16.53,
@@ -26,18 +38,6 @@
       "UpperDominantDays5": 3,
       "LowerWickTotal5": 1.5061,
       "UpperWickTotal5": 1.7536,
-      "WPI5Status": "NEUTRAL"
-    },
-    {
-      "Rank": 3,
-      "coin": "CPOOL",
-      "VPD": 79.0,
-      "MaxPriceReturn%": 15.77,
-      "WPI5": 0.9,
-      "LowerDominantDays5": 2,
-      "UpperDominantDays5": 3,
-      "LowerWickTotal5": 1.7089,
-      "UpperWickTotal5": 1.6786,
       "WPI5Status": "NEUTRAL"
     },
     {
