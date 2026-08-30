@@ -1,18 +1,54 @@
 {
-  "generated_at": "2026-08-30T20:52:15.251523+09:00",
-  "vpd_asof": "2026-08-30 19:49:58 KST",
+  "generated_at": "2026-08-31T00:33:59.914873+09:00",
+  "vpd_asof": "2026-08-30 23:03:30 KST",
   "rule": "POC only; separate from VPD v1.4",
   "coins": [
     {
-      "coin": "DKA",
-      "market": "KRW-DKA",
-      "VPD": 96.0,
-      "momentum": "↑",
+      "coin": "ZK",
+      "market": "KRW-ZK",
+      "VPD": 83.0,
+      "momentum": "↑↑",
       "VPDVelocity": 0.0,
       "VPDVelocityPerHour": 0.0,
-      "TodayValue/10": 11.05,
-      "IntraAccel": 5.89,
-      "1D%": 3.97,
+      "TodayValue/10": 21.13,
+      "IntraAccel": 16.58,
+      "1D%": 10.43,
+      "flags": [
+        "vpd75",
+        "today_value",
+        "intra_accel",
+        "momentum"
+      ],
+      "flag_count": 4
+    },
+    {
+      "coin": "CPOOL",
+      "market": "KRW-CPOOL",
+      "VPD": 83.0,
+      "momentum": "↑↑",
+      "VPDVelocity": 0.0,
+      "VPDVelocityPerHour": 0.0,
+      "TodayValue/10": 14.87,
+      "IntraAccel": 42.59,
+      "1D%": 7.31,
+      "flags": [
+        "vpd75",
+        "today_value",
+        "intra_accel",
+        "momentum"
+      ],
+      "flag_count": 4
+    },
+    {
+      "coin": "DKA",
+      "market": "KRW-DKA",
+      "VPD": 83.0,
+      "momentum": "↑↑",
+      "VPDVelocity": 0.0,
+      "VPDVelocityPerHour": 0.0,
+      "TodayValue/10": 11.28,
+      "IntraAccel": 6.01,
+      "1D%": 4.39,
       "flags": [
         "vpd75",
         "today_value",
@@ -25,13 +61,13 @@
     {
       "coin": "TRUST",
       "market": "KRW-TRUST",
-      "VPD": 82.0,
+      "VPD": 78.0,
       "momentum": "↑",
       "VPDVelocity": 0.0,
       "VPDVelocityPerHour": 0.0,
-      "TodayValue/10": 3.03,
-      "IntraAccel": 7.59,
-      "1D%": 4.38,
+      "TodayValue/10": 3.35,
+      "IntraAccel": 8.39,
+      "1D%": 3.95,
       "flags": [
         "vpd75",
         "today_value",
@@ -42,56 +78,60 @@
       "flag_count": 5
     },
     {
-      "coin": "CPOOL",
-      "market": "KRW-CPOOL",
-      "VPD": 81.0,
-      "momentum": "↑↑",
-      "VPDVelocity": 0.0,
-      "VPDVelocityPerHour": 0.0,
-      "TodayValue/10": 12.78,
-      "IntraAccel": 36.63,
-      "1D%": 10.77,
-      "flags": [
-        "vpd75",
-        "today_value",
-        "intra_accel",
-        "momentum"
-      ],
-      "flag_count": 4
-    },
-    {
       "coin": "WCT",
       "market": "KRW-WCT",
       "VPD": 77.0,
-      "momentum": "↑↑",
+      "momentum": "↑",
       "VPDVelocity": 0.0,
       "VPDVelocityPerHour": 0.0,
-      "TodayValue/10": 4.01,
-      "IntraAccel": 9.23,
-      "1D%": 8.54,
+      "TodayValue/10": 5.2,
+      "IntraAccel": 11.97,
+      "1D%": 4.47,
       "flags": [
         "vpd75",
-        "today_value",
-        "intra_accel",
-        "momentum"
-      ],
-      "flag_count": 4
-    },
-    {
-      "coin": "MANA",
-      "market": "KRW-MANA",
-      "VPD": 70.0,
-      "momentum": "↑",
-      "VPDVelocity": -2.0,
-      "VPDVelocityPerHour": -34.83,
-      "TodayValue/10": 2.35,
-      "IntraAccel": 4.27,
-      "1D%": 2.91,
-      "flags": [
         "today_value",
         "intra_accel",
         "momentum",
         "price_muted"
+      ],
+      "flag_count": 5
+    },
+    {
+      "coin": "ORCA",
+      "market": "KRW-ORCA",
+      "VPD": 74.0,
+      "momentum": "↑",
+      "VPDVelocity": 46.0,
+      "VPDVelocityPerHour": 66.03,
+      "TodayValue/10": 7.03,
+      "IntraAccel": 14.33,
+      "1D%": 5.31,
+      "flags": [
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 7
+    },
+    {
+      "coin": "ZKP",
+      "market": "KRW-ZKP",
+      "VPD": 73.0,
+      "momentum": "↑",
+      "VPDVelocity": 5.0,
+      "VPDVelocityPerHour": 7.18,
+      "TodayValue/10": 25.41,
+      "IntraAccel": 9.54,
+      "1D%": 13.61,
+      "flags": [
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "momentum"
       ],
       "flag_count": 4
     }
