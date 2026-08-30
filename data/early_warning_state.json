@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-31T03:48:09.142134+09:00",
+  "updated_at": "2026-08-31T06:42:02.897033+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -12,9 +12,14 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "DKA": {
+      "level": "QUIET",
+      "updated_at": "2026-08-31T06:42:02.897033+09:00",
+      "EWScore": 35
+    },
+    "CPOOL": {
       "level": "ORANGE",
-      "updated_at": "2026-08-31T03:48:09.142134+09:00",
-      "EWScore": 65
+      "updated_at": "2026-08-31T06:42:02.897033+09:00",
+      "EWScore": 62
     }
   }
 }
