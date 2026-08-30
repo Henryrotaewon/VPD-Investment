@@ -1,0 +1,45 @@
+name: Point-in-Time VPD Replay
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/point-in-time-trigger.txt'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: point-in-time-vpd-replay
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run historical point-in-time replay
+        run: python scanner/point_in_time_replay.py
+      - name: Commit replay result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git add data/point_in_time_replay_zkc.json
+          if git diff --cached --quiet; then
+            echo "No replay changes"
+          else
+            git commit -m "Update ZKC point-in-time replay result"
+            git push origin main
+          fi
