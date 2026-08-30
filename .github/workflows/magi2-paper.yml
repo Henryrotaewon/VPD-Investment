@@ -1,0 +1,34 @@
+name: MAGI 2 Paper Execution
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: magi2-paper
+  cancel-in-progress: false
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run MAGI 2 paper engine
+        run: python magi2/paper_engine.py
+      - name: Persist paper state and trade log
+        run: |
+          git config user.name "magi2-bot"
+          git config user.email "magi2-bot@users.noreply.github.com"
+          git add data/magi2_paper_state.json data/magi2_trade_log.jsonl 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "MAGI2 paper state update [skip ci]"
+            git push
+          fi
