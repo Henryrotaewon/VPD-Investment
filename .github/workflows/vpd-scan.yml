@@ -1,4 +1,4 @@
-name: VPD Scanner v1.5
+name: VPD Scanner v1.6
 
 on:
   workflow_dispatch:
@@ -32,15 +32,15 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run VPD Scanner and Telegram radar
+      - name: Run VPD Scanner v1.6 and Telegram radar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python scanner/run_vpd_action.py
+        run: python scanner/run_vpd_action_v1_6.py
       - name: Refresh scanner outputs
         run: git pull --rebase origin main
-      - name: Run WPI5 shadow and 30-day validation
+      - name: Run WPI5/VWPI5 shadow and 30-day validation
         run: python scanner/wpi5_shadow.py
       - name: Run VWPI5 200-market expanded validation
         run: python scanner/vwpi5_validation_200.py
