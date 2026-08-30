@@ -1,3 +1,3 @@
 VPD scanner ChatGPT trigger anchor.
-Triggered by ChatGPT: 2026-08-30 full rehearsal after runtime-path fix
-Purpose: v1.5 scan -> Telegram -> latest JSON -> final evening briefing -> Gmail
+Triggered by ChatGPT: 2026-08-30 WPI5 shadow validation
+Purpose: v1.5 scan -> WPI5 TOP10 -> 30-day validation
