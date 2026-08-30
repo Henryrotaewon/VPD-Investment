@@ -1,3 +1,3 @@
 VPD scanner ChatGPT trigger anchor.
-Triggered by ChatGPT: 2026-08-30 20:30 KST
-Purpose: validate MaxPrice POC price-reaction correction
+Triggered by ChatGPT: 2026-08-30 full v1.5 briefing cycle
+Purpose: scanner -> latest snapshot -> final evening briefing
