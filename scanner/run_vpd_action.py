@@ -41,8 +41,7 @@ def build_message(d):
     asof=d.get("asof_kst","-")
     try: hour=asof.split()[1][:5]
     except Exception: hour=""
-    title="🌅 VPD MORNING" if hour and hour < "12:00" else "🌙 VPD EVENING"
-    lines=[f"{title} | {hour or asof}","","📊 TOP10"]
+    lines=[f"🔎 VPD 업비트 서치 퍼스트 | {hour or asof}","","📊 TOP10"]
     medals=["🥇","🥈","🥉"]
     for i,x in enumerate(top[:10]):
         prefix=medals[i] if i<3 else f"{i+1}."
