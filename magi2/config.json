@@ -1,0 +1,27 @@
+{
+  "mode": "PAPER",
+  "exchange": "UPBIT_KRW",
+  "initial_cash_krw": 1000000,
+  "max_position_krw": 100000,
+  "max_open_positions": 3,
+  "averaging_down": false,
+  "fee_rate": 0.0005,
+  "slippage_rate": 0.001,
+  "entry": {
+    "trigger_a": true,
+    "trigger_b": true,
+    "require_momentum": true,
+    "min_vpd": 75
+  },
+  "exit": {
+    "take_profit_pct": 10.0,
+    "warning_profit_pct": 8.0,
+    "hard_stop_pct": -6.0,
+    "trailing_activation_pct": 8.0,
+    "trailing_drawdown_pct": 4.0
+  },
+  "risk": {
+    "max_daily_loss_krw": 30000,
+    "kill_switch": false
+  }
+}
