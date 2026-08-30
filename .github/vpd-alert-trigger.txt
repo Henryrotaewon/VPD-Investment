@@ -1,1 +1,3 @@
-VPD alert trigger initialized.
+✅ VPD Telegram alert channel test
+KST: 2026-08-31 07:47
+Purpose: failure-notification path validation
