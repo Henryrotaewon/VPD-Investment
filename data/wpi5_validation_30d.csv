@@ -1,4 +1,4 @@
-﻿coin,date,WPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
+coin,date,WPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
 ZK,2026-07-31,48.8,3,0,1.55,0.5333,BULLISH_WICK,0.89,1.79,0.0,4.46,-1.79
 ZK,2026-08-01,44.71,4,0,2.05,0.7833,BULLISH_WICK,3.54,-0.88,0.88,3.54,-2.65
 ZK,2026-08-02,12.38,3,1,1.9667,1.5333,NEUTRAL,-2.56,-4.27,-5.98,0.0,-6.84
