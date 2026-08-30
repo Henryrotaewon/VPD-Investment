@@ -3,7 +3,7 @@ name: VPD Scanner v1.4
 on:
   workflow_dispatch:
   schedule:
-    # GitHub Actions cron uses UTC.
+    # GitHub Actions cron uses UTC. Re-saved to force schedule re-registration.
     # 07:20 KST = 22:20 UTC (previous calendar day)
     # 17:50 KST = 08:50 UTC
     - cron: '20 22 * * *'
