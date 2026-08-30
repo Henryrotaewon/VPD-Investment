@@ -1,4 +1,4 @@
-coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
+﻿coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
 ORCA,2026-07-31,-6.28,-4.91,2,3,1.2744,1.4452,359530474.18,396646222.75,NEUTRAL,-1.31,-3.93,-3.93,1.75,-4.87
 ORCA,2026-08-01,-6.49,-5.12,2,3,1.0174,1.1586,302153087.57,334774106.21,NEUTRAL,-1.2,-1.77,-3.23,1.52,-3.73
 ORCA,2026-08-02,0.09,7.28,2,3,1.1881,1.186,310583052.45,268404616.53,NEUTRAL,-1.47,-1.47,-3.97,0.0,-4.23
