@@ -22,7 +22,7 @@
     {
       "Rank": 2,
       "coin": "DKA",
-      "VPD": 85.0,
+      "VPD": 83.0,
       "MaxPriceReturn%": 16.53,
       "WPI5": -7.59,
       "VWPI5": -43.69,
@@ -36,21 +36,6 @@
     },
     {
       "Rank": 3,
-      "coin": "CPOOL",
-      "VPD": 83.0,
-      "MaxPriceReturn%": 15.77,
-      "WPI5": 0.9,
-      "VWPI5": 6.28,
-      "LowerDominantDays5": 2,
-      "UpperDominantDays5": 3,
-      "LowerWickTotal5": 1.7089,
-      "UpperWickTotal5": 1.6786,
-      "VWLowerWeighted5": 322832314.82,
-      "VWUpperWeighted5": 284667123.15,
-      "WPI5Status": "NEUTRAL"
-    },
-    {
-      "Rank": 4,
       "coin": "WCT",
       "VPD": 83.0,
       "MaxPriceReturn%": 12.04,
@@ -65,7 +50,7 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 5,
+      "Rank": 4,
       "coin": "ERA",
       "VPD": 81.0,
       "MaxPriceReturn%": 27.34,
@@ -80,7 +65,7 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 6,
+      "Rank": 5,
       "coin": "BREV",
       "VPD": 81.0,
       "MaxPriceReturn%": 9.99,
@@ -95,7 +80,7 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 7,
+      "Rank": 6,
       "coin": "ZK",
       "VPD": 79.0,
       "MaxPriceReturn%": 19.13,
@@ -107,6 +92,21 @@
       "UpperWickTotal5": 1.6048,
       "VWLowerWeighted5": 1138091090.24,
       "VWUpperWeighted5": 838301604.17,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 7,
+      "coin": "CPOOL",
+      "VPD": 79.0,
+      "MaxPriceReturn%": 15.77,
+      "WPI5": 0.9,
+      "VWPI5": 6.28,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.7089,
+      "UpperWickTotal5": 1.6786,
+      "VWLowerWeighted5": 322832314.82,
+      "VWUpperWeighted5": 284667123.15,
       "WPI5Status": "NEUTRAL"
     },
     {
