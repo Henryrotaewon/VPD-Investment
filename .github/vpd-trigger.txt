@@ -1,3 +1,4 @@
 VPD scanner ChatGPT trigger anchor.
-Triggered by ChatGPT: 2026-08-30 WPI5 Shadow 2.0 historical replay
-Purpose: v1.5 scan -> WPI5 -> 30D VPD/Max/WPI/VWPI replay -> Telegram -> persist outputs
+Triggered by ChatGPT: 2026-08-30 VWPI5 200-market expanded validation
+Primary frozen rule: VPDReplay>=65 AND MaxPriceReturn<=10 AND VWPI5>=20
+Purpose: validate across up to 200 Upbit KRW markets without changing VPD v1.5 scoring
