@@ -18,18 +18,6 @@
     },
     {
       "Rank": 2,
-      "coin": "CPOOL",
-      "VPD": 83.0,
-      "MaxPriceReturn%": 15.77,
-      "WPI5": 0.9,
-      "LowerDominantDays5": 2,
-      "UpperDominantDays5": 3,
-      "LowerWickTotal5": 1.7089,
-      "UpperWickTotal5": 1.6786,
-      "WPI5Status": "NEUTRAL"
-    },
-    {
-      "Rank": 3,
       "coin": "DKA",
       "VPD": 83.0,
       "MaxPriceReturn%": 16.53,
@@ -38,6 +26,18 @@
       "UpperDominantDays5": 3,
       "LowerWickTotal5": 1.5061,
       "UpperWickTotal5": 1.7536,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 3,
+      "coin": "CPOOL",
+      "VPD": 79.0,
+      "MaxPriceReturn%": 15.77,
+      "WPI5": 0.9,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.7089,
+      "UpperWickTotal5": 1.6786,
       "WPI5Status": "NEUTRAL"
     },
     {
@@ -90,6 +90,18 @@
     },
     {
       "Rank": 8,
+      "coin": "ZKC",
+      "VPD": 68.0,
+      "MaxPriceReturn%": 82.31,
+      "WPI5": -1.5,
+      "LowerDominantDays5": 3,
+      "UpperDominantDays5": 2,
+      "LowerWickTotal5": 1.3471,
+      "UpperWickTotal5": 1.3882,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 9,
       "coin": "ZKP",
       "VPD": 68.0,
       "MaxPriceReturn%": 28.22,
@@ -101,7 +113,7 @@
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 9,
+      "Rank": 10,
       "coin": "MANA",
       "VPD": 67.0,
       "MaxPriceReturn%": 5.83,
@@ -111,53 +123,41 @@
       "LowerWickTotal5": 2.8857,
       "UpperWickTotal5": 1.081,
       "WPI5Status": "BULLISH_WICK"
-    },
-    {
-      "Rank": 10,
-      "coin": "MIRA",
-      "VPD": 65.0,
-      "MaxPriceReturn%": 8.54,
-      "WPI5": 9.63,
-      "LowerDominantDays5": 4,
-      "UpperDominantDays5": 1,
-      "LowerWickTotal5": 1.7788,
-      "UpperWickTotal5": 1.4663,
-      "WPI5Status": "NEUTRAL"
     }
   ],
   "validation_30d_summary": [
     {
       "group": "BEARISH_WICK",
-      "N": 99,
-      "AvgWPI5": -36.25,
-      "AvgD1%": -0.09,
-      "AvgD3%": 0.1,
-      "AvgD5%": -0.06,
-      "AvgMFE5%": 7.09,
-      "AvgMAE5%": -5.16,
-      "D3WinRate%": 34.3
+      "N": 94,
+      "AvgWPI5": -34.88,
+      "AvgD1%": -0.1,
+      "AvgD3%": 0.26,
+      "AvgD5%": 0.42,
+      "AvgMFE5%": 7.08,
+      "AvgMAE5%": -4.97,
+      "D3WinRate%": 37.2
     },
     {
       "group": "BULLISH_WICK",
-      "N": 51,
-      "AvgWPI5": 37.92,
-      "AvgD1%": 0.05,
-      "AvgD3%": -0.43,
-      "AvgD5%": 0.26,
-      "AvgMFE5%": 7.17,
-      "AvgMAE5%": -5.35,
-      "D3WinRate%": 44.7
+      "N": 44,
+      "AvgWPI5": 36.08,
+      "AvgD1%": 0.08,
+      "AvgD3%": -0.51,
+      "AvgD5%": 0.13,
+      "AvgMFE5%": 7.72,
+      "AvgMAE5%": -5.33,
+      "D3WinRate%": 43.8
     },
     {
       "group": "NEUTRAL",
-      "N": 150,
-      "AvgWPI5": 1.41,
-      "AvgD1%": 0.21,
-      "AvgD3%": 0.43,
-      "AvgD5%": 0.77,
-      "AvgMFE5%": 8.16,
-      "AvgMAE5%": -5.26,
-      "D3WinRate%": 38.3
+      "N": 162,
+      "AvgWPI5": 1.23,
+      "AvgD1%": 0.24,
+      "AvgD3%": 0.42,
+      "AvgD5%": 0.62,
+      "AvgMFE5%": 7.98,
+      "AvgMAE5%": -5.14,
+      "D3WinRate%": 37.5
     }
   ],
   "validation_rows": 300
