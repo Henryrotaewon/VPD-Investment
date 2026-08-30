@@ -1,3 +1,3 @@
 VPD scanner ChatGPT trigger anchor.
-Triggered by ChatGPT: 2026-08-30 full v1.5 briefing cycle
-Purpose: scanner -> latest snapshot -> final evening briefing
+Triggered by ChatGPT: 2026-08-30 full rehearsal after runtime-path fix
+Purpose: v1.5 scan -> Telegram -> latest JSON -> final evening briefing -> Gmail
