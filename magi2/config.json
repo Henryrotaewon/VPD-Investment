@@ -3,8 +3,9 @@
   "exchange": "UPBIT_KRW",
   "initial_cash_krw": 1000000,
   "max_position_krw": 100000,
-  "max_open_positions": 3,
+  "max_open_positions": 5,
   "averaging_down": false,
+  "allow_reentry": true,
   "fee_rate": 0.0005,
   "slippage_rate": 0.001,
   "entry": {
@@ -14,11 +15,21 @@
     "min_vpd": 75
   },
   "exit": {
-    "take_profit_pct": 10.0,
-    "warning_profit_pct": 8.0,
+    "default_case": "UNCLASSIFIED",
     "hard_stop_pct": -6.0,
-    "trailing_activation_pct": 8.0,
-    "trailing_drawdown_pct": 4.0
+    "trailing_drawdown_pct": 4.0,
+    "case_policy": {
+      "ACCUMULATION": {"tp1_pct": 12.0, "tp2_pct": 22.0, "tp1_sell_ratio": 0.30, "tp2_sell_ratio": 0.30, "runner_ratio": 0.40},
+      "IGNITION": {"tp1_pct": 15.0, "tp2_pct": 30.0, "tp1_sell_ratio": 0.30, "tp2_sell_ratio": 0.30, "runner_ratio": 0.40},
+      "CONTINUATION": {"tp1_pct": 12.0, "tp2_pct": 25.0, "tp1_sell_ratio": 0.30, "tp2_sell_ratio": 0.30, "runner_ratio": 0.40},
+      "UNCLASSIFIED": {"tp1_pct": 12.0, "tp2_pct": 20.0, "tp1_sell_ratio": 0.30, "tp2_sell_ratio": 0.30, "runner_ratio": 0.40}
+    },
+    "shadow_policies": {
+      "A_FIXED10": {"type": "fixed", "tp_pct": 10.0},
+      "B_12_20": {"type": "staged", "tp1_pct": 12.0, "tp2_pct": 20.0},
+      "C_15_30_TRAIL": {"type": "staged_trailing", "tp1_pct": 15.0, "tp2_pct": 30.0, "trailing_drawdown_pct": 4.0},
+      "D_TRAILING_ONLY": {"type": "trailing", "activation_pct": 12.0, "trailing_drawdown_pct": 4.0}
+    }
   },
   "risk": {
     "max_daily_loss_krw": 30000,
