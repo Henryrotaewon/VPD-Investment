@@ -1,0 +1,656 @@
+{
+  "name": "DKA Accumulation Point-in-Time Replay",
+  "period": "2026-08-19..2026-08-27 KST",
+  "method": "single-market v1.5/v1.6-score-compatible anti-lookahead replay; 07:20, 12:00, 17:50 checkpoints",
+  "note": "VPD score only; VWPI/Distribution Risk not included; historical rank requires a separate full-universe replay.",
+  "rows": [
+    {
+      "asof_kst": "2026-08-19 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.27,
+        "VPD": 68,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": -6.36,
+        "MaxPriceReturn%": 0.66,
+        "RSI14": 11.4,
+        "Williams": -83.6,
+        "Vol3/10": 1.54,
+        "TodayValue/10": 2.59,
+        "IntraAccel": 3.59,
+        "1H%": 0.23
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": null,
+        "delta_price_pct": null
+      }
+    },
+    {
+      "asof_kst": "2026-08-19 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.1,
+        "VPD": 27,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -3.3,
+        "MaxPriceReturn%": 0.71,
+        "RSI14": 9.3,
+        "Williams": -100.0,
+        "Vol3/10": 1.32,
+        "TodayValue/10": 0.31,
+        "IntraAccel": 0.2,
+        "1H%": null
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -41,
+        "delta_price_pct": -3.98
+      }
+    },
+    {
+      "asof_kst": "2026-08-19 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.1,
+        "VPD": 48,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -3.3,
+        "MaxPriceReturn%": 0.71,
+        "RSI14": 9.3,
+        "Williams": -89.7,
+        "Vol3/10": 1.56,
+        "TodayValue/10": 0.95,
+        "IntraAccel": 0.62,
+        "1H%": 0.0
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 21,
+        "delta_price_pct": 0.0
+      }
+    },
+    {
+      "asof_kst": "2026-08-20 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.28,
+        "VPD": 60,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 0.94,
+        "MaxPriceReturn%": 1.42,
+        "RSI14": 15.0,
+        "Williams": -69.0,
+        "Vol3/10": 1.85,
+        "TodayValue/10": 1.78,
+        "IntraAccel": 1.16,
+        "1H%": 0.71
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 12,
+        "delta_price_pct": 4.39
+      }
+    },
+    {
+      "asof_kst": "2026-08-20 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.28,
+        "VPD": 47,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -0.93,
+        "MaxPriceReturn%": 0.23,
+        "RSI14": 23.7,
+        "Williams": -69.0,
+        "Vol3/10": 1.62,
+        "TodayValue/10": 0.45,
+        "IntraAccel": 0.28,
+        "1H%": null
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -13,
+        "delta_price_pct": 0.0
+      }
+    },
+    {
+      "asof_kst": "2026-08-20 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.3,
+        "VPD": 55,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -0.46,
+        "MaxPriceReturn%": 0.23,
+        "RSI14": 24.2,
+        "Williams": -66.7,
+        "Vol3/10": 1.96,
+        "TodayValue/10": 1.43,
+        "IntraAccel": 0.89,
+        "1H%": 0.47
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 8,
+        "delta_price_pct": 0.47
+      }
+    },
+    {
+      "asof_kst": "2026-08-21 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.48,
+        "VPD": 75,
+        "momentum": "↑↑",
+        "trigger": "B",
+        "1D%": 3.7,
+        "MaxPriceReturn%": 4.17,
+        "RSI14": 37.2,
+        "Williams": -46.0,
+        "Vol3/10": 2.19,
+        "TodayValue/10": 2.13,
+        "IntraAccel": 1.32,
+        "1H%": 1.36
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 20,
+        "delta_price_pct": 4.19
+      }
+    },
+    {
+      "asof_kst": "2026-08-21 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.53,
+        "VPD": 49,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 0.22,
+        "MaxPriceReturn%": 0.88,
+        "RSI14": 36.0,
+        "Williams": -40.2,
+        "Vol3/10": 1.3,
+        "TodayValue/10": 0.33,
+        "IntraAccel": 0.18,
+        "1H%": null
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -26,
+        "delta_price_pct": 1.12
+      }
+    },
+    {
+      "asof_kst": "2026-08-21 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.62,
+        "VPD": 54,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 2.21,
+        "MaxPriceReturn%": 2.65,
+        "RSI14": 41.6,
+        "Williams": -29.9,
+        "Vol3/10": 1.49,
+        "TodayValue/10": 0.94,
+        "IntraAccel": 0.5,
+        "1H%": 1.99
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 5,
+        "delta_price_pct": 1.99
+      }
+    },
+    {
+      "asof_kst": "2026-08-22 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.74,
+        "VPD": 68,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 4.87,
+        "MaxPriceReturn%": 5.09,
+        "RSI14": 47.6,
+        "Williams": -16.1,
+        "Vol3/10": 1.86,
+        "TodayValue/10": 2.11,
+        "IntraAccel": 1.13,
+        "1H%": 1.07
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 14,
+        "delta_price_pct": 2.6
+      }
+    },
+    {
+      "asof_kst": "2026-08-22 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.88,
+        "VPD": 65,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 1.67,
+        "MaxPriceReturn%": 1.67,
+        "RSI14": 51.6,
+        "Williams": -0.0,
+        "Vol3/10": 1.86,
+        "TodayValue/10": 1.94,
+        "IntraAccel": 1.15,
+        "1H%": 2.31
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -3,
+        "delta_price_pct": 2.95
+      }
+    },
+    {
+      "asof_kst": "2026-08-22 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.72,
+        "VPD": 86,
+        "momentum": "↑",
+        "trigger": "A",
+        "1D%": -1.67,
+        "MaxPriceReturn%": 5.21,
+        "RSI14": 45.2,
+        "Williams": -31.7,
+        "Vol3/10": 2.84,
+        "TodayValue/10": 5.14,
+        "IntraAccel": 3.04,
+        "1H%": 0.21
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 21,
+        "delta_price_pct": -3.28
+      }
+    },
+    {
+      "asof_kst": "2026-08-23 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.79,
+        "VPD": 93,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -0.21,
+        "MaxPriceReturn%": 5.21,
+        "RSI14": 47.9,
+        "Williams": -25.0,
+        "Vol3/10": 3.45,
+        "TodayValue/10": 7.1,
+        "IntraAccel": 4.19,
+        "1H%": -0.42
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 7,
+        "delta_price_pct": 1.48
+      }
+    },
+    {
+      "asof_kst": "2026-08-23 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.71,
+        "VPD": 72,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 0.86,
+        "MaxPriceReturn%": 7.92,
+        "RSI14": 51.6,
+        "Williams": -32.7,
+        "Vol3/10": 2.69,
+        "TodayValue/10": 2.77,
+        "IntraAccel": 1.25,
+        "1H%": 0.0
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -21,
+        "delta_price_pct": -1.67
+      }
+    },
+    {
+      "asof_kst": "2026-08-23 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.57,
+        "VPD": 85,
+        "momentum": "↑",
+        "trigger": "A",
+        "1D%": -2.14,
+        "MaxPriceReturn%": 7.92,
+        "RSI14": 46.2,
+        "Williams": -46.2,
+        "Vol3/10": 3.0,
+        "TodayValue/10": 3.71,
+        "IntraAccel": 1.67,
+        "1H%": 1.78
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 13,
+        "delta_price_pct": -2.97
+      }
+    },
+    {
+      "asof_kst": "2026-08-24 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.71,
+        "VPD": 83,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 0.86,
+        "MaxPriceReturn%": 7.92,
+        "RSI14": 51.6,
+        "Williams": -32.7,
+        "Vol3/10": 3.19,
+        "TodayValue/10": 4.28,
+        "IntraAccel": 1.93,
+        "1H%": 1.07
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -2,
+        "delta_price_pct": 3.06
+      }
+    },
+    {
+      "asof_kst": "2026-08-24 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.58,
+        "VPD": 43,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -1.93,
+        "MaxPriceReturn%": 0.0,
+        "RSI14": 38.7,
+        "Williams": -45.2,
+        "Vol3/10": 2.02,
+        "TodayValue/10": 0.11,
+        "IntraAccel": 0.05,
+        "1H%": null
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -40,
+        "delta_price_pct": -2.76
+      }
+    },
+    {
+      "asof_kst": "2026-08-24 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.53,
+        "VPD": 43,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -3.0,
+        "MaxPriceReturn%": 0.0,
+        "RSI14": 37.2,
+        "Williams": -50.0,
+        "Vol3/10": 2.09,
+        "TodayValue/10": 0.3,
+        "IntraAccel": 0.13,
+        "1H%": 0.0
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 0,
+        "delta_price_pct": -1.09
+      }
+    },
+    {
+      "asof_kst": "2026-08-25 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.55,
+        "VPD": 48,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": -2.57,
+        "MaxPriceReturn%": 0.0,
+        "RSI14": 37.8,
+        "Williams": -48.1,
+        "Vol3/10": 2.18,
+        "TodayValue/10": 0.57,
+        "IntraAccel": 0.24,
+        "1H%": -0.87
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 5,
+        "delta_price_pct": 0.44
+      }
+    },
+    {
+      "asof_kst": "2026-08-25 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.63,
+        "VPD": 50,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 1.76,
+        "MaxPriceReturn%": 2.42,
+        "RSI14": 45.8,
+        "Williams": -40.4,
+        "Vol3/10": 1.26,
+        "TodayValue/10": 0.27,
+        "IntraAccel": 0.12,
+        "1H%": 1.76
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 2,
+        "delta_price_pct": 1.76
+      }
+    },
+    {
+      "asof_kst": "2026-08-25 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.63,
+        "VPD": 55,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 1.76,
+        "MaxPriceReturn%": 2.42,
+        "RSI14": 45.8,
+        "Williams": -40.4,
+        "Vol3/10": 1.32,
+        "TodayValue/10": 0.43,
+        "IntraAccel": 0.2,
+        "1H%": 0.87
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 5,
+        "delta_price_pct": 0.0
+      }
+    },
+    {
+      "asof_kst": "2026-08-26 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.63,
+        "VPD": 55,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 1.76,
+        "MaxPriceReturn%": 2.42,
+        "RSI14": 45.8,
+        "Williams": -40.4,
+        "Vol3/10": 1.37,
+        "TodayValue/10": 0.6,
+        "IntraAccel": 0.28,
+        "1H%": 0.22
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 0,
+        "delta_price_pct": 0.0
+      }
+    },
+    {
+      "asof_kst": "2026-08-26 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.55,
+        "VPD": 37,
+        "momentum": "↓",
+        "trigger": "-",
+        "1D%": -0.66,
+        "MaxPriceReturn%": 1.31,
+        "RSI14": 40.8,
+        "Williams": -48.1,
+        "Vol3/10": 0.42,
+        "TodayValue/10": 0.1,
+        "IntraAccel": 0.08,
+        "1H%": null
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -18,
+        "delta_price_pct": -1.73
+      }
+    },
+    {
+      "asof_kst": "2026-08-26 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.6,
+        "VPD": 37,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 0.44,
+        "MaxPriceReturn%": 1.31,
+        "RSI14": 43.0,
+        "Williams": -43.3,
+        "Vol3/10": 0.47,
+        "TodayValue/10": 0.23,
+        "IntraAccel": 0.17,
+        "1H%": 0.88
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 0,
+        "delta_price_pct": 1.1
+      }
+    },
+    {
+      "asof_kst": "2026-08-27 07:20:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.64,
+        "VPD": 43,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 1.31,
+        "MaxPriceReturn%": 1.97,
+        "RSI14": 45.1,
+        "Williams": -39.4,
+        "Vol3/10": 0.55,
+        "TodayValue/10": 0.49,
+        "IntraAccel": 0.37,
+        "1H%": 1.31
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 6,
+        "delta_price_pct": 0.87
+      }
+    },
+    {
+      "asof_kst": "2026-08-27 12:00:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.64,
+        "VPD": 38,
+        "momentum": "↓",
+        "trigger": "-",
+        "1D%": -1.28,
+        "MaxPriceReturn%": -0.21,
+        "RSI14": 47.8,
+        "Williams": -39.4,
+        "Vol3/10": 0.43,
+        "TodayValue/10": 0.14,
+        "IntraAccel": 0.25,
+        "1H%": null
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": -5,
+        "delta_price_pct": 0.0
+      }
+    },
+    {
+      "asof_kst": "2026-08-27 17:50:00 KST",
+      "result": {
+        "coin": "DKA",
+        "market": "KRW-DKA",
+        "price": 4.76,
+        "VPD": 58,
+        "momentum": "→",
+        "trigger": "-",
+        "1D%": 1.28,
+        "MaxPriceReturn%": 4.89,
+        "RSI14": 53.1,
+        "Williams": -27.9,
+        "Vol3/10": 0.88,
+        "TodayValue/10": 1.55,
+        "IntraAccel": 2.81,
+        "1H%": -0.83
+      },
+      "error": null,
+      "transition": {
+        "delta_vpd": 20,
+        "delta_price_pct": 2.59
+      }
+    }
+  ]
+}
