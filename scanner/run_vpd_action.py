@@ -14,11 +14,15 @@ if not token:
 
 source_path = ROOT / "scanner" / "vpd_scanner_v1_5.py"
 source = source_path.read_text(encoding="utf-8")
-source = source.replace('LOCAL_LATEST_JSON = "/content/vpd_latest.json"', f'LOCAL_LATEST_JSON = {str(WORK / "vpd_latest.json")!r}')
-source = source.replace('LOCAL_ALL_CSV = "/content/vpd_all_latest.csv"', f'LOCAL_ALL_CSV = {str(WORK / "vpd_all_latest.csv")!r}')
-source = source.replace('LOCAL_HISTORY_CSV = "/content/vpd_history.csv"', f'LOCAL_HISTORY_CSV = {str(WORK / "vpd_history.csv")!r}')
 
-globals_dict = {"GITHUB_TOKEN": token, "__name__": "__main__", "__file__": str(source_path)}
+globals_dict = {
+    "GITHUB_TOKEN": token,
+    "__name__": "__main__",
+    "__file__": str(source_path),
+    "LOCAL_LATEST_JSON": str(WORK / "vpd_latest.json"),
+    "LOCAL_ALL_CSV": str(WORK / "vpd_all_latest.csv"),
+    "LOCAL_HISTORY_CSV": str(WORK / "vpd_history.csv"),
+}
 exec(compile(source, str(source_path), "exec"), globals_dict)
 
 latest_path = WORK / "vpd_latest.json"
