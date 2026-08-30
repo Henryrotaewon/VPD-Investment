@@ -1,0 +1,164 @@
+{
+  "name": "WPI5 Shadow v1.0",
+  "source": "Upbit KRW daily OHLCV",
+  "note": "Shadow only; VPD v1.5 score unchanged",
+  "definition": "WPI5=(sum normalized lower wicks - sum normalized upper wicks)/(sum both)*100 over prior 5 completed candles",
+  "today_top10": [
+    {
+      "Rank": 1,
+      "coin": "ZK",
+      "VPD": 83.0,
+      "MaxPriceReturn%": 19.13,
+      "WPI5": 11.66,
+      "LowerDominantDays5": 3,
+      "UpperDominantDays5": 2,
+      "LowerWickTotal5": 2.0286,
+      "UpperWickTotal5": 1.6048,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 2,
+      "coin": "CPOOL",
+      "VPD": 83.0,
+      "MaxPriceReturn%": 15.77,
+      "WPI5": 0.9,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.7089,
+      "UpperWickTotal5": 1.6786,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 3,
+      "coin": "DKA",
+      "VPD": 83.0,
+      "MaxPriceReturn%": 16.53,
+      "WPI5": -7.59,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.5061,
+      "UpperWickTotal5": 1.7536,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 4,
+      "coin": "TRUST",
+      "VPD": 78.0,
+      "MaxPriceReturn%": 7.06,
+      "WPI5": 5.03,
+      "LowerDominantDays5": 3,
+      "UpperDominantDays5": 2,
+      "LowerWickTotal5": 1.5306,
+      "UpperWickTotal5": 1.3841,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 5,
+      "coin": "WCT",
+      "VPD": 77.0,
+      "MaxPriceReturn%": 12.04,
+      "WPI5": 10.25,
+      "LowerDominantDays5": 3,
+      "UpperDominantDays5": 2,
+      "LowerWickTotal5": 1.774,
+      "UpperWickTotal5": 1.4442,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 6,
+      "coin": "AUCTION",
+      "VPD": 73.0,
+      "MaxPriceReturn%": 25.0,
+      "WPI5": 32.6,
+      "LowerDominantDays5": 4,
+      "UpperDominantDays5": 1,
+      "LowerWickTotal5": 2.4368,
+      "UpperWickTotal5": 1.2386,
+      "WPI5Status": "BULLISH_WICK"
+    },
+    {
+      "Rank": 7,
+      "coin": "OPG",
+      "VPD": 69.0,
+      "MaxPriceReturn%": 5.97,
+      "WPI5": 12.48,
+      "LowerDominantDays5": 3,
+      "UpperDominantDays5": 2,
+      "LowerWickTotal5": 1.6252,
+      "UpperWickTotal5": 1.2646,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 8,
+      "coin": "ZKP",
+      "VPD": 68.0,
+      "MaxPriceReturn%": 28.22,
+      "WPI5": -22.66,
+      "LowerDominantDays5": 1,
+      "UpperDominantDays5": 4,
+      "LowerWickTotal5": 1.2223,
+      "UpperWickTotal5": 1.9385,
+      "WPI5Status": "BEARISH_WICK"
+    },
+    {
+      "Rank": 9,
+      "coin": "MANA",
+      "VPD": 67.0,
+      "MaxPriceReturn%": 5.83,
+      "WPI5": 45.5,
+      "LowerDominantDays5": 4,
+      "UpperDominantDays5": 1,
+      "LowerWickTotal5": 2.8857,
+      "UpperWickTotal5": 1.081,
+      "WPI5Status": "BULLISH_WICK"
+    },
+    {
+      "Rank": 10,
+      "coin": "MIRA",
+      "VPD": 65.0,
+      "MaxPriceReturn%": 8.54,
+      "WPI5": 9.63,
+      "LowerDominantDays5": 4,
+      "UpperDominantDays5": 1,
+      "LowerWickTotal5": 1.7788,
+      "UpperWickTotal5": 1.4663,
+      "WPI5Status": "NEUTRAL"
+    }
+  ],
+  "validation_30d_summary": [
+    {
+      "group": "BEARISH_WICK",
+      "N": 99,
+      "AvgWPI5": -36.25,
+      "AvgD1%": -0.09,
+      "AvgD3%": 0.1,
+      "AvgD5%": -0.06,
+      "AvgMFE5%": 7.09,
+      "AvgMAE5%": -5.16,
+      "D3WinRate%": 34.3
+    },
+    {
+      "group": "BULLISH_WICK",
+      "N": 51,
+      "AvgWPI5": 37.92,
+      "AvgD1%": 0.05,
+      "AvgD3%": -0.43,
+      "AvgD5%": 0.26,
+      "AvgMFE5%": 7.17,
+      "AvgMAE5%": -5.35,
+      "D3WinRate%": 44.7
+    },
+    {
+      "group": "NEUTRAL",
+      "N": 150,
+      "AvgWPI5": 1.41,
+      "AvgD1%": 0.21,
+      "AvgD3%": 0.43,
+      "AvgD5%": 0.77,
+      "AvgMFE5%": 8.16,
+      "AvgMAE5%": -5.26,
+      "D3WinRate%": 38.3
+    }
+  ],
+  "validation_rows": 300
+}
