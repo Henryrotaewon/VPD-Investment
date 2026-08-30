@@ -1,0 +1,20 @@
+{
+  "mode": "PAPER",
+  "cash_krw": 900000,
+  "positions": {
+    "ORCA": {
+      "entry_at": "2026-08-31T08:54:38.162749+09:00",
+      "entry_price": 1827.8259999999998,
+      "last_price": 1826.0,
+      "peak_price": 1826.0,
+      "qty": 54.68244789164834,
+      "cost_krw": 100000,
+      "entry_vpd": 85.0,
+      "entry_momentum": "↑",
+      "entry_trigger": "A",
+      "warning_sent": false
+    }
+  },
+  "realized_pnl_krw": 0.0,
+  "updated_at": "2026-08-31T08:54:38.162846+09:00"
+}
