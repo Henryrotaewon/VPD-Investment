@@ -1,0 +1,251 @@
+{
+  "name": "ZKC Intraday Point-in-Time Replay",
+  "date": "2026-08-30",
+  "rows": [
+    {
+      "asof_kst": "2026-08-30 07:20:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 55.3,
+        "VPD": 76,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 1.28,
+        "MaxPriceReturn%": 10.07,
+        "RSI14": 39.2,
+        "Williams": -59.3,
+        "Vol3/10": 1.78,
+        "TodayValue/10": 4.12,
+        "IntraAccel": 6.88,
+        "1H%": -1.43
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 09:00:00 KST",
+      "result": null,
+      "error": "CURRENT_DAY_MINUTES_MISSING"
+    },
+    {
+      "asof_kst": "2026-08-30 10:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 58.4,
+        "VPD": 46,
+        "momentum": "↑",
+        "trigger": "-",
+        "1D%": 5.42,
+        "MaxPriceReturn%": 6.68,
+        "RSI14": 58.9,
+        "Williams": -33.1,
+        "Vol3/10": 1.37,
+        "TodayValue/10": 0.66,
+        "IntraAccel": 0.5,
+        "1H%": null
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 11:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 58.1,
+        "VPD": 82,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 4.87,
+        "MaxPriceReturn%": 9.57,
+        "RSI14": 58.3,
+        "Williams": -35.6,
+        "Vol3/10": 2.57,
+        "TodayValue/10": 4.35,
+        "IntraAccel": 3.26,
+        "1H%": -0.51
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 12:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 58.9,
+        "VPD": 85,
+        "momentum": "↑↑",
+        "trigger": "A",
+        "1D%": 6.32,
+        "MaxPriceReturn%": 9.57,
+        "RSI14": 59.9,
+        "Williams": -28.8,
+        "Vol3/10": 2.93,
+        "TodayValue/10": 5.49,
+        "IntraAccel": 4.11,
+        "1H%": 1.03
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 13:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 65.1,
+        "VPD": 78,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 17.51,
+        "MaxPriceReturn%": 25.27,
+        "RSI14": 69.2,
+        "Williams": -22.8,
+        "Vol3/10": 7.9,
+        "TodayValue/10": 22.58,
+        "IntraAccel": 16.91,
+        "1H%": 10.53
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 14:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 61.4,
+        "VPD": 85,
+        "momentum": "↑↑",
+        "trigger": "A",
+        "1D%": 10.83,
+        "MaxPriceReturn%": 25.27,
+        "RSI14": 64.2,
+        "Williams": -42.3,
+        "Vol3/10": 10.18,
+        "TodayValue/10": 30.21,
+        "IntraAccel": 22.61,
+        "1H%": -5.68
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 14:08:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 61.8,
+        "VPD": 85,
+        "momentum": "↑↑",
+        "trigger": "A",
+        "1D%": 11.55,
+        "MaxPriceReturn%": 25.27,
+        "RSI14": 64.8,
+        "Williams": -40.2,
+        "Vol3/10": 10.3,
+        "TodayValue/10": 30.59,
+        "IntraAccel": 22.9,
+        "1H%": -3.74
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 15:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 61.9,
+        "VPD": 83,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 11.73,
+        "MaxPriceReturn%": 25.27,
+        "RSI14": 65.0,
+        "Williams": -39.7,
+        "Vol3/10": 11.03,
+        "TodayValue/10": 32.99,
+        "IntraAccel": 24.7,
+        "1H%": 0.81
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 16:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 65.6,
+        "VPD": 78,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 18.41,
+        "MaxPriceReturn%": 25.45,
+        "RSI14": 69.7,
+        "Williams": -20.5,
+        "Vol3/10": 13.73,
+        "TodayValue/10": 42.46,
+        "IntraAccel": 31.79,
+        "1H%": 5.98
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 17:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 78.6,
+        "VPD": 60,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 41.88,
+        "MaxPriceReturn%": 43.14,
+        "RSI14": 79.5,
+        "Williams": -2.4,
+        "Vol3/10": 18.74,
+        "TodayValue/10": 61.88,
+        "IntraAccel": 46.32,
+        "1H%": 19.82
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 17:50:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 78.5,
+        "VPD": 60,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 41.7,
+        "MaxPriceReturn%": 44.95,
+        "RSI14": 79.4,
+        "Williams": -6.0,
+        "Vol3/10": 23.46,
+        "TodayValue/10": 80.71,
+        "IntraAccel": 60.42,
+        "1H%": 0.9
+      },
+      "error": null
+    },
+    {
+      "asof_kst": "2026-08-30 18:00:00 KST",
+      "result": {
+        "coin": "ZKC",
+        "market": "KRW-ZKC",
+        "price": 76.6,
+        "VPD": 64,
+        "momentum": "↑↑",
+        "trigger": "-",
+        "1D%": 38.27,
+        "MaxPriceReturn%": 44.95,
+        "RSI14": 78.4,
+        "Williams": -12.4,
+        "Vol3/10": 24.28,
+        "TodayValue/10": 84.04,
+        "IntraAccel": 62.91,
+        "1H%": -2.54
+      },
+      "error": null
+    }
+  ]
+}
