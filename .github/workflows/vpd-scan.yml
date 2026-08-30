@@ -1,4 +1,4 @@
-name: VPD Scanner v1.4
+name: VPD Scanner v1.5
 
 on:
   workflow_dispatch:
@@ -6,9 +6,6 @@ on:
     paths:
       - '.github/vpd-trigger.txt'
   schedule:
-    # GitHub Actions cron uses UTC. Kept as backup schedule.
-    # 07:20 KST = 22:20 UTC (previous calendar day)
-    # 17:50 KST = 08:50 UTC
     - cron: '20 22 * * *'
     - cron: '50 8 * * *'
 
@@ -23,10 +20,11 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,3 +41,21 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scanner/run_vpd_action.py
+
+      - name: Refresh scanner outputs
+        run: git pull --rebase origin main
+
+      - name: Run WPI5 shadow and 30-day validation
+        run: python scanner/wpi5_shadow.py
+
+      - name: Commit WPI5 shadow outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/wpi5_shadow_latest.json data/wpi5_validation_30d.csv
+          if git diff --cached --quiet; then
+            echo "No WPI5 changes"
+          else
+            git commit -m "Update WPI5 shadow validation"
+            git push origin main
+          fi
