@@ -1,0 +1,26 @@
+name: DKA Accumulation Replay
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/dka-replay-trigger.txt'
+permissions:
+  contents: write
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pandas numpy requests
+      - name: Run DKA accumulation replay
+        run: python scanner/dka_accumulation_replay.py
+      - name: Commit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/dka_accumulation_replay.json
+          git diff --cached --quiet || (git commit -m "Update DKA accumulation replay result" && git push)
