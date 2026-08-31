@@ -13,7 +13,7 @@ on:
           - refill
           - report
   workflow_run:
-    workflows: ["VPD Scanner v1.6"]
+    workflows: ["MAGI1 Scan"]
     types: [completed]
   schedule:
     - cron: '*/5 * * * *'
@@ -61,7 +61,7 @@ jobs:
           mode='monitor'
           if p.exists():
               s=json.loads(p.read_text(encoding='utf-8'))
-              raw=s.get('asof')
+              raw=s.get('asof') or s.get('asof_kst')
               if raw:
                   dt=datetime.fromisoformat(raw)
                   if dt.hour==7:
