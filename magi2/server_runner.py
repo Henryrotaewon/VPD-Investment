@@ -74,7 +74,6 @@ def prepare_persistent_state():
             else:
                 raise RuntimeError(f'Cannot bootstrap missing MAGI2 state file: {repo_file}')
 
-    # Validate before replacing the repository path with symlinks.
     if seed_state.exists() and not seed_state.is_symlink():
         assert_no_recovery_regression(seed_state, volume_dir / 'paper_state.json')
 
@@ -168,25 +167,40 @@ def handle_command(text):
         elif cmd == 'magi2 help':
             telegram(help_text())
         elif cmd.startswith('magi1') or cmd.startswith('magi2'):
-            telegram('❓ 알 수 없는 MAGI 명령입니다.\n`magi2 help`로 명령어를 확인하세요.')
-        else:
-            return
+            telegram('❓ 알 수 없는 MAGI 명령입니다.\nmagi2 help 로 명령어를 확인하세요.')
     except Exception as e:
         log(f'Command failed [{cmd}]: {e}')
         telegram(f'🚨 MAGI 명령 실패\n{cmd}\n{e}')
 
 
-def poll_updates(offset):
-    if not BOT_TOKEN:
-        return offset
+def get_updates(offset):
+    r = requests.get(
+        f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',
+        params={'offset': offset, 'timeout': 0, 'allowed_updates': json.dumps(['message'])},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return r.json().get('result', [])
+
+
+def discard_pending_updates():
+    """A restart must never replay commands that were sent while MAGI was offline."""
+    offset = 0
     try:
-        r = requests.get(
-            f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',
-            params={'offset': offset, 'timeout': 0, 'allowed_updates': json.dumps(['message'])},
-            timeout=10,
-        )
-        r.raise_for_status()
-        for update in r.json().get('result', []):
+        updates = get_updates(0)
+        if updates:
+            offset = max(int(x['update_id']) for x in updates) + 1
+            # Acknowledge them without executing by advancing Telegram's offset once.
+            get_updates(offset)
+            log(f'Discarded {len(updates)} pending Telegram update(s) on startup')
+    except Exception as e:
+        log(f'Telegram startup flush error: {e}')
+    return offset
+
+
+def poll_updates(offset):
+    try:
+        for update in get_updates(offset):
             offset = max(offset, int(update['update_id']) + 1)
             msg = update.get('message') or {}
             chat_id = str((msg.get('chat') or {}).get('id', ''))
@@ -204,13 +218,12 @@ def main():
     prepare_persistent_state()
     if not BOT_TOKEN or not ALLOWED_CHAT_ID:
         raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
+    offset = discard_pending_updates()
     log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
-    offset = 0
-    next_monitor = time.monotonic() + INTERVAL  # startup grace: commands/state can be checked first
+    next_monitor = time.monotonic() + INTERVAL
     while True:
         offset = poll_updates(offset)
-        now = time.monotonic()
-        if now >= next_monitor:
+        if time.monotonic() >= next_monitor:
             try:
                 run_engine('monitor')
             except Exception as e:
