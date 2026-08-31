@@ -29,6 +29,13 @@ jobs:
           python-version: '3.11'
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
+      - name: Verify MAGI2 state continuity
+        run: |
+          mkdir -p magi2/state
+          if [ ! -f magi2/state/paper_state.json ]; then
+            echo "MAGI2 state missing. Refusing to initialize a blank live paper account." >&2
+            exit 1
+          fi
       - name: Run MAGI2 paper monitor and Telegram alerts
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -39,11 +46,15 @@ jobs:
         run: |
           git config user.name "magi2-bot"
           git config user.email "magi2-bot@users.noreply.github.com"
-          if [ -d magi2/state ]; then
-            git add magi2/state/paper_state.json magi2/state/paper_events.jsonl 2>/dev/null || true
-          fi
-          if ! git diff --cached --quiet; then
-            git commit -m "MAGI2 paper state update [skip ci]"
-            git pull --rebase origin main
-            git push origin main
+          mkdir -p magi2/state
+          files=""
+          [ -f magi2/state/paper_state.json ] && files="$files magi2/state/paper_state.json"
+          [ -f magi2/state/paper_events.jsonl ] && files="$files magi2/state/paper_events.jsonl"
+          if [ -n "$files" ]; then
+            git add $files
+            if ! git diff --cached --quiet; then
+              git commit -m "MAGI2 paper state update [skip ci]"
+              git pull --rebase origin main
+              git push origin main
+            fi
           fi
