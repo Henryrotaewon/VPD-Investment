@@ -74,8 +74,13 @@ def migrate_state(st):
     if changed: save_state(st)
 
 def load_today_snapshot():
-    if not VPD_PATH.exists(): return None
-    snap=json.loads(VPD_PATH.read_text(encoding='utf-8')); raw=snap.get('asof') or snap.get('asof_kst')
+    repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
+    url=f'https://raw.githubusercontent.com/{repo}/main/data/vpd_latest.json'
+    try:
+        r=requests.get(url,timeout=20); r.raise_for_status(); snap=r.json()
+    except Exception as e:
+        print(f'VPD GitHub fetch error: {e}'); return None
+    raw=snap.get('asof') or snap.get('asof_kst')
     if not raw: return None
     try: asof=datetime.fromisoformat(raw).astimezone(KST)
     except ValueError: return None
@@ -180,7 +185,7 @@ def refill(st):
     details='\n'.join(f'{i+1}. {c} | 매수금액 {slot:,.0f}원' for i,c in enumerate(bought)); telegram(f'♻️ MAGI2 REFILL 완료\n{sid}\nBUY {len(bought)}\n{details}\n당일 균등매수원가 {slot:,.0f}원\n잔여 예수금 {float(st["cash_krw"]):,.0f}원\n※ 기존 보유 종목 매도 없음 · PAPER ONLY'); send_current_status(st,'📊 REFILL 후 MAGI2 PAPER 현황'); return True
 
 def report(st):
-    active=[p['market'] for p in st.get('positions',{}).values() if p.get('status')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))
+    active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','refill','report']); mode=ap.parse_args().mode; st=load_state(); migrate_state(st)
