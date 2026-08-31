@@ -1,6 +1,5 @@
-
 import json, os, time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
@@ -11,6 +10,14 @@ STATE_PATH=ROOT/'magi2'/'state'/'paper_state.json'
 EVENTS_PATH=ROOT/'magi2'/'state'/'paper_events.jsonl'
 VPD_PATH=ROOT/'data'/'vpd_latest.json'
 KST=ZoneInfo('Asia/Seoul')
+
+# BASE forward-test policy:
+# - close all remaining prior-day positions after 07:10 KST (TIME_EXIT_0710)
+# - do not carry overlapping TOP10 names across cohorts during BASE validation
+# - after a fresh morning VPD snapshot, start a clean new cohort
+# - carry forward the prior cohort's final cash/equity as the new cohort principal
+# - split the new principal equally across that morning's TOP10
+# A future ROLLING strategy may keep overlapping names, but it must use a separate strategy ID.
 
 
 def now_dt(): return datetime.now(KST)
@@ -85,8 +92,7 @@ def migrate_buy_fee(st):
     for p in st.get('positions',{}).values():
         if 'buy_fee_krw' in p: continue
         old_cost=float(p.get('cost_krw',CFG.get('position_krw',300000))); buy_notional=old_cost/(1.0+fee_rate); p['buy_notional_krw']=buy_notional; p['buy_fee_krw']=old_cost-buy_notional
-        old_qty=float(p.get('qty',0)); old_fill=float(p.get('entry_price',0)); new_qty=buy_notional/old_fill if old_fill else old_qty; p['qty']=new_qty; p['cost_krw']=old_cost
-        changed=True
+        old_fill=float(p.get('entry_price',0)); p['qty']=buy_notional/old_fill if old_fill else float(p.get('qty',0)); p['cost_krw']=old_cost; changed=True
     if changed: save_state(st)
 
 
@@ -121,8 +127,8 @@ def maybe_initialize_daily_cohort(st):
     if st.get('cohort_date')==today or any(p.get('status','OPEN')=='OPEN' for p in st.get('positions',{}).values()): return False
     candidates=snap.get('top10',[])[:int(CFG.get('session',{}).get('top_n',10))]
     if not candidates: return False
-    prices=get_prices([x['market'] for x in candidates]); prior_equity=float(st.get('cash_krw',CFG['initial_cash_krw'])); principal=prior_equity; top_n=max(1,len(candidates)); budget=principal/top_n; slippage=float(CFG.get('slippage_rate',0.001)); fee_rate=float(CFG.get('fee_rate',0.0005)); tp=float(CFG['exit']['take_profit_pct']); sl=float(CFG['exit']['hard_stop_pct']); warning=float(CFG['exit']['warning_profit_pct']); lifetime=float(st.get('lifetime_realized_pnl_krw',0.0))
-    st.clear(); st.update({'mode':'PAPER','cohort_id':f'{today}-AM-001','cohort_date':today,'strategy':CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'),'source_snapshot_asof_kst':snap.get('asof_kst',asof.isoformat()),'initial_cash_krw':float(CFG['initial_cash_krw']),'cohort_start_equity_krw':principal,'cash_krw':principal,'positions':{},'realized_pnl_krw':0.0,'lifetime_realized_pnl_krw':lifetime,'cost_model':'SLIPPAGE_BUY_FEE_SELL_FEE_NET','capital_model':'CARRY_FORWARD_EQUITY_EQUAL_WEIGHT','paper_only':True})
+    prices=get_prices([x['market'] for x in candidates]); principal=float(st.get('cash_krw',CFG['initial_cash_krw'])); top_n=max(1,len(candidates)); budget=principal/top_n; slippage=float(CFG.get('slippage_rate',0.001)); fee_rate=float(CFG.get('fee_rate',0.0005)); tp=float(CFG['exit']['take_profit_pct']); sl=float(CFG['exit']['hard_stop_pct']); warning=float(CFG['exit']['warning_profit_pct']); lifetime=float(st.get('lifetime_realized_pnl_krw',0.0))
+    st.clear(); st.update({'mode':'PAPER','cohort_id':f'{today}-AM-001','cohort_date':today,'strategy':CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'),'source_snapshot_asof_kst':snap.get('asof_kst',asof.isoformat()),'initial_cash_krw':float(CFG['initial_cash_krw']),'cohort_start_equity_krw':principal,'cash_krw':principal,'positions':{},'realized_pnl_krw':0.0,'lifetime_realized_pnl_krw':lifetime,'cost_model':'SLIPPAGE_BUY_FEE_SELL_FEE_NET','capital_model':'CARRY_FORWARD_EQUITY_EQUAL_WEIGHT','cohort_policy':'DAILY_FULL_RESET','paper_only':True})
     for row in candidates:
         coin,market=row['coin'],row['market']; live_px=prices.get(market)
         if live_px is None or st['cash_krw']+1e-9<budget: continue
@@ -130,7 +136,7 @@ def maybe_initialize_daily_cohort(st):
         st['positions'][coin]={'market':market,'status':'OPEN','entry_at':now_iso(),'signal_rank':row.get('Rank'),'signal_vpd':row.get('VPD'),'signal_price':row.get('price'),'entry_market_price':live_px,'entry_price':fill,'buy_notional_krw':buy_notional,'buy_fee_krw':buy_fee,'qty':qty,'cost_krw':budget,'target_profit_pct':tp,'stop_loss_pct':sl,'warning_profit_pct':warning,'last_price':live_px,'peak_price':live_px}
         st['cash_krw']-=budget
         log_event({'ts':now_iso(),'type':'BUY','cohort_id':st['cohort_id'],'coin':coin,'market':market,'budget_krw':round(budget,2),'buy_notional_krw':round(buy_notional,2),'buy_fee_krw':round(buy_fee,2),'market_price':live_px,'fill_price':fill,'target_profit_pct':tp,'stop_loss_pct':sl,'signal_rank':row.get('Rank'),'signal_vpd':row.get('VPD'),'paper_only':True})
-    save_state(st); telegram('🟢 MAGI2 DAILY COHORT 매수완료\n'+f"{st['cohort_id']} / {len(st['positions'])}종목 / 코호트 원금 {principal:,.0f}원 / 종목당 {budget:,.0f}원\n"+f'TP +{tp:.1f}% / SL {sl:.1f}% / 익일 07:10 미도달분 일괄청산\n'+f'슬리피지 {slippage*100:.2f}% + 매수/매도 수수료 각 {fee_rate*100:.2f}% 반영\n※ 전일 최종 순자산 승계 · PAPER ONLY · 실주문 없음'); return True
+    save_state(st); telegram('🟢 MAGI2 DAILY COHORT 매수완료\n'+f"{st['cohort_id']} / {len(st['positions'])}종목 / 코호트 원금 {principal:,.0f}원 / 종목당 {budget:,.0f}원\n"+f'TP +{tp:.1f}% / SL {sl:.1f}% / 익일 07:10 미도달분 일괄청산\n'+f'슬리피지 {slippage*100:.2f}% + 매수/매도 수수료 각 {fee_rate*100:.2f}% 반영\n※ BASE=전일 전량청산 후 최종 순자산 승계 · PAPER ONLY'); return True
 
 
 def monitor_once(st,send_status=False):
