@@ -8,3 +8,4 @@
 {"ts":"2026-08-31T07:23:14+09:00","type":"BUY","cohort_id":"2026-08-31-AM-001","coin":"FLOCK","rank":8,"vpd":79.0,"market_price":48.0,"fill_price":48.048,"budget_krw":300000,"target_profit_pct":12.0,"paper_only":true}
 {"ts":"2026-08-31T07:23:14+09:00","type":"BUY","cohort_id":"2026-08-31-AM-001","coin":"TRUST","rank":9,"vpd":78.0,"market_price":73.9,"fill_price":73.9739,"budget_krw":300000,"target_profit_pct":12.0,"paper_only":true}
 {"ts":"2026-08-31T07:23:14+09:00","type":"BUY","cohort_id":"2026-08-31-AM-001","coin":"MIRA","rank":10,"vpd":77.0,"market_price":61.6,"fill_price":61.6616,"budget_krw":300000,"target_profit_pct":12.0,"paper_only":true}
+{"ts": "2026-08-31T13:01:10.575329+09:00", "type": "SELL", "cohort_id": "2026-08-31-AM-001", "coin": "FLOCK", "reason": "TAKE_PROFIT", "price": 56.3, "return_pct": 17.17, "pnl_krw": 51172.04}
