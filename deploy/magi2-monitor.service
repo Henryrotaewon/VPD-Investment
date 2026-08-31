@@ -1,0 +1,18 @@
+[Unit]
+Description=MAGI2 PAPER Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/VPD-Investment
+EnvironmentFile=/etc/magi2.env
+Environment=MAGI2_MONITOR_INTERVAL_SECONDS=60
+ExecStart=/opt/VPD-Investment/.venv/bin/python magi2/server_runner.py
+Restart=always
+RestartSec=5
+User=magi
+Group=magi
+
+[Install]
+WantedBy=multi-user.target
