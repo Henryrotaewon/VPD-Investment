@@ -15,20 +15,27 @@ concurrency:
 jobs:
   paper:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run MAGI 2 paper engine
+      - name: Run MAGI2 paper monitor and Telegram alerts
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python magi2/paper_engine.py
-      - name: Persist paper state and trade log
+      - name: Persist MAGI2 paper state and trade log
+        if: always()
         run: |
           git config user.name "magi2-bot"
           git config user.email "magi2-bot@users.noreply.github.com"
-          git add data/magi2_paper_state.json data/magi2_trade_log.jsonl 2>/dev/null || true
+          git pull --rebase origin main
+          git add data/magi2_paper_state.json data/magi2_trade_log.jsonl
           if ! git diff --cached --quiet; then
             git commit -m "MAGI2 paper state update [skip ci]"
-            git push
+            git push origin main
           fi
