@@ -9,9 +9,8 @@
   "session": {
     "entry_after_kst": "07:20",
     "entry_window_end_kst": "08:00",
-    "time_exit_kst": "07:10",
     "top_n": 10,
-    "daily_reset_principal": true
+    "daily_reset_principal": false
   },
   "exit": {
     "take_profit_pct": 12.0,
