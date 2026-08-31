@@ -2,8 +2,12 @@ name: MAGI 2 Paper Execution
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["VPD Scanner v1.6"]
+    types: [completed]
   schedule:
     - cron: '*/15 * * * *'
+    - cron: '10 22 * * *'  # 07:10 KST next-day time exit
 
 permissions:
   contents: write
@@ -14,6 +18,7 @@ concurrency:
 
 jobs:
   paper:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
