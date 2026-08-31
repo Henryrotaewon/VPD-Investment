@@ -131,10 +131,6 @@ def monitor_once(st):
 def derive_daily_equal_buy(st,today):
     if st.get('daily_equal_buy_date')==today and float(st.get('daily_equal_buy_krw',0) or 0)>0:
         return float(st['daily_equal_buy_krw'])
-    # Transition/fallback: if today's reference is missing or zero, derive it from
-    # the actual OPEN-position cost average. This preserves the portfolio's real
-    # equal-buy size instead of hardcoding 300,000. With the current cohort this
-    # naturally resolves to 300,000 KRW.
     costs=[float(p.get('cost_krw',0)) for p in st.get('positions',{}).values() if p.get('status')=='OPEN' and float(p.get('cost_krw',0))>0]
     if not costs: return None
     slot=sum(costs)/len(costs)
@@ -146,7 +142,6 @@ def morning_rebalance(st):
     if not loaded: raise RuntimeError('Fresh morning VPD snapshot (today 07:20~08:00 KST) is unavailable.')
     snap,asof=loaded; today=asof.date().isoformat()
     if st.get('last_rebalance_date')==today: telegram('ℹ️ MAGI2 MORNING\n오늘 AM 리밸런싱은 이미 완료되었습니다.\nPAPER ONLY'); return False
-    # Reset the daily PnL bucket before today's exits so VPD_EXIT PnL is retained.
     st['realized_pnl_krw']=0.0
     top_n=int(CFG.get('session',{}).get('top_n',10)); candidates=snap.get('top10',[])[:top_n]
     if not candidates: raise RuntimeError('Morning VPD TOP10 is empty.')
@@ -158,15 +153,23 @@ def morning_rebalance(st):
         else:
             px=prices.get(p['market'])
             if px is not None and close_position(st,coin,p,px,'VPD_EXIT',False): exited.append(coin)
-    open_after={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; morning_slot=float(CFG.get('position_krw',300000))
+    open_after={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}
+    remaining_slots=max(0,top_n-len(open_after))
+    available_cash=float(st.get('cash_krw',0))
+    if remaining_slots>0:
+        morning_slot=available_cash/remaining_slots
+        daily_source='MORNING_AVAILABLE_CASH_PER_NEW_SLOT'
+    else:
+        costs=[float(p.get('cost_krw',0)) for p in open_after.values() if float(p.get('cost_krw',0))>0]
+        morning_slot=sum(costs)/len(costs) if costs else 0.0
+        daily_source='MORNING_ALL_KEEP_OPEN_AVG'
     for row in candidates:
         if len(open_after)>=top_n: break
         if row['coin'] in open_after: continue
-        if float(st.get('cash_krw',0))+1e-9<morning_slot: break
         if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
-    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='DAILY_EQUAL_BUY_REFILL'
-    current=[p for p in st.get('positions',{}).values() if p.get('status')=='OPEN']; slot=sum(float(p['cost_krw']) for p in current)/len(current) if current else 0; st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']='MORNING_OPEN_AVG'; save_state(st)
-    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n당일 균등매수원가 {slot:,.0f}원\n※ 중복 검출 종목 유지 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
+    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
+    st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source; save_state(st)
+    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ KEEP 수량·평단 유지 / 청산 후 가용예수금÷신규슬롯 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
 
 def refill(st):
     loaded=load_today_snapshot()
