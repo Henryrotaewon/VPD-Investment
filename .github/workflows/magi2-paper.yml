@@ -2,11 +2,21 @@ name: MAGI 2 Paper Execution
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "MAGI2 command"
+        required: true
+        default: report
+        type: choice
+        options:
+          - morning
+          - refill
+          - report
   workflow_run:
     workflows: ["VPD Scanner v1.6"]
     types: [completed]
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
@@ -19,7 +29,7 @@ jobs:
   paper:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,14 +43,42 @@ jobs:
         run: |
           mkdir -p magi2/state
           if [ ! -f magi2/state/paper_state.json ]; then
-            echo "MAGI2 state missing. Refusing to initialize a blank live paper account." >&2
+            echo "MAGI2 state missing. Refusing to initialize a blank paper account." >&2
             exit 1
           fi
-      - name: Run MAGI2 paper monitor and Telegram alerts
+      - name: Resolve MAGI2 mode
+        id: resolve
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ inputs.mode }}"
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            MODE=$(python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          p=Path('data/vpd_latest.json')
+          mode='monitor'
+          if p.exists():
+              s=json.loads(p.read_text(encoding='utf-8'))
+              raw=s.get('asof')
+              if raw:
+                  dt=datetime.fromisoformat(raw)
+                  if dt.hour==7:
+                      mode='morning'
+          print(mode)
+          PY
+          )
+          else
+            MODE="monitor"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Resolved MAGI2 mode: $MODE"
+      - name: Run MAGI2 PAPER
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python magi2/paper_engine.py
+        run: python magi2/paper_engine.py "${{ steps.resolve.outputs.mode }}"
       - name: Persist MAGI2 paper state and trade log
         if: always()
         run: |
