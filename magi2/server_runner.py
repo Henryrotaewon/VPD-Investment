@@ -65,7 +65,10 @@ def run_engine(mode):
     p=subprocess.run([sys.executable,'magi2/paper_engine.py',mode],cwd=ROOT,capture_output=True,text=True,env=os.environ.copy())
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
-    if p.returncode!=0: raise RuntimeError(f'MAGI2 {mode} failed with exit code {p.returncode}')
+    if p.returncode!=0:
+        details=(p.stderr or p.stdout or '').strip()
+        if len(details)>1800: details=details[-1800:]
+        raise RuntimeError(f'MAGI2 {mode} failed with exit code {p.returncode}\n{details or "(no subprocess output)"}')
 
 
 def num(v,d=0):
