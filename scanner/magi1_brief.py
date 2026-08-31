@@ -2,7 +2,7 @@
 No new market scan is performed here. VPD values are read exactly from the session state.
 """
 import argparse, json, os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
@@ -40,14 +40,27 @@ def risk_label(x):
     return '관찰'
 
 
+def freshness_error(session, dt, asof):
+    """Accept a recent manual test state, while protecting scheduled briefings from stale data.
+
+    Scheduled production pairing is morning scan 07:10 -> brief 07:30 and
+    evening scan 17:40 -> brief 18:00 KST. Manual workflow_dispatch tests can
+    happen at any clock hour, so a recent state (<= 90 min old) is valid.
+    """
+    now = datetime.now(KST)
+    if not dt:
+        return f'🚨 MAGI1 {session.upper()} 브리핑 보류\n스캔 시각을 해석할 수 없습니다.\n마지막 스캔: {asof}'
+    age = now - dt
+    if timedelta(0) <= age <= timedelta(minutes=90):
+        return None
+    return f'🚨 MAGI1 {session.upper()} 브리핑 보류\n저장된 스캔본이 최신 데이터가 아닙니다.\n마지막 스캔: {asof}'
+
+
 def build(session, d):
     top=(d.get('top10') or [])[:10]; asof=d.get('asof_kst') or d.get('asof') or '-'
-    dt=parse_asof(asof); today=datetime.now(KST).date()
-    if not dt or dt.date()!=today:
-        return f'🚨 MAGI1 {session.upper()} 브리핑 보류\n저장된 스캔본이 오늘 데이터가 아닙니다.\n마지막 스캔: {asof}'
-    expected = 7 if session=='morning' else 17
-    if dt.hour != expected:
-        return f'🚨 MAGI1 {session.upper()} 브리핑 보류\n세션 스캔 시각이 비정상입니다.\n마지막 스캔: {asof}'
+    dt=parse_asof(asof)
+    err=freshness_error(session, dt, asof)
+    if err: return err
     if not top: return f'🚨 MAGI1 {session.upper()} 브리핑 보류\nTOP10 데이터가 없습니다.\n{asof}'
 
     title='🌅 MAGI1 아침 브리핑' if session=='morning' else '🌙 MAGI1 저녁 브리핑'
@@ -65,7 +78,6 @@ def build(session, d):
         if one is None: one=x.get('PriceChange1D%')
         lines.append(f"{i}. {x.get('coin','-')} | {v:.0f} | Δ{dvtxt} | {mom} | 1D {f(one):+.2f}% | {risk_label(x)}")
 
-    # Focus: strongest score, strongest acceleration, and highest distribution-risk/rocket candidate.
     focus=[]
     def add(x):
         if x and x.get('coin') not in [y.get('coin') for y in focus]: focus.append(x)
@@ -73,7 +85,7 @@ def build(session, d):
     add(max(top,key=lambda x:f(x.get('VPDVelocity'))))
     risky=[x for x in top if x.get('DistributionRisk')=='HIGH'] or [x for x in top if x.get('Rocket')]
     if risky: add(max(risky,key=lambda x:f(x.get('VPD'))))
-    for x in top: 
+    for x in top:
         if len(focus)>=3: break
         add(x)
     lines += ['', '🎯 핵심 관찰']
