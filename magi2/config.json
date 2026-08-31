@@ -9,6 +9,8 @@
   "session": {
     "entry_after_kst": "07:20",
     "entry_window_end_kst": "08:00",
+    "evening_after_kst": "17:50",
+    "evening_window_end_kst": "18:20",
     "top_n": 10,
     "daily_reset_principal": false
   },
