@@ -1,7 +1,16 @@
-name: VPD Scanner v1.6
+name: MAGI1 Scan
 
 on:
   workflow_dispatch:
+    inputs:
+      session:
+        description: 'MAGI1 scan session'
+        required: true
+        type: choice
+        options:
+          - morning
+          - evening
+        default: morning
   push:
     paths:
       - '.github/vpd-trigger.txt'
@@ -10,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: vpd-scanner
+  group: magi1-scanner
   cancel-in-progress: false
 
 jobs:
@@ -29,11 +38,24 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run VPD Scanner v1.6 and Telegram radar
+      - name: Resolve MAGI1 session
+        id: session
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SESSION="${{ inputs.session }}"
+          else
+            HOUR=$(TZ=Asia/Seoul date +%H)
+            if [ "$HOUR" -lt 12 ]; then SESSION="morning"; else SESSION="evening"; fi
+          fi
+          echo "value=$SESSION" >> "$GITHUB_OUTPUT"
+          echo "MAGI1 session: $SESSION"
+      - name: Run MAGI1 scan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MAGI1_SESSION: ${{ steps.session.outputs.value }}
         run: python scanner/run_vpd_action_v1_6.py
       - name: Refresh scanner outputs
         run: git pull --rebase origin main
@@ -58,7 +80,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          MSG="🚨 VPD Scanner FAILED\nRepo: ${GITHUB_REPOSITORY}\nRun: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\nEvent: ${GITHUB_EVENT_NAME}\nCommit: ${GITHUB_SHA}"
+          MSG="🚨 MAGI1 ${{ steps.session.outputs.value }} scan FAILED\nRepo: ${GITHUB_REPOSITORY}\nRun: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\nCommit: ${GITHUB_SHA}"
           curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MSG}"
