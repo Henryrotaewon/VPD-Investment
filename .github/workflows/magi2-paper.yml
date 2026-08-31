@@ -16,7 +16,7 @@ on:
     workflows: ["MAGI1 Scan"]
     types: [completed]
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '2-59/5 * * * *'
 
 permissions:
   contents: write
@@ -79,6 +79,20 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python magi2/paper_engine.py "${{ steps.resolve.outputs.mode }}"
+      - name: Record monitor heartbeat
+        if: ${{ steps.resolve.outputs.mode == 'monitor' }}
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          p=Path('magi2/state/paper_state.json')
+          st=json.loads(p.read_text(encoding='utf-8'))
+          st['last_monitor_kst']=datetime.now(ZoneInfo('Asia/Seoul')).isoformat()
+          p.write_text(json.dumps(st, ensure_ascii=False, indent=2), encoding='utf-8')
+          print('Heartbeat:', st['last_monitor_kst'])
+          PY
       - name: Persist MAGI2 paper state and trade log
         if: always()
         run: |
