@@ -135,6 +135,8 @@ def morning_rebalance(st):
     if not loaded: raise RuntimeError('Fresh morning VPD snapshot (today 07:20~08:00 KST) is unavailable.')
     snap,asof=loaded; today=asof.date().isoformat()
     if st.get('last_rebalance_date')==today: telegram('ℹ️ MAGI2 MORNING\n오늘 AM 리밸런싱은 이미 완료되었습니다.\nPAPER ONLY'); return False
+    # Reset the daily PnL bucket before today's exits so VPD_EXIT PnL is retained.
+    st['realized_pnl_krw']=0.0
     top_n=int(CFG.get('session',{}).get('top_n',10)); candidates=snap.get('top10',[])[:top_n]
     if not candidates: raise RuntimeError('Morning VPD TOP10 is empty.')
     top={r['coin']:r for r in candidates}; active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; exited=[]; bought=[]; sid=f'{today}-AM-001'
@@ -151,7 +153,7 @@ def morning_rebalance(st):
         if row['coin'] in open_after: continue
         if float(st.get('cash_krw',0))+1e-9<morning_slot: break
         if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
-    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='DAILY_EQUAL_BUY_REFILL'; st['realized_pnl_krw']=0.0
+    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='DAILY_EQUAL_BUY_REFILL'
     current=[p for p in st.get('positions',{}).values() if p.get('status')=='OPEN']; slot=sum(float(p['cost_krw']) for p in current)/len(current) if current else 0; st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; save_state(st)
     telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n당일 균등매수원가 {slot:,.0f}원\n※ 중복 검출 종목 유지 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
 
