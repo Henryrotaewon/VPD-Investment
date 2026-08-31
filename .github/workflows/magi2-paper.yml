@@ -33,9 +33,9 @@ jobs:
         run: |
           git config user.name "magi2-bot"
           git config user.email "magi2-bot@users.noreply.github.com"
-          git pull --rebase origin main
           git add data/magi2_paper_state.json data/magi2_trade_log.jsonl
           if ! git diff --cached --quiet; then
             git commit -m "MAGI2 paper state update [skip ci]"
+            git pull --rebase origin main
             git push origin main
           fi
