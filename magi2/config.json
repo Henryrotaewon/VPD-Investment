@@ -6,6 +6,13 @@
   "fee_rate": 0.0005,
   "slippage_rate": 0.001,
   "paper_strategy": "VPD_TOP10_EQUAL_WEIGHT",
+  "session": {
+    "entry_after_kst": "07:20",
+    "entry_window_end_kst": "08:00",
+    "time_exit_kst": "07:10",
+    "top_n": 10,
+    "daily_reset_principal": true
+  },
   "exit": {
     "take_profit_pct": 12.0,
     "hard_stop_pct": -6.0,
