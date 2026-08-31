@@ -5,9 +5,6 @@ on:
   push:
     paths:
       - '.github/vpd-trigger.txt'
-  schedule:
-    - cron: '20 22 * * *'
-    - cron: '50 8 * * *'
 
 permissions:
   contents: write
