@@ -82,9 +82,32 @@ def position_return(p, px):
     return (px / float(p["entry_price"]) - 1.0) * 100.0
 
 
+def portfolio_equity(st, prices):
+    """Net-liquidation value: cash + open positions valued after estimated exit fee."""
+    fee_rate = float(CFG.get("fee_rate", 0.0005))
+    equity = float(st.get("cash_krw", 0.0))
+    for p in st.get("positions", {}).values():
+        if p.get("status", "OPEN") != "OPEN":
+            continue
+        px = prices.get(p["market"], float(p.get("last_price", p["entry_price"])))
+        gross = float(p["qty"]) * px
+        equity += gross * (1.0 - fee_rate)
+    principal = float(st.get("initial_cash_krw", 0.0))
+    pnl = equity - principal
+    ret = (pnl / principal * 100.0) if principal else 0.0
+    return principal, equity, pnl, ret
+
+
 def portfolio_status(st, prices, title="📊 MAGI2 PAPER 매매현황"):
     active = [(c, p) for c, p in st.get("positions", {}).items() if p.get("status", "OPEN") == "OPEN"]
-    lines = [title, now_dt().strftime("%Y-%m-%d %H:%M KST"), f"Cohort: {st.get('cohort_id', '-')}"]
+    principal, equity, total_pnl, total_ret = portfolio_equity(st, prices)
+    date_text = now_dt().strftime("%Y-%m-%d")
+    lines = [
+        f"📅 {date_text} | 원금 {principal:,.0f}원 | 평가 {equity:,.0f}원 | {total_ret:+.2f}% ({total_pnl:+,.0f}원)",
+        title,
+        now_dt().strftime("%Y-%m-%d %H:%M KST"),
+        f"Cohort: {st.get('cohort_id', '-')}",
+    ]
     if not active:
         lines.append("현재 보유 포지션 없음")
     else:
