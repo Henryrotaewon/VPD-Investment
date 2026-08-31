@@ -124,11 +124,17 @@ def monitor_once(st):
     if dirty: save_state(st)
 
 def derive_daily_equal_buy(st,today):
-    if st.get('daily_equal_buy_date')==today and float(st.get('daily_equal_buy_krw',0) or 0)>0: return float(st['daily_equal_buy_krw'])
-    if st.get('last_rebalance_date')!=today: return None
+    if st.get('daily_equal_buy_date')==today and float(st.get('daily_equal_buy_krw',0) or 0)>0:
+        return float(st['daily_equal_buy_krw'])
+    # Transition/fallback: if today's reference is missing or zero, derive it from
+    # the actual OPEN-position cost average. This preserves the portfolio's real
+    # equal-buy size instead of hardcoding 300,000. With the current cohort this
+    # naturally resolves to 300,000 KRW.
     costs=[float(p.get('cost_krw',0)) for p in st.get('positions',{}).values() if p.get('status')=='OPEN' and float(p.get('cost_krw',0))>0]
     if not costs: return None
-    slot=sum(costs)/len(costs); st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; save_state(st); return slot
+    slot=sum(costs)/len(costs)
+    st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']='OPEN_POSITION_AVG_FALLBACK'; save_state(st)
+    return slot
 
 def morning_rebalance(st):
     loaded=load_morning_snapshot()
@@ -154,14 +160,14 @@ def morning_rebalance(st):
         if float(st.get('cash_krw',0))+1e-9<morning_slot: break
         if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
     st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='DAILY_EQUAL_BUY_REFILL'
-    current=[p for p in st.get('positions',{}).values() if p.get('status')=='OPEN']; slot=sum(float(p['cost_krw']) for p in current)/len(current) if current else 0; st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; save_state(st)
+    current=[p for p in st.get('positions',{}).values() if p.get('status')=='OPEN']; slot=sum(float(p['cost_krw']) for p in current)/len(current) if current else 0; st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']='MORNING_OPEN_AVG'; save_state(st)
     telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n당일 균등매수원가 {slot:,.0f}원\n※ 중복 검출 종목 유지 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
 
 def refill(st):
     loaded=load_today_snapshot()
     if not loaded: raise RuntimeError("Today's VPD snapshot is unavailable. Refill aborted.")
     snap,asof=loaded; today=now_dt().date().isoformat(); slot=derive_daily_equal_buy(st,today)
-    if not slot: raise RuntimeError("Today's daily_equal_buy_krw is unavailable. Run MORNING first.")
+    if not slot: raise RuntimeError("Today's daily_equal_buy_krw is unavailable. No OPEN-position average exists.")
     top_n=int(CFG.get('session',{}).get('top_n',10)); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; vacant=max(0,top_n-len(active)); cash=float(st.get('cash_krw',0)); count=min(vacant,int((cash+1e-9)//slot))
     if count<=0: telegram(f'ℹ️ MAGI2 REFILL\n빈자리 {vacant} / 예수금 {cash:,.0f}원 / 당일 균등매수원가 {slot:,.0f}원\n리필 가능한 슬롯이 없습니다.\nPAPER ONLY'); send_current_status(st); return False
     rows=[r for r in snap.get('top10',[])[:top_n] if r['coin'] not in active][:count]
