@@ -1,20 +1,24 @@
 {
   "mode": "PAPER",
-  "cash_krw": 900000,
+  "cohort_id": "2026-08-31-AM-001",
+  "strategy": "VPD_TOP10_EQUAL_WEIGHT",
+  "source_snapshot_asof_kst": "2026-08-31 07:23:14 KST",
+  "source_snapshot_commit": "5e202c662ad8cf840af6ad5ca6d8db90295da904",
+  "initial_cash_krw": 3000000,
+  "cash_krw": 0.0,
   "positions": {
-    "ORCA": {
-      "entry_at": "2026-08-31T08:54:38.162749+09:00",
-      "entry_price": 1827.8259999999998,
-      "last_price": 1826.0,
-      "peak_price": 1826.0,
-      "qty": 54.68244789164834,
-      "cost_krw": 100000,
-      "entry_vpd": 85.0,
-      "entry_momentum": "↑",
-      "entry_trigger": "A",
-      "warning_sent": false
-    }
+    "ORCA": {"market":"KRW-ORCA","rank":1,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":1819.0,"entry_price":1820.819,"last_price":1819.0,"peak_price":1819.0,"qty":164.67864186390852,"cost_krw":300000,"entry_vpd":85.0,"entry_momentum":"↑","entry_trigger":"A","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "DKA": {"market":"KRW-DKA","rank":2,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":4.94,"entry_price":4.94494,"last_price":4.94,"peak_price":4.94,"qty":60637.74282397764,"cost_krw":300000,"entry_vpd":85.0,"entry_momentum":"↑↑","entry_trigger":"A","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "CPOOL": {"market":"KRW-CPOOL","rank":3,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":28.4,"entry_price":28.4284,"last_price":28.4,"peak_price":28.4,"qty":10547.551040508788,"cost_krw":300000,"entry_vpd":83.0,"entry_momentum":"↑↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "WCT": {"market":"KRW-WCT","rank":4,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":52.9,"entry_price":52.9529,"last_price":52.9,"peak_price":52.9,"qty":5662.579386586949,"cost_krw":300000,"entry_vpd":83.0,"entry_momentum":"↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "ERA": {"market":"KRW-ERA","rank":5,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":89.3,"entry_price":89.3893,"last_price":89.3,"peak_price":89.3,"qty":3354.428326432806,"cost_krw":300000,"entry_vpd":81.0,"entry_momentum":"↑↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "BREV": {"market":"KRW-BREV","rank":6,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":101.0,"entry_price":101.101,"last_price":101.0,"peak_price":101.0,"qty":2965.846035152966,"cost_krw":300000,"entry_vpd":81.0,"entry_momentum":"↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "ZK": {"market":"KRW-ZK","rank":7,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":13.4,"entry_price":13.4134,"last_price":13.4,"peak_price":13.4,"qty":22354.51116048131,"cost_krw":300000,"entry_vpd":79.0,"entry_momentum":"↑↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "FLOCK": {"market":"KRW-FLOCK","rank":8,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":48.0,"entry_price":48.048,"last_price":48.0,"peak_price":48.0,"qty":6240.634365634366,"cost_krw":300000,"entry_vpd":79.0,"entry_momentum":"↑↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "TRUST": {"market":"KRW-TRUST","rank":9,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":73.9,"entry_price":73.9739,"last_price":73.9,"peak_price":73.9,"qty":4053.4566921576393,"cost_krw":300000,"entry_vpd":78.0,"entry_momentum":"↑↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"},
+    "MIRA": {"market":"KRW-MIRA","rank":10,"entry_at":"2026-08-31T07:23:14+09:00","entry_market_price":61.6,"entry_price":61.6616,"last_price":61.6,"peak_price":61.6,"qty":4862.831973221584,"cost_krw":300000,"entry_vpd":77.0,"entry_momentum":"↑","entry_trigger":"-","target_profit_pct":12.0,"warning_profit_pct":10.0,"stop_loss_pct":-6.0,"status":"OPEN"}
   },
   "realized_pnl_krw": 0.0,
-  "updated_at": "2026-08-31T08:54:38.162846+09:00"
+  "updated_at": "2026-08-31T11:12:00+09:00",
+  "note": "Retroactive cohort initialized from immutable 07:23 VPD snapshot; PAPER ONLY. Monitoring/exits are forward from activation time."
 }
