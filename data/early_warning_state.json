@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-01T06:04:35.610733+09:00",
+  "updated_at": "2026-09-01T09:35:32.767314+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -27,9 +27,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "SOMI": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-01T06:04:35.610733+09:00",
-      "EWScore": 67
+      "level": "QUIET",
+      "updated_at": "2026-09-01T09:35:32.767314+09:00",
+      "EWScore": 35
     }
   }
 }
