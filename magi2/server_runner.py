@@ -62,7 +62,9 @@ def telegram(text):
 
 
 def run_engine(mode):
-    p=subprocess.run([sys.executable,'magi2/paper_engine.py',mode],cwd=ROOT,capture_output=True,text=True,env=os.environ.copy())
+    script='magi2/refill_engine.py' if mode=='refill' else 'magi2/paper_engine.py'
+    args=[sys.executable,script] if mode=='refill' else [sys.executable,script,mode]
+    p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy())
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
     if p.returncode!=0:
