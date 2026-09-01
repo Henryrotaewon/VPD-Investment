@@ -1,4 +1,4 @@
-coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
+﻿coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
 OP,2026-08-02,7.69,20.45,3,1,1.6667,1.4286,416523347.23,275067504.89,NEUTRAL,1.61,0.81,-1.61,3.23,-2.42
 OP,2026-08-03,-7.14,-0.36,2,2,1.2381,1.4286,346509287.76,349007253.86,NEUTRAL,0.79,-3.17,-0.79,1.59,-3.97
 OP,2026-08-04,11.18,-0.13,2,2,1.6095,1.2857,310438789.17,311267956.8,NEUTRAL,-1.57,-3.94,-2.36,0.0,-4.72
