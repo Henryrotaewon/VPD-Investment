@@ -6,28 +6,28 @@
   "primary_rule": "VPDReplay>=65 AND MaxPriceReturn<=10 AND VWPI5>=20",
   "base": {
     "N": 6455,
-    "AvgD1%": 0.3,
-    "AvgD3%": 0.89,
+    "AvgD1%": 0.31,
+    "AvgD3%": 0.9,
     "AvgD5%": 1.63,
-    "AvgMFE5%": 10.16,
-    "AvgMAE5%": -5.32,
+    "AvgMFE5%": 10.15,
+    "AvgMAE5%": -5.31,
     "D3WinRate%": 44.9
   },
   "primary": {
     "N": 136,
     "AvgD1%": 1.71,
-    "AvgD3%": 3.4,
-    "AvgD5%": 4.78,
+    "AvgD3%": 3.32,
+    "AvgD5%": 4.75,
     "AvgMFE5%": 13.03,
     "AvgMAE5%": -4.84,
-    "D3WinRate%": 50.0
+    "D3WinRate%": 49.6
   },
   "controls": {
     "VWPI0+": {
       "N": 272,
       "AvgD1%": 1.8,
-      "AvgD3%": 2.66,
-      "AvgD5%": 3.43,
+      "AvgD3%": 2.63,
+      "AvgD5%": 3.38,
       "AvgMFE5%": 12.39,
       "AvgMAE5%": -4.83,
       "D3WinRate%": 47.9
@@ -35,8 +35,8 @@
     "VWPI10+": {
       "N": 200,
       "AvgD1%": 1.65,
-      "AvgD3%": 2.76,
-      "AvgD5%": 3.79,
+      "AvgD3%": 2.71,
+      "AvgD5%": 3.73,
       "AvgMFE5%": 12.8,
       "AvgMAE5%": -5.01,
       "D3WinRate%": 46.1
@@ -44,29 +44,29 @@
     "VWPI20+": {
       "N": 136,
       "AvgD1%": 1.71,
-      "AvgD3%": 3.4,
-      "AvgD5%": 4.78,
+      "AvgD3%": 3.32,
+      "AvgD5%": 4.75,
       "AvgMFE5%": 13.03,
       "AvgMAE5%": -4.84,
-      "D3WinRate%": 50.0
+      "D3WinRate%": 49.6
     },
     "VWPI30+": {
       "N": 80,
       "AvgD1%": 1.71,
-      "AvgD3%": 3.33,
-      "AvgD5%": 5.01,
+      "AvgD3%": 3.19,
+      "AvgD5%": 4.96,
       "AvgMFE5%": 12.69,
       "AvgMAE5%": -4.76,
-      "D3WinRate%": 48.7
+      "D3WinRate%": 48.1
     },
     "VWPI40+": {
       "N": 49,
       "AvgD1%": 2.24,
-      "AvgD3%": 4.61,
+      "AvgD3%": 4.37,
       "AvgD5%": 7.01,
       "AvgMFE5%": 14.19,
       "AvgMAE5%": -4.62,
-      "D3WinRate%": 52.2
+      "D3WinRate%": 51.1
     }
   },
   "primary_by_coin": [
@@ -155,7 +155,7 @@
       "N": 3,
       "AvgD1%": -1.31,
       "AvgD3%": 0.53,
-      "AvgD5%": 0.35,
+      "AvgD5%": 0.56,
       "AvgMFE5%": 11.26,
       "AvgMAE5%": -3.82,
       "D3WinRate%": 33.3
@@ -774,11 +774,11 @@
       "coin": "KNC",
       "N": 1,
       "AvgD1%": -6.51,
-      "AvgD3%": null,
+      "AvgD3%": -7.1,
       "AvgD5%": null,
       "AvgMFE5%": 0.0,
       "AvgMAE5%": -8.28,
-      "D3WinRate%": null
+      "D3WinRate%": 0.0
     },
     {
       "coin": "MANTRA",
