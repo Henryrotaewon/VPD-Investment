@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02T22:54:58.685608+09:00",
+  "updated_at": "2026-09-03T07:15:48.645192+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -60,6 +60,11 @@
       "level": "QUIET",
       "updated_at": "2026-09-02T22:54:58.685608+09:00",
       "reason": "OUT_OF_WATCHLIST"
+    },
+    "MIRA": {
+      "level": "RED",
+      "updated_at": "2026-09-03T07:15:48.645192+09:00",
+      "EWScore": 84
     }
   }
 }
