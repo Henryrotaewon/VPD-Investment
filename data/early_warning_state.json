@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02T18:49:02.667139+09:00",
+  "updated_at": "2026-09-02T22:54:58.685608+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -57,9 +57,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "POKT": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-02T18:49:02.667139+09:00",
-      "EWScore": 61
+      "level": "QUIET",
+      "updated_at": "2026-09-02T22:54:58.685608+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     }
   }
 }
