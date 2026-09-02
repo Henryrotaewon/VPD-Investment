@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02T10:00:16.888078+09:00",
+  "updated_at": "2026-09-02T14:29:54.614208+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -50,6 +50,11 @@
       "level": "QUIET",
       "updated_at": "2026-09-02T10:00:16.888078+09:00",
       "reason": "OUT_OF_WATCHLIST"
+    },
+    "IOST": {
+      "level": "RED",
+      "updated_at": "2026-09-02T14:29:54.614208+09:00",
+      "EWScore": 84
     }
   }
 }
