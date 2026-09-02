@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-02T08:03:20.471266+09:00",
+  "updated_at": "2026-09-02T10:00:16.888078+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -37,19 +37,19 @@
       "EWScore": 35
     },
     "OP": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-02T08:03:20.471266+09:00",
-      "EWScore": 75
+      "level": "QUIET",
+      "updated_at": "2026-09-02T10:00:16.888078+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "ZIL": {
-      "level": "RED",
-      "updated_at": "2026-09-02T08:03:20.471266+09:00",
-      "EWScore": 85
+      "level": "QUIET",
+      "updated_at": "2026-09-02T10:00:16.888078+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "ICX": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-02T08:03:20.471266+09:00",
-      "EWScore": 70
+      "level": "QUIET",
+      "updated_at": "2026-09-02T10:00:16.888078+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     }
   }
 }
