@@ -21,6 +21,21 @@
     },
     {
       "Rank": 2,
+      "coin": "COMP",
+      "VPD": 87.0,
+      "MaxPriceReturn%": 12.24,
+      "WPI5": -3.97,
+      "VWPI5": -17.24,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.2485,
+      "UpperWickTotal5": 1.3517,
+      "VWLowerWeighted5": 195590412.84,
+      "VWUpperWeighted5": 277061944.38,
+      "WPI5Status": "NEUTRAL"
+    },
+    {
+      "Rank": 3,
       "coin": "IO",
       "VPD": 87.0,
       "MaxPriceReturn%": 8.0,
@@ -35,7 +50,7 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 3,
+      "Rank": 4,
       "coin": "GLM",
       "VPD": 87.0,
       "MaxPriceReturn%": 7.69,
@@ -50,7 +65,7 @@
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 4,
+      "Rank": 5,
       "coin": "WAXP",
       "VPD": 87.0,
       "MaxPriceReturn%": 9.61,
@@ -65,22 +80,22 @@
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 5,
-      "coin": "HUNT",
+      "Rank": 6,
+      "coin": "1INCH",
       "VPD": 86.0,
-      "MaxPriceReturn%": 4.07,
-      "WPI5": -11.47,
-      "VWPI5": -25.82,
-      "LowerDominantDays5": 2,
-      "UpperDominantDays5": 3,
+      "MaxPriceReturn%": 5.88,
+      "WPI5": -39.27,
+      "VWPI5": -60.41,
+      "LowerDominantDays5": 0,
+      "UpperDominantDays5": 4,
       "LowerWickTotal5": 1.1857,
-      "UpperWickTotal5": 1.4929,
-      "VWLowerWeighted5": 152013107.53,
-      "VWUpperWeighted5": 257841911.17,
-      "WPI5Status": "NEUTRAL"
+      "UpperWickTotal5": 2.719,
+      "VWLowerWeighted5": 53331391.23,
+      "VWUpperWeighted5": 216118215.3,
+      "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 6,
+      "Rank": 7,
       "coin": "HIVE",
       "VPD": 85.0,
       "MaxPriceReturn%": 25.45,
@@ -95,7 +110,7 @@
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 7,
+      "Rank": 8,
       "coin": "QKC",
       "VPD": 85.0,
       "MaxPriceReturn%": 17.82,
@@ -110,22 +125,22 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 8,
-      "coin": "CVC",
+      "Rank": 9,
+      "coin": "EGLD",
       "VPD": 85.0,
-      "MaxPriceReturn%": 6.81,
-      "WPI5": -60.52,
-      "VWPI5": -64.88,
-      "LowerDominantDays5": 1,
-      "UpperDominantDays5": 4,
-      "LowerWickTotal5": 0.5824,
-      "UpperWickTotal5": 2.3684,
-      "VWLowerWeighted5": 528733691.07,
-      "VWUpperWeighted5": 2482681327.68,
+      "MaxPriceReturn%": 2.53,
+      "WPI5": -34.73,
+      "VWPI5": -74.66,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 0.7265,
+      "UpperWickTotal5": 1.4996,
+      "VWLowerWeighted5": 525570052.51,
+      "VWUpperWeighted5": 3622732305.19,
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 9,
+      "Rank": 10,
       "coin": "T",
       "VPD": 85.0,
       "MaxPriceReturn%": 5.48,
@@ -138,59 +153,44 @@
       "VWLowerWeighted5": 137378422.72,
       "VWUpperWeighted5": 29754068368.94,
       "WPI5Status": "BEARISH_WICK"
-    },
-    {
-      "Rank": 10,
-      "coin": "COMP",
-      "VPD": 83.0,
-      "MaxPriceReturn%": 12.24,
-      "WPI5": -3.97,
-      "VWPI5": -17.24,
-      "LowerDominantDays5": 2,
-      "UpperDominantDays5": 3,
-      "LowerWickTotal5": 1.2485,
-      "UpperWickTotal5": 1.3517,
-      "VWLowerWeighted5": 195590412.84,
-      "VWUpperWeighted5": 277061944.38,
-      "WPI5Status": "NEUTRAL"
     }
   ],
   "validation_30d_summary": [
     {
       "group": "BEARISH_WICK",
-      "N": 81,
-      "AvgWPI5": -35.58,
-      "AvgVWPI5": -45.32,
-      "AvgD1%": 0.83,
-      "AvgD3%": 2.16,
-      "AvgD5%": 2.68,
-      "AvgMFE5%": 9.37,
-      "AvgMAE5%": -4.44,
-      "D3WinRate%": 55.7
+      "N": 74,
+      "AvgWPI5": -34.65,
+      "AvgVWPI5": -43.59,
+      "AvgD1%": 0.82,
+      "AvgD3%": 2.0,
+      "AvgD5%": 2.85,
+      "AvgMFE5%": 9.39,
+      "AvgMAE5%": -4.69,
+      "D3WinRate%": 51.6
     },
     {
       "group": "BULLISH_WICK",
-      "N": 58,
-      "AvgWPI5": 32.72,
-      "AvgVWPI5": 19.35,
-      "AvgD1%": 1.0,
-      "AvgD3%": 2.32,
-      "AvgD5%": 4.55,
-      "AvgMFE5%": 10.11,
-      "AvgMAE5%": -3.85,
-      "D3WinRate%": 53.7
+      "N": 72,
+      "AvgWPI5": 35.34,
+      "AvgVWPI5": 25.87,
+      "AvgD1%": 0.6,
+      "AvgD3%": 1.64,
+      "AvgD5%": 3.46,
+      "AvgMFE5%": 8.77,
+      "AvgMAE5%": -4.3,
+      "D3WinRate%": 50.0
     },
     {
       "group": "NEUTRAL",
-      "N": 154,
-      "AvgWPI5": 0.5,
-      "AvgVWPI5": -10.25,
-      "AvgD1%": 0.21,
-      "AvgD3%": 0.41,
-      "AvgD5%": 0.57,
-      "AvgMFE5%": 8.64,
-      "AvgMAE5%": -4.33,
-      "D3WinRate%": 41.7
+      "N": 147,
+      "AvgWPI5": -0.6,
+      "AvgVWPI5": -11.96,
+      "AvgD1%": 0.7,
+      "AvgD3%": 1.43,
+      "AvgD5%": 1.87,
+      "AvgMFE5%": 10.73,
+      "AvgMAE5%": -3.86,
+      "D3WinRate%": 48.8
     }
   ],
   "validation_rows": 293
