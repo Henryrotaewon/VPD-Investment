@@ -8,10 +8,10 @@
     "N": 6475,
     "AvgD1%": 0.31,
     "AvgD3%": 0.93,
-    "AvgD5%": 1.63,
-    "AvgMFE5%": 10.2,
+    "AvgD5%": 1.62,
+    "AvgMFE5%": 10.19,
     "AvgMAE5%": -5.36,
-    "D3WinRate%": 44.8
+    "D3WinRate%": 44.7
   },
   "primary": {
     "N": 133,
@@ -19,7 +19,7 @@
     "AvgD3%": 3.05,
     "AvgD5%": 4.32,
     "AvgMFE5%": 12.65,
-    "AvgMAE5%": -4.86,
+    "AvgMAE5%": -4.87,
     "D3WinRate%": 49.6
   },
   "controls": {
@@ -27,7 +27,7 @@
       "N": 262,
       "AvgD1%": 1.75,
       "AvgD3%": 2.49,
-      "AvgD5%": 3.19,
+      "AvgD5%": 3.16,
       "AvgMFE5%": 11.7,
       "AvgMAE5%": -4.83,
       "D3WinRate%": 48.0
@@ -47,7 +47,7 @@
       "AvgD3%": 3.05,
       "AvgD5%": 4.32,
       "AvgMFE5%": 12.65,
-      "AvgMAE5%": -4.86,
+      "AvgMAE5%": -4.87,
       "D3WinRate%": 49.6
     },
     "VWPI30+": {
@@ -56,7 +56,7 @@
       "AvgD3%": 3.18,
       "AvgD5%": 4.96,
       "AvgMFE5%": 12.59,
-      "AvgMAE5%": -4.81,
+      "AvgMAE5%": -4.82,
       "D3WinRate%": 47.4
     },
     "VWPI40+": {
@@ -65,7 +65,7 @@
       "AvgD3%": 4.4,
       "AvgD5%": 7.03,
       "AvgMFE5%": 13.95,
-      "AvgMAE5%": -4.63,
+      "AvgMAE5%": -4.66,
       "D3WinRate%": 50.0
     }
   },
@@ -757,7 +757,7 @@
       "AvgD3%": -7.1,
       "AvgD5%": null,
       "AvgMFE5%": 0.0,
-      "AvgMAE5%": -8.28,
+      "AvgMAE5%": -9.47,
       "D3WinRate%": 0.0
     },
     {
