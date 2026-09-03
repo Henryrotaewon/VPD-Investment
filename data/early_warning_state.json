@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T02:11:26.329558+09:00",
+  "updated_at": "2026-09-04T04:48:45.014091+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -72,9 +72,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "WAXP": {
-      "level": "QUIET",
-      "updated_at": "2026-09-03T18:12:41.195909+09:00",
-      "EWScore": 40
+      "level": "ORANGE",
+      "updated_at": "2026-09-04T04:48:45.014091+09:00",
+      "EWScore": 61
     },
     "CVC": {
       "level": "QUIET",
@@ -87,9 +87,14 @@
       "EWScore": 65
     },
     "HUNT": {
+      "level": "WATCH",
+      "updated_at": "2026-09-04T04:48:45.014091+09:00",
+      "EWScore": 68
+    },
+    "T": {
       "level": "ORANGE",
-      "updated_at": "2026-09-04T02:11:26.329558+09:00",
-      "EWScore": 67
+      "updated_at": "2026-09-04T04:48:45.014091+09:00",
+      "EWScore": 72
     }
   }
 }
