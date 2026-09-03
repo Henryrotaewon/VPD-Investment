@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T06:57:22.453502+09:00",
+  "updated_at": "2026-09-04T08:43:34.636198+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -92,14 +92,19 @@
       "EWScore": 68
     },
     "T": {
-      "level": "RED",
-      "updated_at": "2026-09-04T06:57:22.453502+09:00",
-      "EWScore": 87
+      "level": "QUIET",
+      "updated_at": "2026-09-04T08:43:34.636198+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "QKC": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-04T06:57:22.453502+09:00",
-      "EWScore": 67
+      "level": "QUIET",
+      "updated_at": "2026-09-04T08:43:34.636198+09:00",
+      "reason": "OUT_OF_WATCHLIST"
+    },
+    "CAP": {
+      "level": "RED",
+      "updated_at": "2026-09-04T08:43:34.636198+09:00",
+      "EWScore": 79
     }
   }
 }
