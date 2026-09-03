@@ -7,8 +7,8 @@
     {
       "Rank": 1,
       "coin": "HIVE",
-      "VPD": 83.0,
-      "MaxPriceReturn%": 8.87,
+      "VPD": 85.0,
+      "MaxPriceReturn%": 12.64,
       "WPI5": -34.8,
       "VWPI5": -56.45,
       "LowerDominantDays5": 0,
@@ -36,8 +36,23 @@
     },
     {
       "Rank": 3,
+      "coin": "CVC",
+      "VPD": 74.0,
+      "MaxPriceReturn%": 6.81,
+      "WPI5": -60.52,
+      "VWPI5": -64.88,
+      "LowerDominantDays5": 1,
+      "UpperDominantDays5": 4,
+      "LowerWickTotal5": 0.5824,
+      "UpperWickTotal5": 2.3684,
+      "VWLowerWeighted5": 528733691.07,
+      "VWUpperWeighted5": 2482681327.68,
+      "WPI5Status": "BEARISH_WICK"
+    },
+    {
+      "Rank": 4,
       "coin": "GLM",
-      "VPD": 72.0,
+      "VPD": 73.0,
       "MaxPriceReturn%": 7.69,
       "WPI5": -51.79,
       "VWPI5": -49.8,
@@ -50,7 +65,7 @@
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 4,
+      "Rank": 5,
       "coin": "ANKR",
       "VPD": 68.0,
       "MaxPriceReturn%": 29.3,
@@ -65,9 +80,9 @@
       "WPI5Status": "BEARISH_WICK"
     },
     {
-      "Rank": 5,
+      "Rank": 6,
       "coin": "QKC",
-      "VPD": 68.0,
+      "VPD": 67.0,
       "MaxPriceReturn%": 6.6,
       "WPI5": -14.69,
       "VWPI5": -23.68,
@@ -80,24 +95,9 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 6,
-      "coin": "CVC",
-      "VPD": 67.0,
-      "MaxPriceReturn%": 4.3,
-      "WPI5": -60.52,
-      "VWPI5": -64.88,
-      "LowerDominantDays5": 1,
-      "UpperDominantDays5": 4,
-      "LowerWickTotal5": 0.5824,
-      "UpperWickTotal5": 2.3684,
-      "VWLowerWeighted5": 528733691.07,
-      "VWUpperWeighted5": 2482681327.68,
-      "WPI5Status": "BEARISH_WICK"
-    },
-    {
       "Rank": 7,
       "coin": "STEEM",
-      "VPD": 59.0,
+      "VPD": 63.0,
       "MaxPriceReturn%": 7.34,
       "WPI5": -44.24,
       "VWPI5": -40.31,
