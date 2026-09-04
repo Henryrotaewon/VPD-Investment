@@ -4,9 +4,6 @@ on:
   push:
     paths:
       - '.github/vpd-trigger.txt'
-  schedule:
-    - cron: '10 22 * * *' # 07:10 KST
-    - cron: '40 8 * * *'  # 17:40 KST
   workflow_dispatch:
     inputs:
       session:
