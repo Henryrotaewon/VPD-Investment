@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T20:12:24.108288+09:00",
+  "updated_at": "2026-09-04T23:56:39.388927+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -107,9 +107,9 @@
       "EWScore": 35
     },
     "CELO": {
-      "level": "RED",
-      "updated_at": "2026-09-04T20:12:24.108288+09:00",
-      "EWScore": 95
+      "level": "QUIET",
+      "updated_at": "2026-09-04T23:56:39.388927+09:00",
+      "EWScore": 40
     },
     "COMP": {
       "level": "QUIET",
@@ -117,9 +117,14 @@
       "EWScore": 40
     },
     "1INCH": {
+      "level": "WATCH",
+      "updated_at": "2026-09-04T23:56:39.388927+09:00",
+      "EWScore": 45
+    },
+    "HIVE": {
       "level": "RED",
-      "updated_at": "2026-09-04T20:12:24.108288+09:00",
-      "EWScore": 95
+      "updated_at": "2026-09-04T23:56:39.388927+09:00",
+      "EWScore": 90
     }
   }
 }
