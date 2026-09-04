@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T08:43:34.636198+09:00",
+  "updated_at": "2026-09-04T10:21:58.769802+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -102,9 +102,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "CAP": {
-      "level": "RED",
-      "updated_at": "2026-09-04T08:43:34.636198+09:00",
-      "EWScore": 79
+      "level": "QUIET",
+      "updated_at": "2026-09-04T10:21:58.769802+09:00",
+      "EWScore": 35
     }
   }
 }
