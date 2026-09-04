@@ -2,50 +2,50 @@
   "name": "VWPI5 Shadow 3.0 200-Market Validation",
   "markets_requested": 200,
   "markets_valid": 188,
-  "rows": 6481,
+  "rows": 6482,
   "primary_rule": "VPDReplay>=65 AND MaxPriceReturn<=10 AND VWPI5>=20",
   "base": {
-    "N": 6481,
-    "AvgD1%": 0.36,
+    "N": 6482,
+    "AvgD1%": 0.35,
     "AvgD3%": 0.99,
     "AvgD5%": 1.69,
-    "AvgMFE5%": 10.37,
-    "AvgMAE5%": -5.33,
+    "AvgMFE5%": 10.35,
+    "AvgMAE5%": -5.31,
     "D3WinRate%": 45.1
   },
   "primary": {
     "N": 130,
     "AvgD1%": 1.83,
     "AvgD3%": 3.16,
-    "AvgD5%": 4.4,
+    "AvgD5%": 4.31,
     "AvgMFE5%": 13.1,
     "AvgMAE5%": -4.93,
     "D3WinRate%": 50.4
   },
   "controls": {
     "VWPI0+": {
-      "N": 258,
-      "AvgD1%": 1.77,
-      "AvgD3%": 2.56,
-      "AvgD5%": 3.21,
-      "AvgMFE5%": 11.97,
+      "N": 259,
+      "AvgD1%": 1.75,
+      "AvgD3%": 2.54,
+      "AvgD5%": 3.15,
+      "AvgMFE5%": 11.96,
       "AvgMAE5%": -4.88,
-      "D3WinRate%": 48.4
+      "D3WinRate%": 48.2
     },
     "VWPI10+": {
-      "N": 191,
-      "AvgD1%": 1.61,
-      "AvgD3%": 2.71,
+      "N": 192,
+      "AvgD1%": 1.6,
+      "AvgD3%": 2.69,
       "AvgD5%": 3.63,
-      "AvgMFE5%": 12.32,
+      "AvgMFE5%": 12.34,
       "AvgMAE5%": -5.0,
-      "D3WinRate%": 47.3
+      "D3WinRate%": 47.1
     },
     "VWPI20+": {
       "N": 130,
       "AvgD1%": 1.83,
       "AvgD3%": 3.16,
-      "AvgD5%": 4.4,
+      "AvgD5%": 4.31,
       "AvgMFE5%": 13.1,
       "AvgMAE5%": -4.93,
       "D3WinRate%": 50.4
@@ -54,7 +54,7 @@
       "N": 77,
       "AvgD1%": 1.84,
       "AvgD3%": 3.29,
-      "AvgD5%": 5.12,
+      "AvgD5%": 4.96,
       "AvgMFE5%": 12.93,
       "AvgMAE5%": -4.88,
       "D3WinRate%": 48.7
@@ -63,7 +63,7 @@
       "N": 47,
       "AvgD1%": 2.28,
       "AvgD3%": 4.47,
-      "AvgD5%": 7.21,
+      "AvgD5%": 6.91,
       "AvgMFE5%": 14.28,
       "AvgMAE5%": -4.67,
       "D3WinRate%": 52.2
@@ -735,7 +735,7 @@
       "N": 1,
       "AvgD1%": -6.51,
       "AvgD3%": -7.1,
-      "AvgD5%": null,
+      "AvgD5%": -6.51,
       "AvgMFE5%": 0.0,
       "AvgMAE5%": -9.47,
       "D3WinRate%": 0.0
