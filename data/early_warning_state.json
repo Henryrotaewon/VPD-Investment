@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T10:21:58.769802+09:00",
+  "updated_at": "2026-09-04T15:05:46.231771+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -105,6 +105,16 @@
       "level": "QUIET",
       "updated_at": "2026-09-04T10:21:58.769802+09:00",
       "EWScore": 35
+    },
+    "CELO": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-04T15:05:46.231771+09:00",
+      "EWScore": 67
+    },
+    "COMP": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-04T15:05:46.231771+09:00",
+      "EWScore": 80
     }
   }
 }
