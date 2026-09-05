@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-05T20:53:54.949708+09:00",
+  "updated_at": "2026-09-06T05:42:05.864315+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -140,6 +140,21 @@
       "level": "QUIET",
       "updated_at": "2026-09-05T20:53:54.949708+09:00",
       "reason": "OUT_OF_WATCHLIST"
+    },
+    "GEOD": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-06T05:42:05.864315+09:00",
+      "EWScore": 80
+    },
+    "EDGE": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-06T05:42:05.864315+09:00",
+      "EWScore": 76
+    },
+    "ICP": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-06T05:42:05.864315+09:00",
+      "EWScore": 60
     }
   }
 }
