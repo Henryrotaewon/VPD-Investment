@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-04T23:56:39.388927+09:00",
+  "updated_at": "2026-09-05T09:00:36.103283+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -122,9 +122,19 @@
       "EWScore": 45
     },
     "HIVE": {
+      "level": "QUIET",
+      "updated_at": "2026-09-05T09:00:36.103283+09:00",
+      "reason": "OUT_OF_WATCHLIST"
+    },
+    "VANA": {
       "level": "RED",
-      "updated_at": "2026-09-04T23:56:39.388927+09:00",
-      "EWScore": 90
+      "updated_at": "2026-09-05T09:00:36.103283+09:00",
+      "EWScore": 80
+    },
+    "XTZ": {
+      "level": "RED",
+      "updated_at": "2026-09-05T09:00:36.103283+09:00",
+      "EWScore": 76
     }
   }
 }
