@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-05T17:26:51.237063+09:00",
+  "updated_at": "2026-09-05T20:53:54.949708+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -127,19 +127,19 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "VANA": {
-      "level": "RED",
-      "updated_at": "2026-09-05T17:26:51.237063+09:00",
-      "EWScore": 87
+      "level": "QUIET",
+      "updated_at": "2026-09-05T20:53:54.949708+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "XTZ": {
-      "level": "RED",
-      "updated_at": "2026-09-05T17:26:51.237063+09:00",
-      "EWScore": 90
+      "level": "QUIET",
+      "updated_at": "2026-09-05T20:53:54.949708+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "AZTEC": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-05T17:26:51.237063+09:00",
-      "EWScore": 66
+      "level": "QUIET",
+      "updated_at": "2026-09-05T20:53:54.949708+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     }
   }
 }
