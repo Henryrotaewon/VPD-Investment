@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-05T09:00:36.103283+09:00",
+  "updated_at": "2026-09-05T13:20:32.190110+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -127,14 +127,14 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "VANA": {
-      "level": "RED",
-      "updated_at": "2026-09-05T09:00:36.103283+09:00",
-      "EWScore": 80
+      "level": "WATCH",
+      "updated_at": "2026-09-05T13:20:32.190110+09:00",
+      "EWScore": 45
     },
     "XTZ": {
-      "level": "RED",
-      "updated_at": "2026-09-05T09:00:36.103283+09:00",
-      "EWScore": 76
+      "level": "QUIET",
+      "updated_at": "2026-09-05T13:20:32.190110+09:00",
+      "EWScore": 40
     }
   }
 }
