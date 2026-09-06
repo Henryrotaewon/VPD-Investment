@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-06T09:01:50.470802+09:00",
+  "updated_at": "2026-09-06T13:32:08.896966+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -142,9 +142,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "GEOD": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-06T09:01:50.470802+09:00",
-      "EWScore": 80
+      "level": "RED",
+      "updated_at": "2026-09-06T13:32:08.896966+09:00",
+      "EWScore": 82
     },
     "EDGE": {
       "level": "QUIET",
@@ -157,14 +157,19 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "DRV": {
-      "level": "RED",
-      "updated_at": "2026-09-06T09:01:50.470802+09:00",
-      "EWScore": 90
+      "level": "QUIET",
+      "updated_at": "2026-09-06T13:32:08.896966+09:00",
+      "EWScore": 40
     },
     "ELSA": {
+      "level": "QUIET",
+      "updated_at": "2026-09-06T13:32:08.896966+09:00",
+      "EWScore": 35
+    },
+    "NEAR": {
       "level": "ORANGE",
-      "updated_at": "2026-09-06T09:01:50.470802+09:00",
-      "EWScore": 71
+      "updated_at": "2026-09-06T13:32:08.896966+09:00",
+      "EWScore": 75
     }
   }
 }
