@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-07T06:33:10.994774+09:00",
+  "updated_at": "2026-09-07T08:07:53.067458+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -192,9 +192,19 @@
       "EWScore": 35
     },
     "QUID": {
+      "level": "QUIET",
+      "updated_at": "2026-09-07T08:07:53.067458+09:00",
+      "reason": "OUT_OF_WATCHLIST"
+    },
+    "TOSHI": {
       "level": "ORANGE",
-      "updated_at": "2026-09-07T06:33:10.994774+09:00",
-      "EWScore": 72
+      "updated_at": "2026-09-07T08:07:53.067458+09:00",
+      "EWScore": 66
+    },
+    "ZAMA": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-07T08:07:53.067458+09:00",
+      "EWScore": 66
     }
   }
 }
