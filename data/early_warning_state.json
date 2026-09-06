@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-06T17:53:20.617557+09:00",
+  "updated_at": "2026-09-06T21:25:03.860175+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -170,6 +170,11 @@
       "level": "QUIET",
       "updated_at": "2026-09-06T17:53:20.617557+09:00",
       "reason": "OUT_OF_WATCHLIST"
+    },
+    "IMX": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-06T21:25:03.860175+09:00",
+      "EWScore": 67
     }
   }
 }
