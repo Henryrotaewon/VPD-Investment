@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-07T09:58:20.334368+09:00",
+  "updated_at": "2026-09-07T14:37:27.398867+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -172,9 +172,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "IMX": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-07T09:58:20.334368+09:00",
-      "EWScore": 72
+      "level": "WATCH",
+      "updated_at": "2026-09-07T14:37:27.398867+09:00",
+      "EWScore": 45
     },
     "IOTA": {
       "level": "QUIET",
@@ -182,9 +182,9 @@
       "EWScore": 42
     },
     "ORCA": {
-      "level": "QUIET",
-      "updated_at": "2026-09-07T06:33:10.994774+09:00",
-      "EWScore": 40
+      "level": "ORANGE",
+      "updated_at": "2026-09-07T14:37:27.398867+09:00",
+      "EWScore": 65
     },
     "RAY": {
       "level": "QUIET",
@@ -202,14 +202,14 @@
       "EWScore": 45
     },
     "ZAMA": {
-      "level": "WATCH",
-      "updated_at": "2026-09-07T09:58:20.334368+09:00",
-      "EWScore": 45
+      "level": "ORANGE",
+      "updated_at": "2026-09-07T14:37:27.398867+09:00",
+      "EWScore": 72
     },
     "MET2": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-07T09:58:20.334368+09:00",
-      "EWScore": 66
+      "level": "WATCH",
+      "updated_at": "2026-09-07T14:37:27.398867+09:00",
+      "EWScore": 45
     }
   }
 }
