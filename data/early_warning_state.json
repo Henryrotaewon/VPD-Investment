@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-07T14:37:27.398867+09:00",
+  "updated_at": "2026-09-07T19:43:15.225200+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -182,9 +182,9 @@
       "EWScore": 42
     },
     "ORCA": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-07T14:37:27.398867+09:00",
-      "EWScore": 65
+      "level": "RED",
+      "updated_at": "2026-09-07T19:43:15.225200+09:00",
+      "EWScore": 79
     },
     "RAY": {
       "level": "QUIET",
@@ -197,14 +197,14 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "TOSHI": {
-      "level": "WATCH",
-      "updated_at": "2026-09-07T09:58:20.334368+09:00",
-      "EWScore": 45
+      "level": "RED",
+      "updated_at": "2026-09-07T19:43:15.225200+09:00",
+      "EWScore": 95
     },
     "ZAMA": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-07T14:37:27.398867+09:00",
-      "EWScore": 72
+      "level": "WATCH",
+      "updated_at": "2026-09-07T19:43:15.225200+09:00",
+      "EWScore": 45
     },
     "MET2": {
       "level": "WATCH",
