@@ -78,7 +78,18 @@ def migrate_state(st):
         if 'entry_session' not in p: p['entry_session']='AM'; changed=True
     if changed: save_state(st)
 
-def load_today_snapshot():
+def parse_snapshot_asof(raw):
+    if not raw: return None
+    text=str(raw).strip()
+    if text.endswith(' KST'): text=text[:-4]+'+09:00'
+    try:
+        dt=datetime.fromisoformat(text)
+        if dt.tzinfo is None: dt=dt.replace(tzinfo=KST)
+        return dt.astimezone(KST)
+    except ValueError:
+        return None
+
+def load_latest_snapshot():
     repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
     url=f'https://raw.githubusercontent.com/{repo}/main/data/vpd_latest.json'
     try:
@@ -86,16 +97,17 @@ def load_today_snapshot():
     except Exception as e:
         print(f'VPD GitHub fetch error: {e}'); return None
     raw=snap.get('asof') or snap.get('asof_kst')
-    if not raw: return None
-    try: asof=datetime.fromisoformat(raw).astimezone(KST)
-    except ValueError: return None
+    asof=parse_snapshot_asof(raw)
+    return (snap,asof) if asof else None
+
+def load_today_snapshot():
+    loaded=load_latest_snapshot()
+    if not loaded: return None
+    snap,asof=loaded
     return (snap,asof) if asof.date()==now_dt().date() else None
 
 def load_morning_snapshot():
-    loaded=load_today_snapshot()
-    if not loaded: return None
-    snap,asof=loaded; s=CFG.get('session',{}); start=datetime.strptime(s.get('entry_after_kst','07:20'),'%H:%M').time(); end=datetime.strptime(s.get('entry_window_end_kst','08:00'),'%H:%M').time()
-    return (snap,asof) if start<=asof.time()<=end else None
+    return load_latest_snapshot()
 
 def archive_closed_slot(st,coin):
     old=st.get('positions',{}).get(coin)
@@ -144,12 +156,15 @@ def derive_daily_equal_buy(st,today):
 
 def morning_rebalance(st):
     loaded=load_morning_snapshot()
-    if not loaded: raise RuntimeError('Fresh morning VPD snapshot (today 07:20~08:00 KST) is unavailable.')
-    snap,asof=loaded; today=asof.date().isoformat()
-    if st.get('last_rebalance_date')==today: telegram('ℹ️ MAGI2 MORNING\n오늘 AM 리밸런싱은 이미 완료되었습니다.\nPAPER ONLY'); return False
+    if not loaded: raise RuntimeError('Latest VPD snapshot is unavailable.')
+    snap,asof=loaded; today=asof.date().isoformat(); snapshot_raw=snap.get('asof') or snap.get('asof_kst') or asof.isoformat()
+    last_raw=st.get('last_rebalance_vpd_asof') or st.get('source_snapshot_asof_kst')
+    last_asof=parse_snapshot_asof(last_raw)
+    if last_asof and asof<=last_asof:
+        telegram(f'ℹ️ MAGI2 MORNING\n새 VPD snapshot이 없습니다.\n최신 VPD: {snap.get("asof_kst",snapshot_raw)}\n마지막 사용 VPD: {last_raw}\n거래 없음 · PAPER ONLY'); return False
     st['realized_pnl_krw']=0.0
     top_n=int(CFG.get('session',{}).get('top_n',10)); candidates=snap.get('top10',[])[:top_n]
-    if not candidates: raise RuntimeError('Morning VPD TOP10 is empty.')
+    if not candidates: raise RuntimeError('Latest VPD TOP10 is empty.')
     top={r['coin']:r for r in candidates}; active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; exited=[]; bought=[]; sid=f'{today}-AM-001'
     for coin,p in list(active.items()):
         if coin in top:
@@ -172,9 +187,9 @@ def morning_rebalance(st):
         if len(open_after)>=top_n: break
         if row['coin'] in open_after: continue
         if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
-    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
+    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
     st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source; save_state(st)
-    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ KEEP 수량·평단 유지 / 청산 후 가용예수금÷신규슬롯 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
+    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nVPD snapshot {snap.get('asof_kst',asof.isoformat())}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ 최신 미사용 VPD 1회 처리 / KEEP 수량·평단 유지 / 청산 후 가용예수금÷신규슬롯 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
 
 def refill(st):
     loaded=load_today_snapshot()
