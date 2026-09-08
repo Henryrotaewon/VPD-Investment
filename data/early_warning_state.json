@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-07T19:43:15.225200+09:00",
+  "updated_at": "2026-09-08T09:32:35.497305+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -182,9 +182,9 @@
       "EWScore": 42
     },
     "ORCA": {
-      "level": "RED",
-      "updated_at": "2026-09-07T19:43:15.225200+09:00",
-      "EWScore": 79
+      "level": "QUIET",
+      "updated_at": "2026-09-08T09:32:35.497305+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "RAY": {
       "level": "QUIET",
@@ -210,6 +210,16 @@
       "level": "WATCH",
       "updated_at": "2026-09-07T14:37:27.398867+09:00",
       "EWScore": 45
+    },
+    "BLEND": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-08T09:32:35.497305+09:00",
+      "EWScore": 75
+    },
+    "TIA": {
+      "level": "RED",
+      "updated_at": "2026-09-08T09:32:35.497305+09:00",
+      "EWScore": 89
     }
   }
 }
