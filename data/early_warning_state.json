@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-09T22:55:32.746218+09:00",
+  "updated_at": "2026-09-10T09:10:56.681506+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -232,9 +232,9 @@
       "EWScore": 35
     },
     "PROVE": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-09T22:55:32.746218+09:00",
-      "EWScore": 71
+      "level": "QUIET",
+      "updated_at": "2026-09-10T09:10:56.681506+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "WLD": {
       "level": "QUIET",
@@ -242,13 +242,28 @@
       "EWScore": 35
     },
     "G": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-09T22:55:32.746218+09:00",
-      "EWScore": 66
+      "level": "QUIET",
+      "updated_at": "2026-09-10T09:10:56.681506+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "CRO": {
+      "level": "QUIET",
+      "updated_at": "2026-09-10T09:10:56.681506+09:00",
+      "reason": "OUT_OF_WATCHLIST"
+    },
+    "NEWT": {
+      "level": "RED",
+      "updated_at": "2026-09-10T09:10:56.681506+09:00",
+      "EWScore": 82
+    },
+    "ZRX": {
+      "level": "RED",
+      "updated_at": "2026-09-10T09:10:56.681506+09:00",
+      "EWScore": 87
+    },
+    "UP2": {
       "level": "ORANGE",
-      "updated_at": "2026-09-09T22:55:32.746218+09:00",
+      "updated_at": "2026-09-10T09:10:56.681506+09:00",
       "EWScore": 80
     }
   }
