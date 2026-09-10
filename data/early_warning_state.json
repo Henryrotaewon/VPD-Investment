@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-10T22:33:09.037850+09:00",
+  "updated_at": "2026-09-11T08:28:54.694542+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -252,9 +252,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "NEWT": {
-      "level": "QUIET",
-      "updated_at": "2026-09-10T13:35:31.432291+09:00",
-      "EWScore": 35
+      "level": "ORANGE",
+      "updated_at": "2026-09-11T08:28:54.694542+09:00",
+      "EWScore": 61
     },
     "ZRX": {
       "level": "WATCH",
@@ -272,9 +272,14 @@
       "EWScore": 45
     },
     "POWR": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-10T22:33:09.037850+09:00",
-      "EWScore": 85
+      "level": "QUIET",
+      "updated_at": "2026-09-11T08:28:54.694542+09:00",
+      "reason": "OUT_OF_WATCHLIST"
+    },
+    "USDS": {
+      "level": "RED",
+      "updated_at": "2026-09-11T08:28:54.694542+09:00",
+      "EWScore": 87
     }
   }
 }
