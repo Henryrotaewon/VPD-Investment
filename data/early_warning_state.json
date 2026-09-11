@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-11T15:10:07.416793+09:00",
+  "updated_at": "2026-09-11T20:14:04.606086+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -252,9 +252,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "NEWT": {
-      "level": "WATCH",
-      "updated_at": "2026-09-11T10:19:26.874651+09:00",
-      "EWScore": 55
+      "level": "ORANGE",
+      "updated_at": "2026-09-11T20:14:04.606086+09:00",
+      "EWScore": 67
     },
     "ZRX": {
       "level": "WATCH",
@@ -277,19 +277,24 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "USDS": {
-      "level": "RED",
-      "updated_at": "2026-09-11T08:28:54.694542+09:00",
-      "EWScore": 87
+      "level": "WATCH",
+      "updated_at": "2026-09-11T20:14:04.606086+09:00",
+      "EWScore": 65
     },
     "ORDER": {
-      "level": "WATCH",
-      "updated_at": "2026-09-11T15:10:07.416793+09:00",
-      "EWScore": 45
+      "level": "ORANGE",
+      "updated_at": "2026-09-11T20:14:04.606086+09:00",
+      "EWScore": 72
     },
     "XEC": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-11T15:10:07.416793+09:00",
-      "EWScore": 66
+      "level": "WATCH",
+      "updated_at": "2026-09-11T20:14:04.606086+09:00",
+      "EWScore": 57
+    },
+    "CKB": {
+      "level": "RED",
+      "updated_at": "2026-09-11T20:14:04.606086+09:00",
+      "EWScore": 75
     }
   }
 }
