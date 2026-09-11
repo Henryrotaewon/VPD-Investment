@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-11T10:19:26.874651+09:00",
+  "updated_at": "2026-09-11T15:10:07.416793+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -282,9 +282,14 @@
       "EWScore": 87
     },
     "ORDER": {
-      "level": "RED",
-      "updated_at": "2026-09-11T10:19:26.874651+09:00",
-      "EWScore": 100
+      "level": "WATCH",
+      "updated_at": "2026-09-11T15:10:07.416793+09:00",
+      "EWScore": 45
+    },
+    "XEC": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-11T15:10:07.416793+09:00",
+      "EWScore": 66
     }
   }
 }
