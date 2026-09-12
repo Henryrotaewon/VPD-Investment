@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-12T22:07:39.482453+09:00",
+  "updated_at": "2026-09-13T07:41:44.695343+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -297,14 +297,24 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "WLFI": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-12T22:07:39.482453+09:00",
-      "EWScore": 80
+      "level": "QUIET",
+      "updated_at": "2026-09-13T07:41:44.695343+09:00",
+      "reason": "OUT_OF_WATCHLIST"
     },
     "MTL": {
+      "level": "QUIET",
+      "updated_at": "2026-09-13T07:41:44.695343+09:00",
+      "reason": "OUT_OF_WATCHLIST"
+    },
+    "PUNDIX": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-13T07:41:44.695343+09:00",
+      "EWScore": 75
+    },
+    "BSB": {
       "level": "RED",
-      "updated_at": "2026-09-12T22:07:39.482453+09:00",
-      "EWScore": 95
+      "updated_at": "2026-09-13T07:41:44.695343+09:00",
+      "EWScore": 81
     }
   }
 }
