@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-12T08:13:24.593423+09:00",
+  "updated_at": "2026-09-12T18:35:05.131015+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -207,9 +207,9 @@
       "EWScore": 45
     },
     "MET2": {
-      "level": "WATCH",
-      "updated_at": "2026-09-07T14:37:27.398867+09:00",
-      "EWScore": 45
+      "level": "ORANGE",
+      "updated_at": "2026-09-12T18:35:05.131015+09:00",
+      "EWScore": 72
     },
     "BLEND": {
       "level": "WATCH",
