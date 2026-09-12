@@ -1,3 +1,3 @@
 VPD scanner ChatGPT trigger anchor.
-Triggered by ChatGPT: 2026-09-12 07:17:33 KST
+Triggered by ChatGPT: 2026-09-13 07:18:23 KST
 Purpose: morning scan trigger; scanner logic unchanged.
