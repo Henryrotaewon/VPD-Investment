@@ -1,40 +1,18 @@
 {
-  "generated_at": "2026-09-12T22:07:35.275213+09:00",
-  "vpd_asof": "2026-09-12 07:21:07 KST",
+  "generated_at": "2026-09-13T07:41:40.859757+09:00",
+  "vpd_asof": "2026-09-13 07:22:02 KST",
   "rule": "POC only; separate from VPD v1.4",
   "coins": [
     {
-      "coin": "PLUME",
-      "market": "KRW-PLUME",
-      "VPD": 95.0,
-      "momentum": "↑↑",
-      "VPDVelocity": 56.0,
-      "VPDVelocityPerHour": 2.34,
-      "TodayValue/10": 7.94,
-      "IntraAccel": 8.81,
-      "1D%": 2.86,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "momentum",
-        "price_muted",
-        "rocket"
-      ],
-      "flag_count": 8
-    },
-    {
-      "coin": "WLFI",
-      "market": "KRW-WLFI",
-      "VPD": 93.0,
+      "coin": "WCT",
+      "market": "KRW-WCT",
+      "VPD": 91.0,
       "momentum": "↑",
-      "VPDVelocity": 51.0,
-      "VPDVelocityPerHour": 2.13,
-      "TodayValue/10": 3.93,
-      "IntraAccel": 3.83,
-      "1D%": -3.52,
+      "VPDVelocity": 50.0,
+      "VPDVelocityPerHour": 2.09,
+      "TodayValue/10": 7.49,
+      "IntraAccel": 6.01,
+      "1D%": 2.02,
       "flags": [
         "vpd75",
         "velocity",
@@ -48,36 +26,100 @@
       "flag_count": 8
     },
     {
-      "coin": "MTL",
-      "market": "KRW-MTL",
-      "VPD": 89.0,
+      "coin": "IQ",
+      "market": "KRW-IQ",
+      "VPD": 85.0,
       "momentum": "↑↑",
-      "VPDVelocity": 17.0,
-      "VPDVelocityPerHour": 0.71,
-      "TodayValue/10": 10.51,
-      "IntraAccel": 7.47,
-      "1D%": 3.96,
+      "VPDVelocity": 63.0,
+      "VPDVelocityPerHour": 2.63,
+      "TodayValue/10": 10.93,
+      "IntraAccel": 5.28,
+      "1D%": 8.49,
       "flags": [
         "vpd75",
+        "velocity",
         "today_value",
         "intra_accel",
         "new_top10",
         "momentum",
-        "price_muted",
         "rocket"
       ],
       "flag_count": 7
     },
     {
-      "coin": "HUNT",
-      "market": "KRW-HUNT",
-      "VPD": 87.0,
+      "coin": "PUNDIX",
+      "market": "KRW-PUNDIX",
+      "VPD": 85.0,
+      "momentum": "↑↑",
+      "VPDVelocity": 62.0,
+      "VPDVelocityPerHour": 2.59,
+      "TodayValue/10": 12.18,
+      "IntraAccel": 30.18,
+      "1D%": 9.38,
+      "flags": [
+        "vpd75",
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "rocket"
+      ],
+      "flag_count": 7
+    },
+    {
+      "coin": "TREE",
+      "market": "KRW-TREE",
+      "VPD": 85.0,
+      "momentum": "↑↑",
+      "VPDVelocity": 48.0,
+      "VPDVelocityPerHour": 2.0,
+      "TodayValue/10": 18.64,
+      "IntraAccel": 21.3,
+      "1D%": 12.5,
+      "flags": [
+        "vpd75",
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "rocket"
+      ],
+      "flag_count": 7
+    },
+    {
+      "coin": "ERA",
+      "market": "KRW-ERA",
+      "VPD": 85.0,
+      "momentum": "↑",
+      "VPDVelocity": 44.0,
+      "VPDVelocityPerHour": 1.84,
+      "TodayValue/10": 6.94,
+      "IntraAccel": 5.77,
+      "1D%": 2.3,
+      "flags": [
+        "vpd75",
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 8
+    },
+    {
+      "coin": "CHZ",
+      "market": "KRW-CHZ",
+      "VPD": 83.0,
       "momentum": "↑",
       "VPDVelocity": 27.0,
       "VPDVelocityPerHour": 1.13,
-      "TodayValue/10": 6.06,
-      "IntraAccel": 6.95,
-      "1D%": 2.48,
+      "TodayValue/10": 6.24,
+      "IntraAccel": 5.24,
+      "1D%": 2.63,
       "flags": [
         "vpd75",
         "velocity",
@@ -91,15 +133,15 @@
       "flag_count": 8
     },
     {
-      "coin": "MET2",
-      "market": "KRW-MET2",
-      "VPD": 85.0,
+      "coin": "BSB",
+      "market": "KRW-BSB",
+      "VPD": 82.0,
       "momentum": "↑",
-      "VPDVelocity": 66.0,
-      "VPDVelocityPerHour": 2.76,
-      "TodayValue/10": 36.03,
-      "IntraAccel": 53.66,
-      "1D%": 13.75,
+      "VPDVelocity": 31.0,
+      "VPDVelocityPerHour": 1.29,
+      "TodayValue/10": 14.47,
+      "IntraAccel": 10.83,
+      "1D%": 3.82,
       "flags": [
         "vpd75",
         "velocity",
@@ -107,72 +149,29 @@
         "intra_accel",
         "new_top10",
         "momentum",
+        "price_muted",
         "rocket"
       ],
-      "flag_count": 7
-    },
-    {
-      "coin": "TRAC",
-      "market": "KRW-TRAC",
-      "VPD": 85.0,
-      "momentum": "↑↑",
-      "VPDVelocity": 45.0,
-      "VPDVelocityPerHour": 1.88,
-      "TodayValue/10": 38.91,
-      "IntraAccel": 39.56,
-      "1D%": 9.46,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "momentum",
-        "rocket"
-      ],
-      "flag_count": 7
-    },
-    {
-      "coin": "BLUR",
-      "market": "KRW-BLUR",
-      "VPD": 85.0,
-      "momentum": "↑↑",
-      "VPDVelocity": 13.0,
-      "VPDVelocityPerHour": 0.54,
-      "TodayValue/10": 36.74,
-      "IntraAccel": 27.93,
-      "1D%": 9.55,
-      "flags": [
-        "vpd75",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "momentum",
-        "rocket"
-      ],
-      "flag_count": 6
+      "flag_count": 8
     },
     {
       "coin": "KNC",
       "market": "KRW-KNC",
-      "VPD": 84.0,
+      "VPD": 81.0,
       "momentum": "↑",
-      "VPDVelocity": 20.0,
-      "VPDVelocityPerHour": 0.84,
-      "TodayValue/10": 7.69,
-      "IntraAccel": 4.68,
-      "1D%": 2.98,
+      "VPDVelocity": -3.0,
+      "VPDVelocityPerHour": -0.13,
+      "TodayValue/10": 6.02,
+      "IntraAccel": 2.87,
+      "1D%": 4.62,
       "flags": [
         "vpd75",
-        "velocity",
         "today_value",
         "intra_accel",
-        "new_top10",
         "momentum",
-        "price_muted",
-        "rocket"
+        "price_muted"
       ],
-      "flag_count": 8
+      "flag_count": 5
     }
   ]
 }
