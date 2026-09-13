@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-13T07:41:44.695343+09:00",
+  "updated_at": "2026-09-13T09:18:37.765263+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -307,14 +307,19 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "PUNDIX": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-13T07:41:44.695343+09:00",
-      "EWScore": 75
+      "level": "WATCH",
+      "updated_at": "2026-09-13T09:18:37.765263+09:00",
+      "EWScore": 49
     },
     "BSB": {
-      "level": "RED",
-      "updated_at": "2026-09-13T07:41:44.695343+09:00",
-      "EWScore": 81
+      "level": "WATCH",
+      "updated_at": "2026-09-13T09:18:37.765263+09:00",
+      "EWScore": 60
+    },
+    "IQ": {
+      "level": "ORANGE",
+      "updated_at": "2026-09-13T09:18:37.765263+09:00",
+      "EWScore": 72
     }
   }
 }
