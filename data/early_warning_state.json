@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-13T19:12:02.973444+09:00",
+  "updated_at": "2026-09-13T23:19:59.632838+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -322,9 +322,9 @@
       "EWScore": 51
     },
     "ERA": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-13T19:12:02.973444+09:00",
-      "EWScore": 75
+      "level": "WATCH",
+      "updated_at": "2026-09-13T23:19:59.632838+09:00",
+      "EWScore": 45
     }
   }
 }
