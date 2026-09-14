@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 370440.12105943076,
+  "cash_krw": 0.0,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -1819,8 +1819,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 2,
-      "signal_vpd": 91.0,
+      "signal_rank": 12.0,
+      "signal_vpd": 82.0,
       "signal_price": 1361.0,
       "entry_market_price": 1361.0,
       "entry_price": 1362.3609999999999,
@@ -1834,7 +1834,16 @@
       "last_price": 1355.0,
       "peak_price": 1361.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "VPD",
+        "MOMENTUM",
+        "TODAY_VALUE",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.289715+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "XCN": {
       "market": "KRW-XCN",
@@ -3231,8 +3240,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 6,
-      "signal_vpd": 87.0,
+      "signal_rank": 204.0,
+      "signal_vpd": 30.0,
       "signal_price": 1356.0,
       "entry_market_price": 1356.0,
       "entry_price": 1357.3559999999998,
@@ -3246,7 +3255,14 @@
       "last_price": 1355.0,
       "peak_price": 1356.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290109+09:00",
+      "weakening_count": 1,
+      "hold_state": "WEAKENING",
+      "weakening_since": "2026-09-15T07:31:08.290115+09:00"
     },
     "TFUEL": {
       "market": "KRW-TFUEL",
@@ -3389,8 +3405,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 3,
-      "signal_vpd": 89.0,
+      "signal_rank": 22.0,
+      "signal_vpd": 76.0,
       "signal_price": 1360.0,
       "entry_market_price": 1360.0,
       "entry_price": 1361.36,
@@ -3404,7 +3420,16 @@
       "last_price": 1356.0,
       "peak_price": 1360.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "VPD",
+        "INTRA_ACCEL",
+        "TODAY_VALUE",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290184+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "B3": {
       "market": "KRW-B3",
@@ -3448,8 +3473,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 1,
-      "signal_vpd": 92.0,
+      "signal_rank": 202.0,
+      "signal_vpd": 31.0,
       "signal_price": 17.5,
       "entry_market_price": 17.3,
       "entry_price": 17.3173,
@@ -3463,7 +3488,14 @@
       "last_price": 17.8,
       "peak_price": 17.8,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "MOMENTUM",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290213+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "WLFI": {
       "market": "KRW-WLFI",
@@ -3804,8 +3836,8 @@
       "first_selected_date": "2026-09-13",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 2,
-      "signal_rank": 5,
-      "signal_vpd": 88.0,
+      "signal_rank": 28.0,
+      "signal_vpd": 74.0,
       "signal_price": 19.5,
       "entry_market_price": 19.6,
       "entry_price": 19.6196,
@@ -3819,7 +3851,15 @@
       "last_price": 20.2,
       "peak_price": 20.3,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "VPD",
+        "TODAY_VALUE",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290235+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "BSB": {
       "market": "KRW-BSB",
@@ -3896,8 +3936,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 4,
-      "signal_vpd": 89.0,
+      "signal_rank": 48.0,
+      "signal_vpd": 66.0,
       "signal_price": 1363.0,
       "entry_market_price": 1363.0,
       "entry_price": 1364.3629999999998,
@@ -3911,7 +3951,16 @@
       "last_price": 1358.0,
       "peak_price": 1363.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "VPD",
+        "INTRA_ACCEL",
+        "TODAY_VALUE",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290260+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "AGLD": {
       "market": "KRW-AGLD",
@@ -3920,10 +3969,10 @@
       "entry_session": "AM",
       "entry_session_id": "2026-09-14-AM-001",
       "first_selected_date": "2026-09-14",
-      "last_selected_date": "2026-09-14",
-      "consecutive_top10_days": 1,
-      "signal_rank": 7,
-      "signal_vpd": 87.0,
+      "last_selected_date": "2026-09-15",
+      "consecutive_top10_days": 2,
+      "signal_rank": 2,
+      "signal_vpd": 88.0,
       "signal_price": 242.0,
       "entry_market_price": 242.0,
       "entry_price": 242.24199999999996,
@@ -3937,7 +3986,9 @@
       "last_price": 249.0,
       "peak_price": 249.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "GAS": {
       "market": "KRW-GAS",
@@ -3948,8 +3999,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 8,
-      "signal_vpd": 87.0,
+      "signal_rank": 34.0,
+      "signal_vpd": 72.0,
       "signal_price": 1745.0,
       "entry_market_price": 1735.0,
       "entry_price": 1736.735,
@@ -3963,7 +4014,16 @@
       "last_price": 1816.0,
       "peak_price": 1816.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "VPD",
+        "MOMENTUM",
+        "TODAY_VALUE",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290313+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "ESP": {
       "market": "KRW-ESP",
@@ -3974,8 +4034,8 @@
       "first_selected_date": "2026-09-14",
       "last_selected_date": "2026-09-14",
       "consecutive_top10_days": 1,
-      "signal_rank": 9,
-      "signal_vpd": 86.0,
+      "signal_rank": 75.0,
+      "signal_vpd": 56.0,
       "signal_price": 118.0,
       "entry_market_price": 117.0,
       "entry_price": 117.11699999999999,
@@ -3989,7 +4049,14 @@
       "last_price": 115.0,
       "peak_price": 117.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_signal_reasons": [
+        "MOMENTUM",
+        "GIVEBACK_SAFE"
+      ],
+      "hold_signal_checked_at": "2026-09-15T07:31:08.290332+09:00",
+      "hold_state": "ACTIVE",
+      "weakening_count": 0
     },
     "POLYX": {
       "market": "KRW-POLYX",
@@ -4023,24 +4090,50 @@
       "pnl_krw": 39876.074292088335,
       "return_pct": 12.063040334254449,
       "exit_reason": "TAKE_PROFIT"
+    },
+    "HYPER": {
+      "market": "KRW-HYPER",
+      "status": "OPEN",
+      "entry_at": "2026-09-15T07:31:08.290379+09:00",
+      "entry_session": "AM",
+      "entry_session_id": "2026-09-15-AM-001",
+      "first_selected_date": "2026-09-15",
+      "last_selected_date": "2026-09-15",
+      "consecutive_top10_days": 1,
+      "signal_rank": 1,
+      "signal_vpd": 91.0,
+      "signal_price": 95.9,
+      "entry_market_price": 96.2,
+      "entry_price": 96.2962,
+      "buy_notional_krw": 370254.99356264947,
+      "buy_fee_krw": 185.1274967812933,
+      "qty": 3844.959547340907,
+      "cost_krw": 370440.12105943076,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 96.2,
+      "peak_price": 96.2,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 6371.71525276266,
+  "realized_pnl_krw": 0.0,
   "lifetime_realized_pnl_krw": 329434.7886901902,
   "paper_only": true,
-  "cohort_id": "2026-09-14-AM-001",
-  "cohort_date": "2026-09-14",
-  "last_rebalance_date": "2026-09-14",
-  "source_snapshot_asof_kst": "2026-09-14 07:25:51 KST",
+  "cohort_id": "2026-09-15-AM-001",
+  "cohort_date": "2026-09-15",
+  "last_rebalance_date": "2026-09-15",
+  "source_snapshot_asof_kst": "2026-09-15 07:25:47 KST",
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
-  "cohort_policy": "AM_ROLLING_TOP10_COMMAND_REFILL",
+  "cohort_policy": "AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-14T16:16:34.184092+09:00",
+  "updated_at": "2026-09-15T07:31:08.290422+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
-  "daily_equal_buy_krw": 330564.0467673428,
-  "daily_equal_buy_date": "2026-09-14",
+  "daily_equal_buy_krw": 370440.12105943076,
+  "daily_equal_buy_date": "2026-09-15",
   "daily_equal_buy_source": "MORNING_AVAILABLE_CASH_PER_NEW_SLOT",
   "last_refill_at": "2026-09-10T12:50:32.674051+09:00",
   "last_refill_session_id": "2026-09-10-REFILL-1250",
@@ -4929,5 +5022,5 @@
       "coin": "USDS"
     }
   ],
-  "last_rebalance_vpd_asof": "2026-09-14T07:25:51.581268+09:00"
+  "last_rebalance_vpd_asof": "2026-09-15T07:25:47.352138+09:00"
 }
