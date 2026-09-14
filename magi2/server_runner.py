@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import shutil
@@ -17,6 +18,7 @@ POLL_SECONDS=5
 BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN','').strip()
 ALLOWED_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID','').strip()
 GITHUB_REPO=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
+STATE_DIR=REPO_STATE_DIR
 
 
 def log(msg): print(f'[{datetime.now(KST).isoformat()}] {msg}',flush=True)
@@ -52,7 +54,53 @@ def prepare_persistent_state():
         repo_file=REPO_STATE_DIR/name; volume_file=volume_dir/name
         if repo_file.is_symlink() or repo_file.exists(): repo_file.unlink()
         repo_file.symlink_to(volume_file)
+    global STATE_DIR
+    STATE_DIR=volume_dir
     log(f'MAGI2 persistent state active: {volume_dir}'); return volume_dir
+
+
+def state_signature():
+    sig=[]
+    for name in ('paper_state.json','paper_events.jsonl'):
+        path=STATE_DIR/name
+        try: sig.append((name,path.stat().st_mtime_ns,path.stat().st_size))
+        except FileNotFoundError: sig.append((name,None,None))
+    return tuple(sig)
+
+
+def github_put_text(path,text,message):
+    token=os.getenv('GITHUB_TOKEN','').strip()
+    if not token: raise RuntimeError('GITHUB_TOKEN 없음')
+    api=f'https://api.github.com/repos/{GITHUB_REPO}/contents/{path}'
+    headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+    current=requests.get(api,headers=headers,params={'ref':'main'},timeout=20)
+    sha=None
+    if current.status_code==200:
+        body=current.json(); sha=body.get('sha')
+        encoded=(body.get('content') or '').replace('\n','')
+        if encoded and base64.b64decode(encoded).decode('utf-8')==text: return False
+    elif current.status_code!=404: current.raise_for_status()
+    payload={'message':message,'content':base64.b64encode(text.encode('utf-8')).decode('ascii'),'branch':'main'}
+    if sha: payload['sha']=sha
+    response=requests.put(api,headers=headers,json=payload,timeout=30); response.raise_for_status(); return True
+
+
+def backup_paper_history():
+    """Mirror Railway PAPER state and month-partitioned events for analysis."""
+    state_path=STATE_DIR/'paper_state.json'; events_path=STATE_DIR/'paper_events.jsonl'
+    if not state_path.exists(): return
+    changed=github_put_text('magi2/analytics/paper_state_latest.json',state_path.read_text(encoding='utf-8'),'Backup MAGI2 PAPER state')
+    months={}
+    if events_path.exists():
+        for line in events_path.read_text(encoding='utf-8').splitlines():
+            if not line.strip(): continue
+            try: month=str(json.loads(line).get('ts','unknown'))[:7]
+            except Exception: month='unknown'
+            if len(month)!=7 or month[4]!='-': month='unknown'
+            months.setdefault(month,[]).append(line)
+    for month,lines in months.items():
+        changed=github_put_text(f'magi2/analytics/paper_events_{month}.jsonl','\n'.join(lines)+'\n',f'Backup MAGI2 PAPER events {month}') or changed
+    log(f'GitHub PAPER backup complete; changed={changed}')
 
 
 def telegram(text):
@@ -64,13 +112,16 @@ def telegram(text):
 def run_engine(mode):
     script='magi2/refill_engine.py' if mode=='refill' else 'magi2/paper_engine.py'
     args=[sys.executable,script] if mode=='refill' else [sys.executable,script,mode]
-    p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy())
+    before=state_signature(); p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy())
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
     if p.returncode!=0:
         details=(p.stderr or p.stdout or '').strip()
         if len(details)>1800: details=details[-1800:]
         raise RuntimeError(f'MAGI2 {mode} failed with exit code {p.returncode}\n{details or "(no subprocess output)"}')
+    if state_signature()!=before:
+        try: backup_paper_history()
+        except Exception as e: log(f'GitHub PAPER backup error (engine unaffected): {e}')
 
 
 def num(v,d=0):
@@ -140,6 +191,8 @@ def poll_updates(offset):
 def main():
     prepare_persistent_state()
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
+    try: backup_paper_history()
+    except Exception as e: log(f'Initial GitHub PAPER backup error (engine unaffected): {e}')
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     next_monitor=time.monotonic()+INTERVAL
     while True:

@@ -18,6 +18,14 @@
     "warning_profit_pct": 10.0,
     "warning_distance_pct_point": 2.0
   },
+  "hold": {
+    "min_alive_signals": 2,
+    "weakening_grace_mornings": 1,
+    "min_vpd": 60.0,
+    "min_intra_accel": 1.0,
+    "min_today_value_ratio": 1.0,
+    "max_giveback_pct_point": 10.0
+  },
   "monitor": {
     "interval_minutes": 5
   }

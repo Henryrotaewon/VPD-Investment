@@ -1,4 +1,4 @@
-import argparse, json, os
+import argparse, csv, io, json, os
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -109,6 +109,39 @@ def load_today_snapshot():
 def load_morning_snapshot():
     return load_latest_snapshot()
 
+def load_all_ranked_rows():
+    repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
+    url=f'https://raw.githubusercontent.com/{repo}/main/data/vpd_all_latest.csv?t={int(now_dt().timestamp())}'
+    try:
+        r=requests.get(url,timeout=20); r.raise_for_status(); rows={}
+        for raw in csv.DictReader(io.StringIO(r.text.lstrip('\ufeff'))):
+            coin=(raw.get('coin') or raw.get('Coin') or '').strip()
+            if coin: rows[coin]=raw
+        return rows
+    except Exception as e:
+        print(f'VPD all-rank fetch error: {e}'); return {}
+
+def _number(row,*names):
+    for name in names:
+        value=row.get(name)
+        if value not in (None,''):
+            try: return float(value)
+            except (TypeError,ValueError): pass
+    return None
+
+def hold_signal(row):
+    """Return whether an existing position still has at least N live VPD signals."""
+    cfg=CFG.get('hold',{}); checks={
+        'VPD': (_number(row,'VPD') or 0)>=float(cfg.get('min_vpd',60)),
+        'MOMENTUM': str(row.get('momentum','')).strip() in {'↑','↑↑'},
+        'VELOCITY': (_number(row,'VPDVelocity') or 0)>0,
+        'INTRA_ACCEL': (_number(row,'IntraAccel') or 0)>float(cfg.get('min_intra_accel',1)),
+        'TODAY_VALUE': (_number(row,'TodayValue/10') or 0)>float(cfg.get('min_today_value_ratio',1)),
+        'GIVEBACK_SAFE': (_number(row,'Giveback%p') is not None and _number(row,'Giveback%p')<float(cfg.get('max_giveback_pct_point',10))),
+    }
+    passed=[name for name,ok in checks.items() if ok]
+    return len(passed)>=int(cfg.get('min_alive_signals',2)),passed,checks
+
 def archive_closed_slot(st,coin):
     old=st.get('positions',{}).get(coin)
     if old and old.get('status')=='CLOSED': st.setdefault('closed_positions',[]).append(dict(old,coin=coin))
@@ -165,14 +198,27 @@ def morning_rebalance(st):
     st['realized_pnl_krw']=0.0
     top_n=int(CFG.get('session',{}).get('top_n',10)); candidates=snap.get('top10',[])[:top_n]
     if not candidates: raise RuntimeError('Latest VPD TOP10 is empty.')
-    top={r['coin']:r for r in candidates}; active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; exited=[]; bought=[]; sid=f'{today}-AM-001'
+    top={r['coin']:r for r in candidates}; all_rows=load_all_ranked_rows(); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; weakening=[]; exited=[]; bought=[]; sid=f'{today}-AM-001'
     for coin,p in list(active.items()):
         if coin in top:
-            p['last_selected_date']=today; p['consecutive_top10_days']=int(p.get('consecutive_top10_days',1))+1; p['signal_rank']=top[coin].get('Rank'); p['signal_vpd']=top[coin].get('VPD'); kept.append(coin)
+            p['last_selected_date']=today; p['consecutive_top10_days']=int(p.get('consecutive_top10_days',1))+1; p['signal_rank']=top[coin].get('Rank'); p['signal_vpd']=top[coin].get('VPD'); p['hold_state']='ACTIVE'; p['weakening_count']=0; p.pop('weakening_since',None); kept.append(coin)
             log_event({'ts':now_iso(),'type':'KEEP','cohort_id':sid,'coin':coin,'market':p['market'],'signal_rank':p.get('signal_rank'),'signal_vpd':p.get('signal_vpd'),'consecutive_top10_days':p['consecutive_top10_days'],'entry_at':p.get('entry_at'),'entry_session':p.get('entry_session','AM'),'paper_only':True})
         else:
-            px=prices.get(p['market'])
-            if px is not None and close_position(st,coin,p,px,'VPD_EXIT',False): exited.append(coin)
+            row=all_rows.get(coin,{})
+            alive,passed,_=hold_signal(row) if row else (False,[],{})
+            p['signal_rank']=_number(row,'Rank'); p['signal_vpd']=_number(row,'VPD'); p['hold_signal_reasons']=passed; p['hold_signal_checked_at']=now_iso()
+            if alive:
+                p['hold_state']='ACTIVE'; p['weakening_count']=0; p.pop('weakening_since',None); kept.append(coin)
+                log_event({'ts':now_iso(),'type':'KEEP_SIGNAL_ALIVE','cohort_id':sid,'coin':coin,'market':p['market'],'signal_rank':p.get('signal_rank'),'signal_vpd':p.get('signal_vpd'),'passed_signals':passed,'paper_only':True})
+                continue
+            weak_count=int(p.get('weakening_count',0))+1; grace=int(CFG.get('hold',{}).get('weakening_grace_mornings',1))
+            p['weakening_count']=weak_count
+            if weak_count<=grace:
+                p['hold_state']='WEAKENING'; p.setdefault('weakening_since',now_iso()); weakening.append(coin)
+                log_event({'ts':now_iso(),'type':'WEAKENING','cohort_id':sid,'coin':coin,'market':p['market'],'signal_rank':p.get('signal_rank'),'signal_vpd':p.get('signal_vpd'),'weakening_count':weak_count,'passed_signals':passed,'paper_only':True})
+            else:
+                px=prices.get(p['market'])
+                if px is not None and close_position(st,coin,p,px,'VPD_SIGNAL_DECAY',False): exited.append(coin)
     open_after={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}
     remaining_slots=max(0,top_n-len(open_after))
     available_cash=float(st.get('cash_krw',0))
@@ -187,9 +233,9 @@ def morning_rebalance(st):
         if len(open_after)>=top_n: break
         if row['coin'] in open_after: continue
         if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
-    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_ROLLING_TOP10_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
+    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
     st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source; save_state(st)
-    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nVPD snapshot {snap.get('asof_kst',asof.isoformat())}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ 최신 미사용 VPD 1회 처리 / KEEP 수량·평단 유지 / 청산 후 가용예수금÷신규슬롯 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
+    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nVPD snapshot {snap.get('asof_kst',asof.isoformat())}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nWEAKENING {len(weakening)}: {', '.join(weakening) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ TOP10 밖은 생존신호 2개 이상 KEEP / 최초 약화 1회 유예 / 연속 약화 시 청산 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
 
 def refill(st):
     loaded=load_today_snapshot()
