@@ -18,6 +18,7 @@ POLL_SECONDS=5
 BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN','').strip()
 ALLOWED_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID','').strip()
 GITHUB_REPO=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
+BACKUP_BRANCH=os.getenv('MAGI2_BACKUP_BRANCH','paper-history').strip()
 STATE_DIR=REPO_STATE_DIR
 
 
@@ -68,19 +69,34 @@ def state_signature():
     return tuple(sig)
 
 
-def github_put_text(path,text,message):
+def github_headers():
     token=os.getenv('GITHUB_TOKEN','').strip()
     if not token: raise RuntimeError('GITHUB_TOKEN 없음')
+    return {'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+
+
+def ensure_backup_branch():
+    headers=github_headers(); api=f'https://api.github.com/repos/{GITHUB_REPO}'
+    branch=requests.get(f'{api}/git/ref/heads/{BACKUP_BRANCH}',headers=headers,timeout=20)
+    if branch.status_code==200: return
+    if branch.status_code!=404: branch.raise_for_status()
+    main=requests.get(f'{api}/git/ref/heads/main',headers=headers,timeout=20); main.raise_for_status()
+    sha=main.json()['object']['sha']
+    created=requests.post(f'{api}/git/refs',headers=headers,json={'ref':f'refs/heads/{BACKUP_BRANCH}','sha':sha},timeout=20)
+    if created.status_code not in (201,422): created.raise_for_status()
+
+
+def github_put_text(path,text,message):
+    headers=github_headers()
     api=f'https://api.github.com/repos/{GITHUB_REPO}/contents/{path}'
-    headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
-    current=requests.get(api,headers=headers,params={'ref':'main'},timeout=20)
+    current=requests.get(api,headers=headers,params={'ref':BACKUP_BRANCH},timeout=20)
     sha=None
     if current.status_code==200:
         body=current.json(); sha=body.get('sha')
         encoded=(body.get('content') or '').replace('\n','')
         if encoded and base64.b64decode(encoded).decode('utf-8')==text: return False
     elif current.status_code!=404: current.raise_for_status()
-    payload={'message':message,'content':base64.b64encode(text.encode('utf-8')).decode('ascii'),'branch':'main'}
+    payload={'message':message,'content':base64.b64encode(text.encode('utf-8')).decode('ascii'),'branch':BACKUP_BRANCH}
     if sha: payload['sha']=sha
     response=requests.put(api,headers=headers,json=payload,timeout=30); response.raise_for_status(); return True
 
@@ -89,6 +105,7 @@ def backup_paper_history():
     """Mirror Railway PAPER state and month-partitioned events for analysis."""
     state_path=STATE_DIR/'paper_state.json'; events_path=STATE_DIR/'paper_events.jsonl'
     if not state_path.exists(): return
+    ensure_backup_branch()
     changed=github_put_text('magi2/analytics/paper_state_latest.json',state_path.read_text(encoding='utf-8'),'Backup MAGI2 PAPER state')
     months={}
     if events_path.exists():
