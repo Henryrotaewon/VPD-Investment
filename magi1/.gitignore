@@ -1,0 +1,6 @@
+raw/
+reports/
+*.db
+*.db-shm
+*.db-wal
+universe.json

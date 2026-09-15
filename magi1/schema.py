@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 
 @dataclass(frozen=True)
@@ -61,4 +61,49 @@ class FlowStateEvent:
     origin_confidence: Optional[float] = None
     flow_formation_score: Optional[float] = None
     reference_price_reaction_pct: Optional[float] = None
-    sample_version: str = "magi1-v0.1"
+    sample_version: str = "magi1-v0.2"
+    horizon: str = "MICRO"
+
+
+@dataclass(frozen=True)
+class ShockOriginCandidate:
+    source: str
+    provider: str
+    asset: str
+    direction: str
+    event_ts_ms: int
+    received_ts_ms: int
+    category: str
+    amount: Optional[float] = None
+    tx_hash: Optional[str] = None
+    confidence: Optional[float] = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    standalone_signal: bool = False
+
+
+@dataclass(frozen=True)
+class PropagationMeasurement:
+    shock_id: str
+    asset: str
+    direction: str
+    origin_venue: str
+    follower_venue: str
+    origin_ts_ms: int
+    reception_ts_ms: Optional[int]
+    origin_confidence: float
+    reception_probability: float
+    lag_ms: Optional[int]
+    sensitivity: Optional[float]
+    usable_lead_time_ms: Optional[int]
+    sample_count: int
+
+
+@dataclass(frozen=True)
+class EvaluationRecord:
+    shock_id: str
+    cohort: str
+    horizon_sec: int
+    forward_return: Optional[float]
+    mfe: Optional[float]
+    mae: Optional[float]
+    false_shock: Optional[bool]

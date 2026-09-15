@@ -1,0 +1,57 @@
+from __future__ import annotations
+
+import abc
+import json
+import time
+from typing import Any, AsyncIterator
+
+from .schema import ShockOriginCandidate
+
+import aiohttp
+
+
+class OnChainProvider(abc.ABC):
+    name="base"
+    @abc.abstractmethod
+    async def events(self) -> AsyncIterator[dict[str,Any]]: ...
+
+
+class RawPublicProvider(OnChainProvider):
+    """Adapter boundary for public node/explorer feeds. URLs are supplied by env."""
+    name="public-raw"
+    def __init__(self, source: AsyncIterator[dict[str,Any]]): self.source=source
+    async def events(self):
+        async for x in self.source: yield x
+
+
+class BitcoinPublicWebSocketProvider(OnChainProvider):
+    """Public raw BTC transaction feed; address labels are intentionally unknown."""
+    name="blockchain-info-public-ws"
+    def __init__(self, minimum_btc: float = 100.0): self.minimum_sats=int(minimum_btc*100_000_000)
+    async def events(self):
+        backoff=1
+        while True:
+            try:
+                async with aiohttp.ClientSession() as session, session.ws_connect("wss://ws.blockchain.info/inv",heartbeat=20) as ws:
+                    await ws.send_json({"op":"unconfirmed_sub"}); backoff=1
+                    async for msg in ws:
+                        if msg.type != aiohttp.WSMsgType.TEXT: continue
+                        x=json.loads(msg.data).get("x",{}); amount=sum(int(o.get("value",0)) for o in x.get("out",[]))
+                        if amount>=self.minimum_sats:
+                            yield {"asset":"BTC","direction":"UNKNOWN","event_ts_ms":int(x.get("time",time.time())*1000),"category":"large_transfer","amount":amount/100_000_000,"tx_hash":x.get("hash"),"confidence":0.5,"metadata":{"label":"unclassified_public_raw"}}
+            except Exception:
+                await __import__("asyncio").sleep(backoff); backoff=min(backoff*2,30)
+
+
+class OnChainShockAdapter:
+    def __init__(self, provider: OnChainProvider): self.provider=provider
+    async def events(self):
+        async for x in self.provider.events():
+            now=time.time_ns()//1_000_000
+            yield ShockOriginCandidate("onchain",self.provider.name,x["asset"],x.get("direction","UNKNOWN"),int(x.get("event_ts_ms",now)),now,x["category"],x.get("amount"),x.get("tx_hash"),x.get("confidence"),x.get("metadata",{}),False)
+
+
+class EnrichmentProvider(abc.ABC):
+    """Replaceable Arkham/Nansen/Glassnode-compatible enrichment interface."""
+    @abc.abstractmethod
+    async def enrich(self, candidate: ShockOriginCandidate) -> ShockOriginCandidate: ...

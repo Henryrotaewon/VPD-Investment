@@ -64,7 +64,7 @@ Core research outputs:
 - Treat network latency as an explanatory variable, not the primary alpha thesis.
 - No unverified metric is promoted to a production signal.
 
-## Planned modules
+## Implemented modules
 
 - `config.py` — venue/universe/research configuration
 - `schema.py` — normalized event/state schemas
@@ -77,6 +77,10 @@ Core research outputs:
 - `storage.py` — append-only raw/research persistence
 - `replay.py` — PAPER forward-return/MFE/MAE evaluation
 - `vpd_join.py` — timestamp-safe VPD join, without modifying VPD score
+
+Run with `python -m magi1.runner`. `MAGI1_MODE=COLLECT_ONLY` is mandatory and is also the default. Raw ticks are append-only files under `MAGI1_DATA_DIR`; they must not be committed to GitHub. The daily report is generated at 07:00 KST and reconstructs each chain in On-chain → Global → Derivatives → Korea → VPD → Price order.
+
+On-chain events use the replaceable `OnChainProvider`/`EnrichmentProvider` interfaces. Public/raw sources are the initial boundary; Arkham, Nansen, Glassnode or another provider can enrich candidates later. Every on-chain candidate has `standalone_signal=False` by construction.
 
 ## Definition of done for v0.1
 
