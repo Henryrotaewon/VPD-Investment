@@ -1,39 +1,18 @@
 {
-  "generated_at": "2026-09-14T22:19:20.778842+09:00",
-  "vpd_asof": "2026-09-14 07:25:51 KST",
+  "generated_at": "2026-09-15T09:34:24.185709+09:00",
+  "vpd_asof": "2026-09-15 07:25:47 KST",
   "rule": "POC only; separate from VPD v1.4",
   "coins": [
     {
-      "coin": "PLUME",
-      "market": "KRW-PLUME",
-      "VPD": 92.0,
-      "momentum": "→",
-      "VPDVelocity": 40.0,
-      "VPDVelocityPerHour": 1.67,
-      "TodayValue/10": 8.58,
-      "IntraAccel": 4.17,
-      "1D%": -2.23,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "price_muted",
-        "rocket"
-      ],
-      "flag_count": 7
-    },
-    {
-      "coin": "USDG",
-      "market": "KRW-USDG",
+      "coin": "HYPER",
+      "market": "KRW-HYPER",
       "VPD": 91.0,
-      "momentum": "↑",
-      "VPDVelocity": 66.0,
-      "VPDVelocityPerHour": 2.75,
-      "TodayValue/10": 79.34,
-      "IntraAccel": 103.82,
-      "1D%": -0.07,
+      "momentum": "↑↑",
+      "VPDVelocity": 24.0,
+      "VPDVelocityPerHour": 1.0,
+      "TodayValue/10": 6.59,
+      "IntraAccel": 4.99,
+      "1D%": 4.01,
       "flags": [
         "vpd75",
         "velocity",
@@ -45,122 +24,56 @@
         "rocket"
       ],
       "flag_count": 8
-    },
-    {
-      "coin": "USDE",
-      "market": "KRW-USDE",
-      "VPD": 89.0,
-      "momentum": "→",
-      "VPDVelocity": 49.0,
-      "VPDVelocityPerHour": 2.04,
-      "TodayValue/10": 4.68,
-      "IntraAccel": 4.29,
-      "1D%": -0.15,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "price_muted",
-        "rocket"
-      ],
-      "flag_count": 7
-    },
-    {
-      "coin": "USD1",
-      "market": "KRW-USD1",
-      "VPD": 89.0,
-      "momentum": "↑",
-      "VPDVelocity": 47.0,
-      "VPDVelocityPerHour": 1.96,
-      "TodayValue/10": 4.16,
-      "IntraAccel": 4.5,
-      "1D%": 0.07,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "momentum",
-        "price_muted",
-        "rocket"
-      ],
-      "flag_count": 8
-    },
-    {
-      "coin": "CHZ",
-      "market": "KRW-CHZ",
-      "VPD": 88.0,
-      "momentum": "↑",
-      "VPDVelocity": 5.0,
-      "VPDVelocityPerHour": 0.21,
-      "TodayValue/10": 6.22,
-      "IntraAccel": 3.21,
-      "1D%": 1.02,
-      "flags": [
-        "vpd75",
-        "today_value",
-        "intra_accel",
-        "momentum",
-        "price_muted"
-      ],
-      "flag_count": 5
-    },
-    {
-      "coin": "GAS",
-      "market": "KRW-GAS",
-      "VPD": 87.0,
-      "momentum": "↑",
-      "VPDVelocity": 44.0,
-      "VPDVelocityPerHour": 1.83,
-      "TodayValue/10": 6.11,
-      "IntraAccel": 6.1,
-      "1D%": 0.63,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "momentum",
-        "price_muted",
-        "rocket"
-      ],
-      "flag_count": 8
-    },
-    {
-      "coin": "USDS",
-      "market": "KRW-USDS",
-      "VPD": 87.0,
-      "momentum": "→",
-      "VPDVelocity": 30.0,
-      "VPDVelocityPerHour": 1.25,
-      "TodayValue/10": 7.3,
-      "IntraAccel": 4.61,
-      "1D%": -0.8,
-      "flags": [
-        "vpd75",
-        "velocity",
-        "today_value",
-        "intra_accel",
-        "new_top10",
-        "price_muted",
-        "rocket"
-      ],
-      "flag_count": 7
     },
     {
       "coin": "AGLD",
       "market": "KRW-AGLD",
+      "VPD": 88.0,
+      "momentum": "→",
+      "VPDVelocity": 1.0,
+      "VPDVelocityPerHour": 0.04,
+      "TodayValue/10": 5.19,
+      "IntraAccel": 2.56,
+      "1D%": -3.28,
+      "flags": [
+        "vpd75",
+        "today_value",
+        "intra_accel",
+        "price_muted"
+      ],
+      "flag_count": 4
+    },
+    {
+      "coin": "TOKAMAK",
+      "market": "KRW-TOKAMAK",
       "VPD": 87.0,
       "momentum": "↑",
-      "VPDVelocity": 21.0,
-      "VPDVelocityPerHour": 0.87,
-      "TodayValue/10": 7.07,
-      "IntraAccel": 4.94,
-      "1D%": 2.11,
+      "VPDVelocity": 17.0,
+      "VPDVelocityPerHour": 0.71,
+      "TodayValue/10": 7.95,
+      "IntraAccel": 4.53,
+      "1D%": -4.05,
+      "flags": [
+        "vpd75",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 7
+    },
+    {
+      "coin": "WAL",
+      "market": "KRW-WAL",
+      "VPD": 85.0,
+      "momentum": "↑↑",
+      "VPDVelocity": 42.0,
+      "VPDVelocityPerHour": 1.75,
+      "TodayValue/10": 4.82,
+      "IntraAccel": 6.44,
+      "1D%": 4.58,
       "flags": [
         "vpd75",
         "velocity",
@@ -172,6 +85,90 @@
         "rocket"
       ],
       "flag_count": 8
+    },
+    {
+      "coin": "IOTA",
+      "market": "KRW-IOTA",
+      "VPD": 85.0,
+      "momentum": "↑",
+      "VPDVelocity": 28.0,
+      "VPDVelocityPerHour": 1.17,
+      "TodayValue/10": 17.62,
+      "IntraAccel": 19.32,
+      "1D%": 4.68,
+      "flags": [
+        "vpd75",
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 8
+    },
+    {
+      "coin": "ALT",
+      "market": "KRW-ALT",
+      "VPD": 85.0,
+      "momentum": "↑",
+      "VPDVelocity": 26.0,
+      "VPDVelocityPerHour": 1.09,
+      "TodayValue/10": 42.8,
+      "IntraAccel": 50.48,
+      "1D%": 2.97,
+      "flags": [
+        "vpd75",
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "momentum",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 8
+    },
+    {
+      "coin": "CBK",
+      "market": "KRW-CBK",
+      "VPD": 85.0,
+      "momentum": "→",
+      "VPDVelocity": 22.0,
+      "VPDVelocityPerHour": 0.92,
+      "TodayValue/10": 19.37,
+      "IntraAccel": 9.09,
+      "1D%": -4.51,
+      "flags": [
+        "vpd75",
+        "velocity",
+        "today_value",
+        "intra_accel",
+        "new_top10",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 7
+    },
+    {
+      "coin": "CYBER",
+      "market": "KRW-CYBER",
+      "VPD": 85.0,
+      "momentum": "→",
+      "VPDVelocity": 4.0,
+      "VPDVelocityPerHour": 0.17,
+      "TodayValue/10": 3.66,
+      "IntraAccel": 1.83,
+      "1D%": -5.33,
+      "flags": [
+        "vpd75",
+        "today_value",
+        "new_top10",
+        "price_muted",
+        "rocket"
+      ],
+      "flag_count": 5
     }
   ]
 }
