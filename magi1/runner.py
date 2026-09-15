@@ -1,75 +1,142 @@
-from __future__ import annotations
-
+"""MAGI1 isolated COLLECT_ONLY runtime; no credentialed order clients."""
 import argparse
 import asyncio
-import dataclasses
+import contextlib
 import json
 import logging
 import os
 import signal
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from pathlib import Path
-
 from .collectors import CollectorSupervisor
-from .config import DEFAULT_DATA_DIR
-from .features import FeatureEngine
-from .formation import FormationEngine
-from .onchain import BitcoinPublicWebSocketProvider, OnChainShockAdapter
-from .report import build_daily
+from .normalizer import now_ms
+from .onchain import BitcoinPublicWebSocketProvider,OnChainShockAdapter
+from .research import ResearchEngine
+from .report import build_daily,report_cutoff,KST
 from .storage import Storage
-from .universe import discover
+from .universe import discover,get
+from .vpd_join import snapshot
+import aiohttp
 
-LOG=logging.getLogger("magi1")
-KST=timezone(timedelta(hours=9))
-
+LOG=logging.getLogger('magi1')
 
 class App:
-    def __init__(self, root: str, assets: list[str]):
-        self.storage=Storage(root); self.features=FeatureEngine(); self.formation=FormationEngine(self.storage.append)
-        self.collector=CollectorSupervisor(assets,self.ingest)
-
-    def ingest(self,event):
-        kind="trade" if event.__class__.__name__=="TradeEvent" else "book"
-        self.storage.append_raw(kind,event)
-        for feature in self.features.ingest(event): self.formation.ingest(feature)
-
-    async def report_loop(self):
-        last=None
+    def __init__(self,root,assets):
+        self.storage=Storage(root);self.engine=ResearchEngine(self.storage,assets,now_ms());self.assets=assets
+        self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
+        self.tick_count=0;self.onchain_status={'received':0};self.derivative_status={}
+    async def enqueue(self,event):await self.queue.put(('market',event))
+    def process(self,kind,value):
+        if kind=='market':self.engine.ingest(value)
+        elif kind=='vpd':self.engine.add_vpd(value)
+        elif kind=='onchain':
+            row=self.storage.payload(value);self.storage.append_raw('onchain',row);self.storage.append('onchain_candidate',row);self.engine.onchain.append(row)
+        elif kind=='derivatives':self.storage.append('derivatives_context',value);self.engine.derivatives.append(value)
+        elif kind=='tick':
+            self.engine.tick(value);self.tick_count+=1
+            if self.tick_count%5==0:self.storage.flush()
+            if self.tick_count%30==0:
+                self.engine.checkpoint()
+                diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.health(),'onchain':self.onchain_status,'derivatives':self.derivative_status}
+                self.storage.append('diagnostics',diag);LOG.info('feed_diagnostics=%s',json.dumps(diag))
+                cutoff=report_cutoff(datetime.now(KST)).isoformat()
+                if self.storage.restore('last_report')!=cutoff:
+                    path=build_daily(self.storage);self.storage.checkpoint('last_report',cutoff);LOG.info('daily_report=%s',path)
+            if self.tick_count%300==0:self.storage.maintain(int(os.getenv('MAGI1_RAW_RETENTION_DAYS','2')))
+    async def consume(self):
         while True:
-            now=datetime.now(KST)
-            if now.hour==7 and now.date()!=last:
-                path=build_daily(self.storage,now); LOG.info("daily_report=%s",path); last=now.date()
-            await asyncio.sleep(30)
-
-    async def diagnostics_loop(self):
-        while True:
-            await asyncio.sleep(30); LOG.info("feed_diagnostics=%s storage=%s",json.dumps(self.collector.diagnostics()),self.storage.health())
-
+            kind,value=await self.queue.get()
+            try:await asyncio.to_thread(self.process,kind,value)
+            finally:self.queue.task_done()
+    async def ticks(self):
+        while True:await asyncio.sleep(1);await self.queue.put(('tick',now_ms()))
+    async def vpd_loop(self):
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=25),headers={'User-Agent':'MAGI1-research'}) as session:
+            last=None
+            while True:
+                try:
+                    commits=await get(session,'https://api.github.com/repos/Henryrotaewon/VPD-Investment/commits',{'path':'data/vpd_latest.json','per_page':'1'})
+                    sha=commits[0]['sha']
+                    if sha!=last:
+                        base=f'https://raw.githubusercontent.com/Henryrotaewon/VPD-Investment/{sha}/data/'
+                        payload=await get(session,base+'vpd_latest.json')
+                        async with session.get(base+'vpd_all_latest.csv') as r:r.raise_for_status();csv_text=await r.text()
+                        row=snapshot(payload,now_ms(),csv_text,sha)
+                        # Both files are pinned to one immutable source commit.
+                        await self.queue.put(('vpd',row));last=sha
+                        LOG.info('vpd_snapshot asof=%s assets=%d source_commit=%s',payload['asof'],len(row['assets']),sha)
+                except Exception as exc:LOG.warning('vpd_fetch error=%r',exc)
+                await asyncio.sleep(300)
     async def onchain_loop(self):
-        minimum=float(os.getenv("MAGI1_ONCHAIN_MIN_BTC","100"))
-        async for event in OnChainShockAdapter(BitcoinPublicWebSocketProvider(minimum)).events():
-            self.storage.append_raw("onchain",event); self.storage.append("onchain_candidate",event)
-
-    async def run(self):
-        await asyncio.gather(self.collector.run(),self.onchain_loop(),self.report_loop(),self.diagnostics_loop())
-
+        async for e in OnChainShockAdapter(BitcoinPublicWebSocketProvider(float(os.getenv('MAGI1_ONCHAIN_MIN_BTC','100')))).events():
+            self.onchain_status={'received':self.onchain_status['received']+1,'last_ms':e.received_ts_ms}
+            await self.queue.put(('onchain',e))
+    async def derivatives_loop(self):
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            while True:
+                for asset in self.assets:
+                    try:
+                        x=await get(session,'https://api.bybit.com/v5/market/tickers',{'category':'linear','symbol':asset+'USDT'})
+                        if x['result']['list']:
+                            d=x['result']['list'][0];ts=now_ms()
+                            row={'asset':asset,'provider':'bybit_public_linear_ticker','event_ts_ms':int(x.get('time',ts)),'received_ts_ms':ts,'open_interest':d.get('openInterest'),'funding_rate':d.get('fundingRate'),'mark_price':d.get('markPrice'),'last_price':d.get('lastPrice'),'standalone_signal':False}
+                            await self.queue.put(('derivatives',row));self.derivative_status[asset]={'last_ms':ts,'status':'OK'}
+                    except Exception as exc:
+                        self.derivative_status[asset]={'status':'ERROR','error':str(exc)}
+                    await asyncio.sleep(.2)
+                await asyncio.sleep(60)
+    async def universe_loop(self):
+        while True:
+            await asyncio.sleep(86400)
+            try:
+                selected=await discover(str(self.storage.root/'universe_next.json'))
+                self.storage.append('universe',{'event_ts_ms':now_ms(),**selected})
+                # Reconfigure collector without touching active evaluation records.
+                if selected['assets']!=self.assets:
+                    self.collector_task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):await self.collector_task
+                    self.assets=selected['assets'];self.engine.assets=self.assets
+                    self.collector=CollectorSupervisor(self.assets,self.enqueue)
+                    self.collector_task=asyncio.create_task(self.collector.run())
+            except Exception as exc:LOG.warning('universe_refresh error=%r',exc)
+    async def run(self,duration=None):
+        stop=asyncio.Event();loop=asyncio.get_running_loop()
+        for sig in (signal.SIGINT,signal.SIGTERM):loop.add_signal_handler(sig,stop.set)
+        self.collector_task=asyncio.create_task(self.collector.run())
+        consumer=asyncio.create_task(self.consume())
+        tasks=[asyncio.create_task(f()) for f in (self.ticks,self.vpd_loop,self.onchain_loop,self.derivatives_loop,self.universe_loop)]
+        stopper=asyncio.create_task(stop.wait())
+        timer=asyncio.create_task(asyncio.sleep(duration)) if duration else None
+        try:
+            done,_=await asyncio.wait([consumer,stopper]+([timer] if timer else []),return_when=asyncio.FIRST_COMPLETED)
+            if consumer in done:await consumer
+        finally:
+            for t in tasks+[self.collector_task]:t.cancel()
+            await asyncio.gather(*tasks,self.collector_task,return_exceptions=True)
+            if not consumer.done():
+                await self.queue.join();consumer.cancel()
+                with contextlib.suppress(asyncio.CancelledError):await consumer
+            stopper.cancel()
+            if timer:timer.cancel()
+            self.engine.checkpoint();self.storage.close()
+            LOG.info('MAGI1 graceful_shutdown complete')
 
 async def main_async(args):
-    mode=os.getenv("MAGI1_MODE","COLLECT_ONLY")
-    if mode!="COLLECT_ONLY": raise SystemExit("MAGI1_MODE must remain COLLECT_ONLY; order execution is not implemented")
-    root=args.data_dir or os.getenv("MAGI1_DATA_DIR",DEFAULT_DATA_DIR)
-    universe_path=str(Path(root)/"universe.json")
-    if args.assets: assets=[x.strip().upper() for x in args.assets.split(",")]
-    else: assets=(await discover(universe_path))["assets"]
-    if not assets: raise SystemExit("common universe is empty")
-    LOG.info("MAGI1 mode=%s assets=%s data=%s",mode,assets,root)
-    await App(root,assets).run()
-
+    if os.getenv('MAGI1_MODE','COLLECT_ONLY')!='COLLECT_ONLY':raise SystemExit('Only COLLECT_ONLY is supported')
+    root=args.data_dir or os.getenv('MAGI1_DATA_DIR','/data/magi1')
+    if os.getenv('RAILWAY_ENVIRONMENT_ID') and not os.path.ismount('/data'):
+        raise SystemExit('Persistent /data volume required; refusing ephemeral collection')
+    if args.assets:assets=args.assets.upper().split(',')
+    else:
+        while True:
+            try:
+                row=await discover(str(Path(root)/'universe.json'));assets=row['assets'];break
+            except Exception as exc:LOG.error('universe startup retry error=%r',exc);await asyncio.sleep(30)
+    LOG.info('MAGI1 mode=COLLECT_ONLY assets=%s data=%s',assets,root)
+    await App(root,assets).run(args.duration)
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument("--data-dir"); p.add_argument("--assets",help="diagnostic override; production defaults to automatic universe")
-    args=p.parse_args(); logging.basicConfig(level=os.getenv("LOG_LEVEL","INFO"),format="%(asctime)s %(levelname)s %(name)s %(message)s")
-    asyncio.run(main_async(args))
-
-
-if __name__=="__main__": main()
+    parser=argparse.ArgumentParser();parser.add_argument('--data-dir');parser.add_argument('--assets');parser.add_argument('--duration',type=int)
+    logging.basicConfig(level=os.getenv('LOG_LEVEL','INFO'),format='%(asctime)s %(levelname)s %(name)s %(message)s')
+    asyncio.run(main_async(parser.parse_args()))
+if __name__=='__main__':main()

@@ -1,92 +1,58 @@
-# MAGI1 — Macro Market / Flow Formation Engine
+# MAGI1 — Crypto Shock Flow
 
-MAGI1 is the macro-market intelligence layer for the VPD/MAGI research platform.
+Run `python -m magi1.runner`. The only mode is `MAGI1_MODE=COLLECT_ONLY`.
+No order endpoints or account credentials are used. VPD and MAGI2 are independent.
 
-## Research thesis
+## Runtime
 
-The first objective is not latency arbitrage. MAGI1 observes how buying/selling pressure forms across multiple venues before price propagation is complete.
+Six public spot collectors → bounded queue → normalized raw storage → feature buckets →
+ordered formation states → point-in-time VPD cohorts → propagation observations →
+matured 10s/30s/60s/300s/1800s/3600s returns/MFE/MAE/false-shock → daily report.
 
-State model:
+- Active spot metadata intersects Binance/Bybit USDT, Kraken USD and Korean KRW markets.
+- Five assets are ranked by mean venue percentile of 24h traded notional; this is a
+  liquidity/turnover size proxy, **not market capitalization**. All inputs are saved.
+- Selection is refreshed daily. Failed discovery never silently substitutes hardcoded coins.
+- Binance partial depth is a full top-10 snapshot and has no exchange timestamp;
+  that field is null. Kraken ISO timestamps and book CRC32 are validated. Bybit deltas
+  update retained levels and zero quantities delete levels. Reconnect resets books.
+- Coinone maker flags identify the opposing aggressor; ACKs are not trades.
+- Formation uses 10s/60s/600s horizons, sampled at 1s resolution, with volume/order-flow
+  pressure or price/imbalance confirmation. Thresholds are research hypotheses.
+- State order is FORMATION → GLOBAL_CONSENSUS → KOREA_EARLY_RECEPTION →
+  PROPAGATION → NORMALIZATION. Episodes may time out before propagation. Timer-driven
+  normalization works even without a subsequent trade. Shock IDs and origins stay fixed.
+- Origin evidence scores are heuristic; calibrated Origin Confidence is **null**, not
+  an invented probability. Reception probability has sample count and Wilson CI95.
+  Lag is local detection lag, not proof of exchange causality; usable lead subtracts
+  a documented 1000ms decision budget. Fewer than 30 samples are marked unreliable.
+- VPD JSON and CSV are fetched read-only from one immutable GitHub commit; source time
+  and local availability time both gate joins. Existing scanner formulas are untouched.
+- Cohorts overlap: FLOW_ONLY; BUY VPD>=75 FLOW_VPD; plus abs(Upbit reaction)<2bps;
+  independent VPD_ONLY BUY baseline once per common asset/snapshot. SELL flow outcomes
+  remain separate because VPD is a bullish scanner. Returns are gross, not executable PnL.
+- Outcomes mature only after their horizon. A >5s sample gap yields MISSING_DATA, not
+  a fabricated zero/last-price return. Pending evaluations and deduplication checkpoints
+  persist across restarts. Gaps during downtime remain missing.
+- On-chain public BTC unconfirmed large transfers are candidates only, direction UNKNOWN.
+  No wallet owner or smart-money identity is inferred from transfer size. Enrichment
+  providers can supply verified labels through the adapter interface; commercial providers
+  are not configured. Transaction output sum can include change and is not net exchange flow.
+- Bybit public linear ticker provides OI/funding/mark-price context only (60s polling).
+  This context does not alter spot VPD scores or create standalone signals.
+- Daily reports use observed chains and matured cohort outcomes; zero samples show N/A.
+  07:00 KST cutoff is persisted, and the latest missed report is generated after restart.
 
-`FORMATION -> GLOBAL_CONSENSUS -> KOREA_EARLY_RECEPTION -> PROPAGATION -> EXHAUSTION/NORMALIZATION`
+## Storage and operations
 
-VPD remains an independent Upbit-KRW spot truth layer. Overseas data is not added to the VPD 100-point score.
+Railway requires a dedicated `/data` persistent volume. Files are `/data/magi1` by default.
+Raw normalized trades/books are batched, gzip-compressed and rotated hourly. Default raw
+retention is 2 days; research SQLite/checkpoints/reports remain. A 100MiB free-space guard
+stops collection before disk exhaustion. No raw-tick GitHub writes exist.
 
-## v0.1 experiment
+Diagnostics every 30s include per-venue/asset trade and book counts/ages, reconnects,
+parse errors, timestamp omissions/regressions, observed clock offsets, queue depth,
+free space and derivative context availability. Socket connection alone is not healthy feed.
 
-Venues:
-- Binance
-- Bybit
-- Kraken
-- Upbit
-- Bithumb
-- Coinone
-
-Universe:
-- Compute the intersection of actively traded spot assets across all six venues.
-- Rank eligible common assets by liquidity/market size using observable venue data.
-- Start with the top five eligible assets.
-- Do not hard-code coin names; persist the selected universe with timestamp and selection inputs.
-
-Data layers:
-- trades
-- best bid/ask and spread
-- L2 order-book features where supported
-- exchange timestamp
-- local receive timestamp
-- aggressor/trade imbalance
-- volume acceleration
-- order-book imbalance / liquidity depletion
-- rolling returns on micro and meso horizons
-
-Time horizons:
-- MICRO: 100 ms–10 s
-- MESO: 10 s–10 min
-- MACRO: 10 min–hours, joined later to VPD
-
-Core research outputs:
-- Flow Formation Score (research feature; weights must be learned/validated, not assumed)
-- Origin Confidence
-- Global Consensus state
-- Korea Reception state
-- propagation probability
-- lag distribution
-- response sensitivity
-- false-follow rate
-- MFE/MAE and forward returns
-
-## Guardrails
-
-- Research/PAPER only in v0.1.
-- Do not submit orders or intentionally influence reference/oracle markets.
-- Record BUY and SELL formations symmetrically.
-- Preserve raw timestamps and raw market events so features can be replayed.
-- Treat network latency as an explanatory variable, not the primary alpha thesis.
-- No unverified metric is promoted to a production signal.
-
-## Implemented modules
-
-- `config.py` — venue/universe/research configuration
-- `schema.py` — normalized event/state schemas
-- `universe.py` — six-venue common-universe discovery and top-5 selection
-- `collectors/` — exchange-specific public WebSocket adapters
-- `normalizer.py` — normalized trades/order-book events
-- `features.py` — micro/meso flow features
-- `formation.py` — state transition and Flow Formation research logic
-- `propagation.py` — origin/reception/lag statistics
-- `storage.py` — append-only raw/research persistence
-- `replay.py` — PAPER forward-return/MFE/MAE evaluation
-- `vpd_join.py` — timestamp-safe VPD join, without modifying VPD score
-
-Run with `python -m magi1.runner`. `MAGI1_MODE=COLLECT_ONLY` is mandatory and is also the default. Raw ticks are append-only files under `MAGI1_DATA_DIR`; they must not be committed to GitHub. The daily report is generated at 07:00 KST and reconstructs each chain in On-chain → Global → Derivatives → Korea → VPD → Price order.
-
-On-chain events use the replaceable `OnChainProvider`/`EnrichmentProvider` interfaces. Public/raw sources are the initial boundary; Arkham, Nansen, Glassnode or another provider can enrich candidates later. Every on-chain candidate has `standalone_signal=False` by construction.
-
-## Definition of done for v0.1
-
-1. Six venues remain connected with reconnect/heartbeat handling.
-2. Five common liquid assets are selected reproducibly.
-3. Raw trade/order-book events can be replayed without look-ahead.
-4. Formation and reception state transitions are logged for both directions.
-5. Propagation statistics are generated from observed data with sample counts/confidence intervals.
-6. VPD-only, Flow-only, VPD+Flow, and VPD+Flow+Price-Non-Reaction PAPER cohorts can be compared.
+Tests: `python -m unittest discover -s magi1/tests -v`.
+See `deploy/README_MAGI1_FLOW.md` for deployment settings.

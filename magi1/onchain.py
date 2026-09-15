@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import json
+import logging
 import time
 from typing import Any, AsyncIterator
 
@@ -38,8 +39,9 @@ class BitcoinPublicWebSocketProvider(OnChainProvider):
                         if msg.type != aiohttp.WSMsgType.TEXT: continue
                         x=json.loads(msg.data).get("x",{}); amount=sum(int(o.get("value",0)) for o in x.get("out",[]))
                         if amount>=self.minimum_sats:
-                            yield {"asset":"BTC","direction":"UNKNOWN","event_ts_ms":int(x.get("time",time.time())*1000),"category":"large_transfer","amount":amount/100_000_000,"tx_hash":x.get("hash"),"confidence":0.5,"metadata":{"label":"unclassified_public_raw"}}
-            except Exception:
+                            yield {"asset":"BTC","direction":"UNKNOWN","event_ts_ms":int(x.get("time",time.time())*1000),"category":"large_transfer","amount":amount/100_000_000,"tx_hash":x.get("hash"),"confidence":None,"metadata":{"label":"unclassified_public_raw"}}
+            except Exception as exc:
+                logging.getLogger(__name__).warning("onchain reconnect error=%r",exc)
                 await __import__("asyncio").sleep(backoff); backoff=min(backoff*2,30)
 
 

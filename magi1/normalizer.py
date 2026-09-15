@@ -29,7 +29,7 @@ def trade(venue: str, symbol: str, price: Any, quantity: Any,
     base, quote = split_symbol(symbol)
     return TradeEvent(venue, f"{base}-{quote}", base, quote,
                       int(exchange_ts_ms) if exchange_ts_ms is not None else None,
-                      received_ts_ms or now_ms(), float(price), float(quantity),
+                      received_ts_ms if received_ts_ms is not None else now_ms(), float(price), float(quantity),
                       side.upper() if side else None,
                       str(trade_id) if trade_id is not None else None)
 
@@ -41,5 +41,5 @@ def book(venue: str, symbol: str, bids: Iterable[Iterable[Any]], asks: Iterable[
     levels = lambda rows: tuple(BookLevel(float(x[0]), float(x[1])) for x in list(rows)[:depth])
     return BookEvent(venue, f"{base}-{quote}", base, quote,
                      int(exchange_ts_ms) if exchange_ts_ms is not None else None,
-                     received_ts_ms or now_ms(), levels(bids), levels(asks),
+                     received_ts_ms if received_ts_ms is not None else now_ms(), levels(sorted(bids, key=lambda x: float(x[0]), reverse=True)), levels(sorted(asks, key=lambda x: float(x[0]))),
                      str(sequence) if sequence is not None else None)

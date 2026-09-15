@@ -1,6 +1,8 @@
+__pycache__/
+*.pyc
 raw/
 reports/
 *.db
 *.db-shm
 *.db-wal
-universe.json
+universe*.json

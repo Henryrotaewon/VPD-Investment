@@ -1,12 +1,18 @@
-# Railway — MAGI1-Flow
+# Railway MAGI1-Flow
 
-Create a separate Railway service from this repository. Do not replace or share the MAGI2 service process.
+Dedicated service, GitHub `Henryrotaewon/VPD-Investment`, branch `main`.
 
-- Service name: `MAGI1-Flow`
-- Start Command: `python -m magi1.runner`
-- Environment: `MAGI1_MODE=COLLECT_ONLY`, `MAGI1_DATA_DIR=/data/magi1`, `PYTHONUNBUFFERED=1`, `TZ=Asia/Seoul`, optional `LOG_LEVEL=INFO`, optional `MAGI1_ONCHAIN_MIN_BTC=100`
-- Persistent Volume mount: `/data`
-- Recommended initial volume: 20 GB; monitor `free_bytes` diagnostics and expand before 20% free space.
-- No GitHub raw-tick backup. Raw JSONL, SQLite research records, universe snapshots, and reports stay on the Railway volume.
+- Start command: `python -m magi1.runner`
+- Persistent volume: `/data` (dedicated; never reuse MAGI2 volume)
+- Variables: `MAGI1_MODE=COLLECT_ONLY`, `MAGI1_DATA_DIR=/data/magi1`,
+  `PYTHONUNBUFFERED=1`, `TZ=Asia/Seoul`, `MAGI1_RAW_RETENTION_DAYS=2`,
+  `MAGI1_ONCHAIN_MIN_BTC=100`, `LOG_LEVEL=INFO`
+- Single replica, continuous process, sleep disabled, restart ON_FAILURE.
+- Watch paths: `/magi1/**`, `/requirements.txt`.
+- No public HTTP domain or HTTP healthcheck is required for this worker.
+- No exchange keys, Telegram tokens or GitHub write tokens are needed.
+- Code refuses Railway collection without a mounted `/data` volume.
 
-The process refuses modes other than `COLLECT_ONLY`. There are no authenticated exchange clients or order endpoints.
+Inspect `universe_selected`, all 60 first-event combinations (6 venues × 5 assets ×
+trade/book), and `feed_diagnostics`. `SUCCESS` alone does not prove market feed health.
+Raw gzip expires after configured retention; research records do not auto-expire.

@@ -1,17 +1,19 @@
-from __future__ import annotations
-
+"""Empirical receive frequencies with Wilson intervals and explicit sample counts."""
+import math
 from collections import defaultdict
-from statistics import mean
+from statistics import median
 
-from .schema import PropagationMeasurement
-
+def wilson(success,n):
+    if not n: return [None,None]
+    z=1.96; p=success/n; d=1+z*z/n
+    center=(p+z*z/(2*n))/d; half=z*math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d
+    return [max(0,center-half),min(1,center+half)]
 
 class PropagationStats:
-    """Online empirical reception metrics; probabilities are never fabricated."""
     def __init__(self): self.samples=defaultdict(list)
-
-    def observe(self, shock_id, asset, direction, origin, follower, origin_ts, reception_ts, origin_move_bps, follower_move_bps, origin_confidence):
-        key=(asset,direction,origin,follower); self.samples[key].append(reception_ts is not None)
-        received=sum(self.samples[key]); n=len(self.samples[key]); lag=reception_ts-origin_ts if reception_ts else None
-        sensitivity=(follower_move_bps/origin_move_bps) if reception_ts and origin_move_bps else None
-        return PropagationMeasurement(shock_id,asset,direction,origin,follower,origin_ts,reception_ts,origin_confidence,received/n,lag,sensitivity,max(0,lag) if lag is not None else None,n)
+    def add(self,row):
+        key=tuple(row[x] for x in ('asset','direction','horizon','origin_venue','follower_venue'))
+        self.samples[key].append(row)
+        self.samples[key]=self.samples[key][-10000:]
+        xs=self.samples[key]; successes=sum(x['received'] for x in xs); lags=[x['lag_ms'] for x in xs if x['lag_ms'] is not None]
+        return {**row,'sample_count':len(xs),'reception_probability':successes/len(xs),'reception_probability_ci95':wilson(successes,len(xs)),'lag_median_ms':median(lags) if lags else None,'reliable':len(xs)>=30,'origin_confidence':None,'confidence_status':'origin causality not calibrated; local reception timing only'}

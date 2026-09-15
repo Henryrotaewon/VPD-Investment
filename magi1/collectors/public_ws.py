@@ -1,160 +1,198 @@
+"""Public-only spot adapters. Each connection owns its incremental book state."""
 from __future__ import annotations
-
 import asyncio
+import contextlib
 import json
 import logging
-import time
+import random
 import uuid
-from dataclasses import dataclass
-from typing import Any, AsyncIterator, Callable
-
+from collections import Counter, deque
+from datetime import datetime
+from decimal import Decimal
+import zlib
 import aiohttp
-
-from ..config import BOOK_DEPTH, RECONNECT_BACKOFF_SEC, STALE_FEED_SEC
+from ..config import BOOK_DEPTH, STALE_FEED_SEC
 from ..normalizer import book, now_ms, trade
 
 LOG = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class Adapter:
-    venue: str
-    url: Callable[[list[str]], str]
-    subscribe: Callable[[list[str]], Any | None]
-    parse: Callable[[Any, int], list[Any]]
-
-
-def _binance_parse(m: dict, received: int) -> list[Any]:
-    stream, d = m.get("stream", ""), m.get("data", m)
-    symbol = d.get("s", stream.split("@")[0])
-    if d.get("e") == "trade":
-        return [trade("binance", symbol, d["p"], d["q"], d.get("T"), "SELL" if d.get("m") else "BUY", d.get("t"), received)]
-    if d.get("e") == "depthUpdate":
-        return [book("binance", symbol, d.get("b", []), d.get("a", []), d.get("E"), d.get("u"), received, BOOK_DEPTH)]
-    return []
-
-
-def _bybit_parse(m: dict, received: int) -> list[Any]:
-    topic, d = m.get("topic", ""), m.get("data")
-    if topic.startswith("publicTrade"):
-        return [trade("bybit", x["s"], x["p"], x["v"], x.get("T"), x.get("S"), x.get("i"), received) for x in d]
-    if topic.startswith("orderbook") and d:
-        return [book("bybit", d["s"], d.get("b", []), d.get("a", []), m.get("ts"), d.get("u"), received, BOOK_DEPTH)]
-    return []
-
-
-def _kraken_parse(m: dict, received: int) -> list[Any]:
-    channel, data = m.get("channel"), m.get("data", [])
-    if channel == "trade":
-        return [trade("kraken", x["symbol"], x["price"], x["qty"], int(float(x["timestamp"])*1000), x.get("side"), x.get("trade_id"), received) for x in data]
-    if channel == "book" and data:
-        x = data[0]
-        return [book("kraken", x["symbol"], [(i["price"], i["qty"]) for i in x.get("bids", [])], [(i["price"], i["qty"]) for i in x.get("asks", [])], received, x.get("checksum"), received, BOOK_DEPTH)]
-    return []
-
-
-def _upbit_parse(m: dict, received: int) -> list[Any]:
-    if m.get("type") == "trade":
-        return [trade("upbit", m["code"], m["trade_price"], m["trade_volume"], m.get("trade_timestamp"), "BUY" if m.get("ask_bid") == "BID" else "SELL", m.get("sequential_id"), received)]
-    if m.get("type") == "orderbook":
-        units = m.get("orderbook_units", [])
-        return [book("upbit", m["code"], [(x["bid_price"], x["bid_size"]) for x in units], [(x["ask_price"], x["ask_size"]) for x in units], m.get("timestamp"), None, received, BOOK_DEPTH)]
-    return []
-
-
-def _bithumb_parse(m: dict, received: int) -> list[Any]:
-    if m.get("type") == "trade":
-        return [trade("bithumb", m["code"], m["trade_price"], m["trade_volume"], m.get("trade_timestamp"), "BUY" if m.get("ask_bid") == "BID" else "SELL", m.get("sequential_id"), received)]
-    if m.get("type") == "orderbook":
-        units = m.get("orderbook_units", [])
-        return [book("bithumb", m["code"], [(x["bid_price"], x["bid_size"]) for x in units], [(x["ask_price"], x["ask_size"]) for x in units], m.get("timestamp"), None, received, BOOK_DEPTH)]
-    return []
-
-
-def _coinone_parse(m: dict, received: int) -> list[Any]:
-    d = m.get("data", m)
-    quote, target = d.get("quote_currency", "KRW"), d.get("target_currency", "")
-    symbol = f"{target}-{quote}"
-    if m.get("channel") == "TRADE":
-        items = d.get("trades", [d])
-        return [trade("coinone", symbol, x["price"], x.get("qty", x.get("quantity")), x.get("timestamp", received), x.get("is_seller_maker") and "SELL" or "BUY", x.get("id"), received) for x in items]
-    if m.get("channel") == "ORDERBOOK":
-        return [book("coinone", symbol, [(x["price"], x.get("qty", x.get("quantity"))) for x in d.get("bids", [])], [(x["price"], x.get("qty", x.get("quantity"))) for x in d.get("asks", [])], d.get("timestamp", received), d.get("id"), received, BOOK_DEPTH)]
-    return []
-
-
-def _global_url(base: str):
-    return lambda symbols: base
-
-
-def _binance_url(symbols: list[str]) -> str:
-    streams = "/".join(f"{s.lower()}usdt@trade/{s.lower()}usdt@depth10@100ms" for s in symbols)
-    return f"wss://stream.binance.com:9443/stream?streams={streams}"
-
-
-def _bybit_sub(symbols: list[str]):
-    return {"op":"subscribe", "args":[x for s in symbols for x in (f"publicTrade.{s}USDT", f"orderbook.50.{s}USDT")]}
-
-
-def _kraken_sub(symbols: list[str]):
-    pairs = [f"{s}/USD" for s in symbols]
-    return [{"method":"subscribe","params":{"channel":"trade","symbol":pairs}}, {"method":"subscribe","params":{"channel":"book","depth":10,"snapshot":True,"symbol":pairs}}]
-
-
-def _korea_sub(symbols: list[str]):
-    codes = [f"KRW-{s}" for s in symbols]
-    return [{"ticket":str(uuid.uuid4())},{"type":"trade","codes":codes},{"type":"orderbook","codes":codes},{"format":"DEFAULT"}]
-
-
-def _coinone_sub(symbols: list[str]):
-    return [{"request_type":"SUBSCRIBE","channel":ch,"topic":{"quote_currency":"KRW","target_currency":s}} for s in symbols for ch in ("TRADE", "ORDERBOOK")]
-
-
-VENUE_ADAPTERS = {
-    "binance": Adapter("binance", _binance_url, lambda _: None, _binance_parse),
-    "bybit": Adapter("bybit", _global_url("wss://stream.bybit.com/v5/public/spot"), _bybit_sub, _bybit_parse),
-    "kraken": Adapter("kraken", _global_url("wss://ws.kraken.com/v2"), _kraken_sub, _kraken_parse),
-    "upbit": Adapter("upbit", _global_url("wss://api.upbit.com/websocket/v1"), _korea_sub, _upbit_parse),
-    "bithumb": Adapter("bithumb", _global_url("wss://pubwss.bithumb.com/pub/ws"), _korea_sub, _bithumb_parse),
-    "coinone": Adapter("coinone", _global_url("wss://stream.coinone.co.kr"), _coinone_sub, _coinone_parse),
+URLS = {
+    'binance': 'wss://stream.binance.com:9443/stream',
+    'bybit': 'wss://stream.bybit.com/v5/public/spot',
+    'kraken': 'wss://ws.kraken.com/v2',
+    'upbit': 'wss://api.upbit.com/websocket/v1',
+    'bithumb': 'wss://ws-api.bithumb.com/websocket/v1',
+    'coinone': 'wss://stream.coinone.co.kr',
 }
 
+def timestamp(value):
+    if value is None: return None
+    if isinstance(value, str) and 'T' in value:
+        return int(datetime.fromisoformat(value.replace('Z', '+00:00')).timestamp()*1000)
+    return int(value)
+
+class Adapter:
+    def __init__(self, venue):
+        self.venue = venue
+        self.books = {}
+        self.sequences = {}
+
+    def url(self, assets):
+        if self.venue == 'binance':
+            streams = '/'.join(f'{a.lower()}usdt@trade/{a.lower()}usdt@depth10@100ms' for a in assets)
+            return URLS[self.venue] + '?streams=' + streams
+        return URLS[self.venue]
+
+    def subscriptions(self, assets):
+        if self.venue == 'binance': return []
+        if self.venue == 'bybit':
+            return [{'op':'subscribe','args':[s for a in assets for s in (f'publicTrade.{a}USDT',f'orderbook.50.{a}USDT')]}]
+        if self.venue == 'kraken':
+            return [{'method':'subscribe','params':dict(channel=ch,symbol=[f'{a}/USD' for a in assets],**extra)} for ch,extra in [('trade',{'snapshot':False}),('book',{'depth':10,'snapshot':True})]]
+        if self.venue in ('upbit','bithumb'):
+            return [[{'ticket':str(uuid.uuid4())},{'type':'trade','codes':[f'KRW-{a}' for a in assets],'is_only_realtime':True},{'type':'orderbook','codes':[f'KRW-{a}' for a in assets]},{'format':'DEFAULT'}]]
+        return [{'request_type':'SUBSCRIBE','channel':ch,'topic':{'quote_currency':'KRW','target_currency':a}} for a in assets for ch in ('TRADE','ORDERBOOK')]
+
+    def subscribe(self, assets):
+        return self.subscriptions(assets)
+
+    def incremental(self, symbol, bids, asks, snapshot, sequence=None, depth=50, checksum=None):
+        if snapshot:
+            self.books[symbol] = ({}, {})
+            self.sequences.pop(symbol, None)
+        if symbol not in self.books:
+            raise ValueError(f'{self.venue} delta before snapshot: {symbol}')
+        old = self.sequences.get(symbol)
+        if sequence is not None and old is not None and int(sequence) <= old:
+            return None
+        sides = self.books[symbol]
+        for side, rows in zip(sides,(bids,asks)):
+            for p,q in rows:
+                p,q = Decimal(str(p)),Decimal(str(q))
+                if q == 0: side.pop(p,None)
+                else: side[p] = q
+        for i,side in enumerate(sides):
+            for p in sorted(side,reverse=i==0)[depth:]: del side[p]
+        if checksum is not None:
+            def digits(n): return format(n,'f').replace('.','').lstrip('0')
+            s=''.join(digits(p)+digits(q) for i in (1,0) for p,q in sorted(sides[i].items(),reverse=i==0)[:10])
+            if zlib.crc32(s.encode()) != int(checksum):
+                raise ValueError(f'Kraken checksum mismatch: {symbol}')
+        if sequence is not None: self.sequences[symbol]=int(sequence)
+        return [sorted(sides[0].items(),reverse=True),sorted(sides[1].items())]
+
+    def parse(self, m, received):
+        v=self.venue
+        if m.get('error') or m.get('success') is False or m.get('response_type')=='ERROR':
+            raise ValueError(f'{v} subscription error: {m}')
+        if v=='binance':
+            d=m.get('data',m); symbol=d.get('s',m.get('stream','').split('@')[0])
+            if d.get('e')=='trade':
+                return [trade(v,symbol,d['p'],d['q'],d.get('T'),'SELL' if d['m'] else 'BUY',d.get('t'),received)]
+            if 'lastUpdateId' in d:
+                return [book(v,symbol,d['bids'],d['asks'],None,d['lastUpdateId'],received)]
+        elif v=='bybit':
+            d=m.get('data'); topic=m.get('topic','')
+            if topic.startswith('publicTrade'):
+                return [trade(v,x['s'],x['p'],x['v'],x['T'],x['S'],x.get('i'),received) for x in d]
+            if topic.startswith('orderbook'):
+                levels=self.incremental(d['s'],d['b'],d['a'],m.get('type')=='snapshot' or d.get('u')==1,d['u'])
+                if levels: return [book(v,d['s'],*levels,m.get('cts',m.get('ts')),d['u'],received)]
+        elif v=='kraken':
+            ch=m.get('channel'); data=m.get('data',[])
+            if ch=='trade' and m.get('type')!='snapshot':
+                return [trade(v,x['symbol'],x['price'],x['qty'],timestamp(x['timestamp']),x['side'],x.get('trade_id'),received) for x in data]
+            if ch=='book':
+                out=[]
+                for d in data:
+                    levels=self.incremental(d['symbol'],[(x['price'],x['qty']) for x in d.get('bids',[])],[(x['price'],x['qty']) for x in d.get('asks',[])],m.get('type')=='snapshot',depth=10,checksum=d.get('checksum'))
+                    if levels: out.append(book(v,d['symbol'],*levels,timestamp(d.get('timestamp')),d.get('checksum'),received))
+                return out
+        elif v in ('upbit','bithumb'):
+            if m.get('type')=='trade':
+                return [trade(v,m['code'],m['trade_price'],m['trade_volume'],m.get('trade_timestamp'),'BUY' if m['ask_bid']=='BID' else 'SELL',m.get('sequential_id'),received)]
+            if m.get('type')=='orderbook':
+                rows=m['orderbook_units']
+                return [book(v,m['code'],[(x['bid_price'],x['bid_size']) for x in rows],[(x['ask_price'],x['ask_size']) for x in rows],m.get('timestamp'),None,received)]
+        elif v=='coinone' and m.get('response_type')=='DATA':
+            d=m['data']; symbol=f"{d['target_currency']}-{d['quote_currency']}"
+            if m.get('channel')=='TRADE':
+                side='BUY' if d.get('is_seller_maker') is True else 'SELL' if d.get('is_seller_maker') is False else None
+                return [trade(v,symbol,d['price'],d['qty'],d.get('timestamp'),side,d.get('id'),received)]
+            if m.get('channel')=='ORDERBOOK':
+                return [book(v,symbol,[(x['price'],x['qty']) for x in d['bids']],[(x['price'],x['qty']) for x in d['asks']],d.get('timestamp'),d.get('id'),received)]
+        return []
+
+VENUE_ADAPTERS={v:Adapter(v) for v in URLS}
 
 class CollectorSupervisor:
-    def __init__(self, symbols: list[str], sink: Callable[[Any], None]):
-        self.symbols, self.sink = symbols, sink
-        self.last_message: dict[str, int] = {}
-        self.reconnects: dict[str, int] = {x: 0 for x in VENUE_ADAPTERS}
+    def __init__(self,symbols,sink):
+        self.symbols=symbols; self.sink=sink
+        self.last_message={}; self.last_event={}; self.counts=Counter(); self.reconnects=Counter()
+        self.offsets={v:deque(maxlen=1000) for v in URLS}
+        self.missing_ts=Counter(); self.timestamp_regressions=Counter(); self.last_exchange={}
+        self.connected={}; self.parse_errors=Counter()
 
-    async def run_venue(self, session: aiohttp.ClientSession, adapter: Adapter) -> None:
-        attempt = 0
+    async def heartbeat(self,ws,v):
         while True:
+            await asyncio.sleep(15)
+            if v=='bybit': await ws.send_json({'op':'ping'})
+            elif v=='coinone': await ws.send_json({'request_type':'PING'})
+            else: await ws.ping()
+            ages=[now_ms()-t for (venue,asset,kind),t in self.last_event.items() if venue==v]
+            if ages and min(ages)>STALE_FEED_SEC*1000:
+                await ws.close(); return
+
+    async def run_venue(self,session,venue):
+        attempt=0
+        while True:
+            started=now_ms()
+            adapter=Adapter(venue)
             try:
-                async with session.ws_connect(adapter.url(self.symbols), heartbeat=20, receive_timeout=STALE_FEED_SEC) as ws:
-                    payloads = adapter.subscribe(self.symbols)
-                    if payloads:
-                        if not isinstance(payloads, list): payloads = [payloads]
-                        for payload in payloads: await ws.send_json(payload)
-                    attempt = 0
-                    async for msg in ws:
-                        if msg.type not in (aiohttp.WSMsgType.TEXT, aiohttp.WSMsgType.BINARY): continue
-                        received = now_ms(); self.last_message[adapter.venue] = received
-                        raw = msg.data.decode() if isinstance(msg.data, bytes) else msg.data
-                        try: parsed = json.loads(raw)
-                        except (ValueError, TypeError): continue
-                        for event in adapter.parse(parsed, received): self.sink(event)
+                async with session.ws_connect(adapter.url(self.symbols),heartbeat=20,receive_timeout=45) as ws:
+                    self.connected[venue]=True
+                    for payload in adapter.subscriptions(self.symbols): await ws.send_json(payload)
+                    heartbeat=asyncio.create_task(self.heartbeat(ws,venue))
+                    try:
+                        async for msg in ws:
+                            if msg.type not in (aiohttp.WSMsgType.TEXT,aiohttp.WSMsgType.BINARY):
+                                if msg.type in (aiohttp.WSMsgType.ERROR,aiohttp.WSMsgType.CLOSED): break
+                                continue
+                            received=now_ms(); self.last_message[venue]=received
+                            try:
+                                m=json.loads(msg.data,parse_float=Decimal) if venue=='kraken' else json.loads(msg.data)
+                                events=adapter.parse(m,received)
+                            except (ValueError,KeyError,TypeError):
+                                self.parse_errors[venue]+=1
+                                raise
+                            for event in events:
+                                kind=event.__class__.__name__; key=(venue,event.base,kind)
+                                if not self.counts[key]: LOG.info('first_event venue=%s asset=%s type=%s',*key)
+                                self.counts[key]+=1; self.last_event[key]=received
+                                if event.exchange_ts_ms is None: self.missing_ts[venue]+=1
+                                else:
+                                    self.offsets[venue].append(received-event.exchange_ts_ms)
+                                    if event.exchange_ts_ms<self.last_exchange.get(key,0): self.timestamp_regressions[venue]+=1
+                                    self.last_exchange[key]=event.exchange_ts_ms
+                                await self.sink(event)
+                            if now_ms()-started>60_000 and not any(k[0]==venue and t>=started for k,t in self.last_event.items()):
+                                raise TimeoutError('connected but no normalized market events')
+                    finally:
+                        heartbeat.cancel()
+                        with contextlib.suppress(asyncio.CancelledError): await heartbeat
             except asyncio.CancelledError: raise
-            except Exception as exc:
-                self.reconnects[adapter.venue] += 1
-                delay = RECONNECT_BACKOFF_SEC[min(attempt, len(RECONNECT_BACKOFF_SEC)-1)]
-                LOG.warning("venue=%s reconnect=%s delay=%s error=%r", adapter.venue, self.reconnects[adapter.venue], delay, exc)
-                attempt += 1; await asyncio.sleep(delay)
+            except Exception as exc: LOG.warning('venue=%s error=%r',venue,exc)
+            self.connected[venue]=False; self.reconnects[venue]+=1
+            attempt=0 if now_ms()-started>60_000 else min(attempt+1,5)
+            await asyncio.sleep(min(30,2**attempt)+random.random())
 
-    async def run(self) -> None:
-        timeout = aiohttp.ClientTimeout(total=None, sock_connect=20)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            await asyncio.gather(*(self.run_venue(session, a) for a in VENUE_ADAPTERS.values()))
+    async def run(self):
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=None,sock_connect=20)) as session:
+            await asyncio.gather(*(self.run_venue(session,v) for v in URLS))
 
-    def diagnostics(self) -> dict[str, Any]:
-        current = now_ms()
-        return {v: {"last_message_ms": self.last_message.get(v), "age_ms": current-self.last_message[v] if v in self.last_message else None, "stale": v not in self.last_message or current-self.last_message[v] > STALE_FEED_SEC*1000, "reconnects": self.reconnects[v]} for v in VENUE_ADAPTERS}
+    def diagnostics(self):
+        result={}; current=now_ms()
+        for v in URLS:
+            feeds={f'{a}/{k}':{'count':self.counts[(v,a,k)],'age_ms':current-self.last_event[(v,a,k)] if (v,a,k) in self.last_event else None} for a in self.symbols for k in ('TradeEvent','BookEvent')}
+            offsets=sorted(self.offsets[v])
+            result[v]={'connected':self.connected.get(v,False),'feeds':feeds,'stale':any(x['age_ms'] is None or x['age_ms']>STALE_FEED_SEC*1000 for x in feeds.values()),'reconnects':self.reconnects[v],'parse_errors':self.parse_errors[v],'timestamp_missing':self.missing_ts[v],'timestamp_regressions':self.timestamp_regressions[v],'clock_offset_median_ms':offsets[len(offsets)//2] if offsets else None,'clock_offset_note':'includes transport delay; not synchronized latency'}
+        return result

@@ -1,58 +1,78 @@
+"""Reproducible six-venue active spot intersection using actual pair metadata."""
 from __future__ import annotations
-
 import asyncio
 import json
+import logging
+import math
 import time
 from pathlib import Path
-from typing import Any
-
 import aiohttp
 
-from .config import UNIVERSE_SIZE
+LOG=logging.getLogger(__name__)
+VENUES=('binance','bybit','kraken','upbit','bithumb','coinone')
 
+async def get(session,url,params=None):
+    async with session.get(url,params=params) as r:
+        r.raise_for_status(); data=await r.json()
+        if isinstance(data,dict) and (data.get('error') or data.get('retCode',0)!=0 or data.get('result')=='error'):
+            raise ValueError(f'API error {url}: {data}')
+        return data
 
-ENDPOINTS = {
-    "binance": "https://api.binance.com/api/v3/ticker/24hr",
-    "bybit": "https://api.bybit.com/v5/market/tickers?category=spot",
-    "kraken": "https://api.kraken.com/0/public/Ticker",
-    "upbit": "https://api.upbit.com/v1/ticker/all?quote_currencies=KRW",
-    "bithumb": "https://api.bithumb.com/v1/ticker/all?quote_currencies=KRW",
-    "coinone": "https://api.coinone.co.kr/public/v2/ticker_new/KRW?additional_data=true",
-}
+async def venue_markets(session,v):
+    if v=='binance':
+        info=await get(session,'https://api.binance.com/api/v3/exchangeInfo')
+        ticks=await get(session,'https://api.binance.com/api/v3/ticker/24hr')
+        pairs={x['symbol']:x['baseAsset'] for x in info['symbols'] if x['quoteAsset']=='USDT' and x['status']=='TRADING' and x.get('isSpotTradingAllowed',True)}
+        return {pairs[x['symbol']]:{'pair':x['symbol'],'quote':'USDT','turnover':float(x['quoteVolume'])} for x in ticks if x['symbol'] in pairs}
+    if v=='bybit':
+        info=await get(session,'https://api.bybit.com/v5/market/instruments-info',{'category':'spot'})
+        ticks=await get(session,'https://api.bybit.com/v5/market/tickers',{'category':'spot'})
+        pairs={x['symbol']:x['baseCoin'] for x in info['result']['list'] if x['quoteCoin']=='USDT' and x['status']=='Trading'}
+        return {pairs[x['symbol']]:{'pair':x['symbol'],'quote':'USDT','turnover':float(x['turnover24h'])} for x in ticks['result']['list'] if x['symbol'] in pairs}
+    if v=='kraken':
+        info=(await get(session,'https://api.kraken.com/0/public/AssetPairs'))['result']
+        ticks=(await get(session,'https://api.kraken.com/0/public/Ticker'))['result']
+        out={}
+        for key,x in info.items():
+            pair=x.get('wsname','')
+            if not pair.endswith('/USD') or x.get('status')!='online' or key not in ticks: continue
+            base=pair.split('/')[0]; base={'XBT':'BTC','XDG':'DOGE'}.get(base,base)
+            t=ticks[key]
+            out[base]={'pair':f'{base}/USD','quote':'USD','turnover':float(t['v'][1])*float(t['p'][1])}
+        return out
+    if v in ('upbit','bithumb'):
+        host=f'https://api.{v}.com'
+        info=await get(session,host+'/v1/market/all')
+        pairs=[x['market'] for x in info if x['market'].startswith('KRW-')]
+        ticks=[]
+        for i in range(0,len(pairs),50):
+            ticks.extend(await get(session,host+'/v1/ticker',{'markets':','.join(pairs[i:i+50])})); await asyncio.sleep(.15)
+        return {x['market'][4:]:{'pair':x['market'],'quote':'KRW','turnover':float(x['acc_trade_price_24h'])} for x in ticks}
+    info=await get(session,'https://api.coinone.co.kr/public/v2/markets/KRW')
+    ticks=await get(session,'https://api.coinone.co.kr/public/v2/ticker_new/KRW')
+    active={x['target_currency'].upper() for x in info['markets'] if int(x['trade_status'])==1 and int(x['maintenance_status'])==0}
+    return {x['target_currency'].upper():{'pair':x['target_currency'].upper()+'-KRW','quote':'KRW','turnover':float(x['quote_volume'])} for x in ticks['tickers'] if x['target_currency'].upper() in active}
 
+def select(markets,size=5):
+    if set(markets)!=set(VENUES): raise ValueError('six complete venues required')
+    markets={v:{a:x for a,x in m.items() if math.isfinite(x['turnover']) and x['turnover']>0} for v,m in markets.items()}
+    common=set.intersection(*(set(m) for m in markets.values()))
+    # Stablecoins/fiat are excluded from directional shock research.
+    common-= {'USDT','USDC','DAI','TUSD','FDUSD','USD','EUR','KRW'}
+    if len(common)<size: raise ValueError(f'only {len(common)} common active liquid assets; need {size}')
+    ranks={v:{a:i/max(1,len(m)-1) for i,(a,x) in enumerate(sorted(m.items(),key=lambda item:(-item[1]['turnover'],item[0])))} for v,m in markets.items()}
+    scores={a:sum(1-ranks[v][a] for v in VENUES)/6 for a in common}
+    assets=sorted(common,key=lambda a:(-scores[a],a))[:size]
+    return {'selected_at_ms':time.time_ns()//1_000_000,'assets':assets,'eligible_count':len(common),'method':'mean_venue_turnover_percentile','size_proxy':'24h traded notional, NOT circulating market capitalization','scores':{a:scores[a] for a in assets},'inputs':markets}
 
-def parse_markets(venue: str, payload: Any) -> dict[str, float]:
-    out: dict[str, float] = {}
-    if venue == "binance":
-        for x in payload:
-            if x["symbol"].endswith("USDT"): out[x["symbol"][:-4]] = float(x.get("quoteVolume", 0))
-    elif venue == "bybit":
-        for x in payload["result"]["list"]:
-            if x["symbol"].endswith("USDT"): out[x["symbol"][:-4]] = float(x.get("turnover24h", 0))
-    elif venue == "kraken":
-        for pair, x in payload["result"].items():
-            if pair.endswith(("USD", "USDT")):
-                base = pair.removeprefix("X").split("USD")[0].replace("XBT", "BTC")
-                out[base] = float(x["v"][1]) * float(x["c"][0])
-    elif venue in {"upbit", "bithumb"}:
-        for x in payload:
-            market = x["market"]
-            if market.startswith("KRW-"): out[market[4:]] = float(x.get("acc_trade_price_24h", x.get("acc_trade_price", 0)))
-    elif venue == "coinone":
-        for x in payload.get("tickers", []): out[x["target_currency"].upper()] = float(x.get("quote_volume", 0))
-    return out
-
-
-async def discover(path: str | None = None, size: int = UNIVERSE_SIZE) -> dict[str, Any]:
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=25)) as session:
-        async def get(v: str, u: str):
-            async with session.get(u) as r: r.raise_for_status(); return v, parse_markets(v, await r.json())
-        markets = dict(await asyncio.gather(*(get(*x) for x in ENDPOINTS.items())))
-    common = set.intersection(*(set(x) for x in markets.values()))
-    # Percentile-like venue rank aggregation avoids comparing KRW and USD notionals.
-    ranks = {v: {a: i / max(1, len(m)-1) for i, (a, _) in enumerate(sorted(m.items(), key=lambda x:x[1], reverse=True))} for v,m in markets.items()}
-    scored = sorted(((sum(1-ranks[v][a] for v in markets)/len(markets), a) for a in common), reverse=True)
-    result = {"selected_at_ms": time.time_ns()//1_000_000, "method":"six_venue_common_mean_liquidity_percentile", "assets":[a for _,a in scored[:size]], "scores":{a:s for s,a in scored[:size]}, "eligible_count":len(common)}
+async def discover(path=None,size=5):
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+        results=await asyncio.gather(*(venue_markets(session,v) for v in VENUES),return_exceptions=True)
+    errors={v:str(r) for v,r in zip(VENUES,results) if isinstance(r,Exception)}
+    if errors: raise RuntimeError(f'universe discovery failed: {errors}')
+    result=select(dict(zip(VENUES,results)),size)
     if path:
-        Path(path).parent.mkdir(parents=True, exist_ok=True); Path(path).write_text(json.dumps(result, indent=2), encoding="utf-8")
+        p=Path(path); p.parent.mkdir(parents=True,exist_ok=True)
+        temp=p.with_suffix('.tmp'); temp.write_text(json.dumps(result),encoding='utf-8'); temp.replace(p)
+    LOG.info('universe_selected assets=%s eligible=%s method=%s',result['assets'],result['eligible_count'],result['method'])
     return result
