@@ -60,9 +60,9 @@ class App:
                     if sha!=last:
                         base=f'https://raw.githubusercontent.com/Henryrotaewon/VPD-Investment/{sha}/data/'
                         payload=await get(session,base+'vpd_latest.json')
-                        async with session.get(base+'vpd_all_latest.csv') as r:r.raise_for_status();csv_text=await r.text()
+                        async with session.get(base+'vpd_all_latest.csv') as r:
+                            r.raise_for_status();csv_text=await r.text()
                         row=snapshot(payload,now_ms(),csv_text,sha)
-                        # Both files are pinned to one immutable source commit.
                         await self.queue.put(('vpd',row));last=sha
                         LOG.info('vpd_snapshot asof=%s assets=%d source_commit=%s',payload['asof'],len(row['assets']),sha)
                 except Exception as exc:LOG.warning('vpd_fetch error=%r',exc)
@@ -91,7 +91,6 @@ class App:
             try:
                 selected=await discover(str(self.storage.root/'universe_next.json'))
                 self.storage.append('universe',{'event_ts_ms':now_ms(),**selected})
-                # Reconfigure collector without touching active evaluation records.
                 if selected['assets']!=self.assets:
                     self.collector_task.cancel()
                     with contextlib.suppress(asyncio.CancelledError):await self.collector_task
@@ -118,25 +117,3 @@ class App:
                 with contextlib.suppress(asyncio.CancelledError):await consumer
             stopper.cancel()
             if timer:timer.cancel()
-            self.engine.checkpoint();self.storage.close()
-            LOG.info('MAGI1 graceful_shutdown complete')
-
-async def main_async(args):
-    if os.getenv('MAGI1_MODE','COLLECT_ONLY')!='COLLECT_ONLY':raise SystemExit('Only COLLECT_ONLY is supported')
-    root=args.data_dir or os.getenv('MAGI1_DATA_DIR','/data/magi1')
-    if os.getenv('RAILWAY_ENVIRONMENT_ID') and not os.path.ismount('/data'):
-        raise SystemExit('Persistent /data volume required; refusing ephemeral collection')
-    if args.assets:assets=args.assets.upper().split(',')
-    else:
-        while True:
-            try:
-                row=await discover(str(Path(root)/'universe.json'));assets=row['assets'];break
-            except Exception as exc:LOG.error('universe startup retry error=%r',exc);await asyncio.sleep(30)
-    LOG.info('MAGI1 mode=COLLECT_ONLY assets=%s data=%s',assets,root)
-    await App(root,assets).run(args.duration)
-
-def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--data-dir');parser.add_argument('--assets');parser.add_argument('--duration',type=int)
-    logging.basicConfig(level=os.getenv('LOG_LEVEL','INFO'),format='%(asctime)s %(levelname)s %(name)s %(message)s')
-    asyncio.run(main_async(parser.parse_args()))
-if __name__=='__main__':main()

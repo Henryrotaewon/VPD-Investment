@@ -13,7 +13,15 @@ VENUES=('binance','bybit','kraken','upbit','bithumb','coinone')
 
 async def get(session,url,params=None):
     async with session.get(url,params=params) as r:
-        r.raise_for_status(); data=await r.json()
+        r.raise_for_status()
+        # Several public exchange/GitHub endpoints return valid JSON with a
+        # ``text/plain`` content type. Decode the body explicitly so MIME
+        # metadata cannot disable a collector or point-in-time join.
+        body=await r.text()
+        try:
+            data=json.loads(body)
+        except json.JSONDecodeError:
+            raise ValueError(f'non-JSON response from {url}')
         if isinstance(data,dict) and (data.get('error') or data.get('retCode',0)!=0 or data.get('result')=='error'):
             raise ValueError(f'API error {url}: {data}')
         return data
@@ -57,7 +65,6 @@ def select(markets,size=5):
     if set(markets)!=set(VENUES): raise ValueError('six complete venues required')
     markets={v:{a:x for a,x in m.items() if math.isfinite(x['turnover']) and x['turnover']>0} for v,m in markets.items()}
     common=set.intersection(*(set(m) for m in markets.values()))
-    # Stablecoins/fiat are excluded from directional shock research.
     common-= {'USDT','USDC','DAI','TUSD','FDUSD','USD','EUR','KRW'}
     if len(common)<size: raise ValueError(f'only {len(common)} common active liquid assets; need {size}')
     ranks={v:{a:i/max(1,len(m)-1) for i,(a,x) in enumerate(sorted(m.items(),key=lambda item:(-item[1]['turnover'],item[0])))} for v,m in markets.items()}
