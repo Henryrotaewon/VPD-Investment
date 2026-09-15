@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-15T14:18:31.083186+09:00",
+  "updated_at": "2026-09-15T19:12:19.726915+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -177,9 +177,9 @@
       "EWScore": 45
     },
     "IOTA": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-15T14:18:31.083186+09:00",
-      "EWScore": 72
+      "level": "WATCH",
+      "updated_at": "2026-09-15T19:12:19.726915+09:00",
+      "EWScore": 53
     },
     "ORCA": {
       "level": "QUIET",
@@ -332,18 +332,18 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "HYPER": {
-      "level": "RED",
-      "updated_at": "2026-09-15T09:34:28.725959+09:00",
-      "EWScore": 81
+      "level": "WATCH",
+      "updated_at": "2026-09-15T19:12:19.726915+09:00",
+      "EWScore": 45
     },
     "AGLD": {
-      "level": "RED",
-      "updated_at": "2026-09-15T14:18:31.083186+09:00",
-      "EWScore": 77
+      "level": "QUIET",
+      "updated_at": "2026-09-15T19:12:19.726915+09:00",
+      "EWScore": 35
     },
     "ALT": {
-      "level": "ORANGE",
-      "updated_at": "2026-09-15T14:18:31.083186+09:00",
+      "level": "RED",
+      "updated_at": "2026-09-15T19:12:19.726915+09:00",
       "EWScore": 81
     }
   }
