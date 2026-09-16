@@ -37,7 +37,7 @@ class App:
             if self.tick_count%5==0:self.storage.flush()
             if self.tick_count%30==0:
                 self.engine.checkpoint()
-                diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.health(),'onchain':self.onchain_status,'derivatives':self.derivative_status}
+                diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status}
                 self.storage.append('diagnostics',diag);LOG.info('feed_diagnostics=%s',json.dumps(diag))
                 cutoff=report_cutoff(datetime.now(KST)).isoformat()
                 if self.storage.restore('last_report')!=cutoff:
@@ -117,3 +117,47 @@ class App:
                 with contextlib.suppress(asyncio.CancelledError):await consumer
             stopper.cancel()
             if timer:timer.cancel()
+
+
+def data_root():
+    if os.getenv('MAGI1_MODE', 'COLLECT_ONLY') != 'COLLECT_ONLY':
+        raise ValueError('MAGI1 supports COLLECT_ONLY only')
+    root = Path(os.getenv('MAGI1_DATA_DIR', '/data/magi1')).resolve()
+    if os.getenv('RAILWAY_ENVIRONMENT_ID'):
+        if not os.path.ismount('/data') or not root.is_relative_to(Path('/data')):
+            raise RuntimeError('Railway requires a mounted /data volume and data directory under /data')
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+async def start(duration=None):
+    root = data_root()
+    LOG.info('magi1_starting mode=COLLECT_ONLY data_dir=%s', root)
+    selected = await discover(str(root / 'universe.json'))
+    app = App(root, selected['assets'])
+    try:
+        app.storage.maintain(int(os.getenv('MAGI1_RAW_RETENTION_DAYS', '2')))
+        app.storage.append('universe', {'event_ts_ms': now_ms(), **selected})
+        app.storage.flush()
+        LOG.info('storage_startup=%s', json.dumps(app.storage.summary()))
+        await app.run(duration)
+    finally:
+        app.engine.checkpoint()
+        app.storage.close()
+        LOG.info('magi1_stopped')
+
+
+def main():
+    parser = argparse.ArgumentParser(description='MAGI1 public market-data collector')
+    parser.add_argument('--duration', type=float, default=None,
+                        help='Optional bounded observation in seconds; default runs continuously')
+    args = parser.parse_args()
+    if args.duration is not None and args.duration <= 0:
+        parser.error('--duration must be positive')
+    logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO').upper(),
+                        format='%(asctime)s %(levelname)s %(name)s %(message)s', force=True)
+    asyncio.run(start(args.duration))
+
+
+if __name__ == '__main__':
+    main()

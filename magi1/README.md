@@ -117,3 +117,17 @@ free space and derivative context availability. Socket connection alone is not h
 
 Tests: `python -m unittest discover -s magi1/tests -v`.
 See `deploy/README_MAGI1_FLOW.md` for deployment settings.
+
+Runtime repair (2026-09-16): the module entrypoint now discovers the universe and
+starts the collector, with startup and shutdown logs. `--duration SECONDS` supports
+bounded observations; omitted means continuous collection. Railway validates the
+mounted `/data` volume before starting. Watch patterns are `/magi1/**/*.py` and
+`/requirements.txt`; Markdown-only edits do not trigger deployment.
+
+`storage_startup` and 30-second `feed_diagnostics.storage` report research counts
+and latest timestamps by record kind, acknowledged raw trade/book writes since
+instrumentation, retained raw file sizes, database size and free space. Raw counters
+persist across restarts but are not a recount of older files or currently retained
+rows; expiry does not decrease them, and a crash between gzip append and SQLite
+checkpoint can undercount. Per-feed counts are process-local; research counts
+come from SQLite. A successful deployment alone does not prove collection health.
