@@ -3,12 +3,53 @@
 Date: 2026-09-16
 Status: DESIGN ONLY. No Drive upload, credential provisioning, runtime change, or deletion is enabled by this document.
 
+## Retention policy — user revision, 2026-09-16
+
+This policy supersedes indefinite raw-event archival. It is a design, not an active
+deletion job. Interpret "one week" as a rolling 7-day retention window, with
+date/week folders for organization; upload continuously, not once a week.
+
+| Dataset | Railway | Google Drive | Deletion rule |
+|---|---|---|---|
+| Normalized raw trades/books | Active segment and unverified upload queue only | Recent 7 days | Permanently delete expired segments ONLY after analysis completion and durable preservation of their derived outputs |
+| Analysis/evidence | Most recent calendar month, plus unresolved work and necessary model state | Older analysis, retained indefinitely | Remove local rows only after verified remote archival; never age-delete analysis on Drive |
+| Manifests, analysis versions and coverage gaps | Active catalog | Long-term evidence | Retain provenance and raw-deletion audit even after raw data is gone |
+
+Use UTC event time for segment boundaries and age; apply one calendar month with
+month-end clamping, not an undocumented 30-day approximation, for analysis migration.
+Pending outcomes and the existing 30-day propagation lookback may cross the cutoff;
+retain required state or restore it from Drive before trimming local records.
+
+Analysis completion means: expected processing finished, all outcome horizons matured,
+coverage/missing-data status recorded, features/labels/code versions preserved, output
+row counts reconciled, and a verified backup of the derived evidence exists on Drive.
+A low-confidence result or a missing-data outcome can be terminal; unresolved work cannot.
+Recent analysis stays on Railway but receives incremental Drive backups before raw
+deletion eligibility. Its primary archive moves to Drive after one month.
+
+Permanent raw deletion targets only uploader-owned raw segment IDs in the dedicated
+events folder, with age and manifest checks. Never target analysis, arbitrary account
+files, or an entire mixed-content folder. A failed analysis retains its raw segment
+beyond 7 days and raises backlog status. Do not delete earlier than 7 days by default.
+
+After raw deletion, stored features and results remain inspectable, but arbitrary
+future feature recomputation or full tick replay for that period is no longer possible.
+Preserve non-triggered comparison cohorts, feed coverage, feature definitions,
+thresholds, both timestamps, VPD provenance, and model/code versions as evidence.
+The raw retention period does NOT change the Wave detection or outcome horizons.
+
+At the measured raw rate, a 7-day rolling set is approximately 19.4 GB, plus temporary
+overlap and failed-analysis backlog. Long-term analysis volume must be measured separately.
+A provisional raw allocation of 25–30 GB is a planning allowance, not confirmed free quota.
+A month of analysis is not guaranteed to fit 500 MB; measure DB growth and size-budget
+diagnostics independently. Completed analysis remains recoverable when archived.
+
 ## Decision and preservation boundary
 
 MAGI1 remains the canonical collector. Railway keeps a bounded working set; the user's
-Google Drive stores immutable archives. VPD and MAGI2 remain independent.
+Google Drive stores raw segments until policy expiry and long-term analysis archives. VPD and MAGI2 remain independent.
 
-Preserve every currently collected normalized event, including order, receive/exchange
+During the raw retention window, preserve every currently collected normalized event, including order, receive/exchange
 timestamps, venue, symbol, price, quantity, side, trade ID, sequence and available top-10
 book levels. Existing normalized data is NOT the original exchange wire payload:
 normalization already uses floats and truncates depth. A new archive cannot recover
@@ -29,20 +70,18 @@ timestamp-based deduplication of trades or books.
 
 User reports a 100 GB plan; actual remaining quota is not verified. Do not allocate all
 100 GB: existing Drive/Gmail/Photos use and other files must be accounted for.
-A provisional 60 GB MAGI1 archive budget, only if available, lasts about 18–22 days at
-the baseline above BEFORE any measured compression improvement. This is a scenario,
-not a promise. Store measured bytes/day and projected days remaining.
-
-Finite Drive storage cannot retain an unbounded complete stream forever. At a quota
-threshold, choose more storage or another archive tier; do not silently discard history.
+Raw data now expires under the 7-day, analysis-verified rule above; the earlier
+18–22-day estimate for a 60 GB indefinitely growing raw archive no longer describes
+this policy. Analysis remains cumulative and will eventually require more capacity.
+Store measured raw/analysis bytes per day and remaining quota separately.
 
 ## Storage layout
 
 | Location | Contents | Policy |
 |---|---|---|
 | Railway /data/magi1/spool | Active and sealed event segments | Seal every 5 minutes or 16 MiB, whichever comes first |
-| Railway research.db | Active research records, checkpoints, upload catalog | Keep unresolved episodes and pending outcomes; archive resolved rows transactionally |
-| Drive MAGI1-Archive/events/YYYY/MM/DD | Immutable event archives, initially .jsonl.gz | Every sealed segment uploaded and verified |
+| Railway research.db | Active research records, checkpoints, upload catalog | Recent calendar month plus unresolved work; verified migration of older resolved rows |
+| Drive MAGI1-Archive/events/YYYY/MM/DD | Immutable event archives, initially .jsonl.gz | Every sealed segment uploaded and verified; 7-day expiry after completed analysis |
 | Drive MAGI1-Archive/research/YYYY/MM/DD | Resolved research rows and coherent SQLite snapshots | Preserve full records, IDs, schemas and provenance |
 | Drive MAGI1-Archive/manifests/YYYY/MM/DD | Segment manifests and coverage reports | Uploaded with each archive batch |
 | Drive MAGI1-Archive/reports | Daily human-readable reports | Derived; not a replacement for events |
