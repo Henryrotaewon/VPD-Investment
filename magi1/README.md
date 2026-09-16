@@ -3,6 +3,67 @@
 Run `python -m magi1.runner`. The only mode is `MAGI1_MODE=COLLECT_ONLY`.
 No order endpoints or account credentials are used. VPD and MAGI2 are independent.
 
+
+## Project consolidation — 2026-09-16
+
+**MAGI1 Wave (this `magi1/` package in `Henryrotaewon/VPD-Investment`) is the
+canonical implementation for market-data collection, flow formation and
+cross-exchange propagation research.** The separate `MAGI-Microstructure` POC is
+retired as a development track; its repository deletion has been requested.
+This section preserves the research handoff independently of that repository.
+It records planned work, not completed migration or verified trading performance.
+
+VPD remains the independent background scanner and MAGI2 remains the independent
+existing paper strategy. Future MAGI1 executable-price experiments must use their
+own ledger and must not change MAGI2 positions or VPD scoring.
+
+### Features to carry forward
+
+| Priority | Research item | Preserved design and required work | Status |
+|---|---|---|---|
+| 1 | Executable bid/ask outcome labels | Long entry at available ask; exit at subsequent bid. Evaluate at 100/250/500ms, 1/2/5/10/30/60/300s only where timestamp and book resolution support it. Record gross and net returns, spread, fees, slippage, fill size and data coverage separately. Add depth-based fills, decision latency and bounded timestamp matching; missing/stale books produce missing outcomes. | Planned. Current MAGI1 price-response evaluation is gross and is not executable PnL. |
+| 2 | ALP / Micro Fingerprints | Preserve trade burst, volume-price dislocation, buy/sell alternation and book imbalance as candidate features. Normalize by asset/venue baseline, require warm-up and healthy data, and attach a feature vector to the existing shock ID. Research repeated price/size and cadence separately. | Planned. Old scores were heuristics, not validated predictive signals. |
+| 2 | Absorption and quote replenishment | Measure aggressive traded volume against retained book state and subsequent replenishment. Distinguish cancellations, missing updates and genuine replenishment. | New implementation required: the POC fields were zero-valued placeholders. |
+| 3 | Quote Shadow / Dependency Break | Compare time-aligned quote returns across venues, estimate lag and direction agreement, and detect a decline from a stable dependency baseline. Separate KRW/USD/USDT quote effects and spot/derivative basis. Prevent future information in features and test out of sample. | Research prototype only; no calibrated causality or actor identification. |
+| 3 | Tick versus persistent-flow experiments | Evaluate sub-second/second opportunities separately from seconds/minutes flow persistence. Use independent cohorts and net executable outcomes. | Planned; sub-second research requires finer validated data than the current 1s formation sampling. |
+
+Do not migrate the POC's duplicate collector runtime, Flow Wave detector,
+propagation engine or storage pipeline. Extend MAGI1's existing implementations.
+Public market patterns do not prove wash trading, a shared account or a particular LP.
+
+For historical provenance only, the retired POC was inspected at commit
+`f7c146f09bccda6146d53bb7ba10998eb13aa96b`. Relevant former modules were
+`src/learning/outcome_labeler.py`, `src/micro/fingerprint_engine.py` and
+`src/quote_shadow/engine.py`. This README preserves requirements, not a source-code
+backup; those paths need not remain accessible after repository deletion.
+
+### Additional venue test backlog
+
+The current six-venue spot set is Upbit, Bithumb, Coinone, Binance, Bybit and
+Kraken. Kraken is already covered and is not a new integration.
+
+| Candidate | Intended scope | Historical POC evidence | Next test |
+|---|---|---|---|
+| Bitget | Additional CEX spot sensor | 192 BTC trade records in the 90s observation on 2026-09-02 KST | Public spot metadata, common assets, trade sides/IDs, snapshot/delta book semantics, timestamps, reconnect and sustained feed quality |
+| Aster | Separate derivative context sensor | 83 BTC trade records in that observation; POC used a futures feed | Revalidate public endpoint/subscription, instrument type, book reconstruction and timing; keep separate from spot universe and execution |
+| Apex | Separate derivative context sensor | 72 BTC trade records in that observation | Revalidate public subscription, instrument identifiers, timestamp units, trade-side semantics and book continuity |
+| Hyperliquid | Optional DEX market-data sensor | Listed as a POC candidate; no success claim carried forward here | Verify available public interface and exact spot/perpetual instrument mapping, then trade/book smoke tests |
+| dYdX | Optional derivative market-data sensor | Listed as a POC candidate; no success claim carried forward here | Verify public interface, contract/unit mapping and trade/book stream behavior before adapter work |
+
+Historical counts are short-run received records, not unique trades, availability
+guarantees, order-book validation or evidence of a currently healthy service.
+All candidates remain unenabled by this documentation change. Do not count a
+derivative contract as another spot venue or introduce derivative trading.
+
+### Promotion gates
+
+1. Revalidate public APIs and instrument metadata from the target runner; use no private account endpoints.
+2. Test trades and books separately, including IDs, aggressor side, timestamp units, sequence/checksum handling where available, deletions and reconnect resets.
+3. Preserve exchange time, receive time and clock uncertainty. Missing timestamps remain missing; local detection lag is not causal lead time.
+4. Require sustained coverage and report stale feeds, gaps, parse errors and clock regressions. Deduplicate episodes before statistical evaluation.
+5. Add an isolated adapter only after quality checks pass; preserve comparable venue/asset cohorts when extending the current six-venue logic.
+6. Promote research signals only after out-of-sample, cost-aware executable-price paper evaluation with sample counts and uncertainty. No live execution is authorized by this roadmap.
+
 ## Runtime
 
 Six public spot collectors → bounded queue → normalized raw storage → feature buckets →
