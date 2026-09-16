@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": -1.1641532182693481e-10,
+  "cash_krw": 359330.6405763428,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -591,7 +591,7 @@
     },
     "ZIL": {
       "market": "KRW-ZIL",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-16T07:28:13.840994+09:00",
       "entry_session": "AM",
       "entry_session_id": "2026-09-16-AM-001",
@@ -610,10 +610,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3.92,
-      "peak_price": 3.92,
+      "last_price": 3.97,
+      "peak_price": 3.97,
       "tp_warning_sent": true,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "exit_at": "2026-09-16T11:21:18.680619+09:00",
+      "exit_price": 3.97,
+      "sell_fee_krw": 179.75519788711503,
+      "net_proceeds_krw": 359330.64057634294,
+      "pnl_krw": 41906.3473947781,
+      "return_pct": 13.201997545540078,
+      "exit_reason": "TAKE_PROFIT"
     },
     "SONIC": {
       "market": "KRW-SONIC",
@@ -4185,8 +4192,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 0.0,
-  "lifetime_realized_pnl_krw": 266221.2069160935,
+  "realized_pnl_krw": 41906.3473947781,
+  "lifetime_realized_pnl_krw": 308127.5543108716,
   "paper_only": true,
   "cohort_id": "2026-09-16-AM-001",
   "cohort_date": "2026-09-16",
@@ -4195,7 +4202,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-16T11:11:12.937966+09:00",
+  "updated_at": "2026-09-16T11:21:18.681027+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
