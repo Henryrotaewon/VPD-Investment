@@ -1,4 +1,4 @@
-coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
+﻿coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
 USDE,2026-08-17,27.7,58.42,3,2,2.7308,1.546,17368315.08,4558718.31,BULLISH_WICK,0.21,-2.34,-2.77,0.57,-3.9
 USDE,2026-08-18,9.07,55.64,3,2,2.5,2.0844,16365902.79,4665081.53,NEUTRAL,-2.69,-2.2,-3.33,0.0,-4.11
 USDE,2026-08-19,27.4,48.14,4,1,2.9667,1.6905,20307355.42,7109039.71,BULLISH_WICK,0.15,-0.29,-0.15,2.26,-1.16
