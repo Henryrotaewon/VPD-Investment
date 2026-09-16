@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: vpd-early-warning
+  group: vpd-main-data-writer
   cancel-in-progress: false
 
 jobs:
@@ -37,3 +37,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python scanner/early_warning_watch.py
+

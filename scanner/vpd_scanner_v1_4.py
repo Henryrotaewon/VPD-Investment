@@ -277,6 +277,8 @@ if "scan_time" in HISTORY.columns and "coin" in HISTORY.columns: HISTORY=HISTORY
 HISTORY.to_csv(LOCAL_HISTORY_CSV,index=False,encoding="utf-8-sig")
 
 def github_upload(local_path,repo_path):
+    if globals().get("DEFER_GITHUB_PUBLISH", False):
+        return True  # The action runner publishes the complete scan atomically.
     url=f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{repo_path}"; check=requests.get(url,headers=GITHUB_HEADERS,params={"ref":BRANCH},timeout=20); sha=None
     if check.status_code==200: sha=check.json().get("sha")
     elif check.status_code!=404: raise RuntimeError(f"{repo_path} 조회 실패: {check.status_code} {check.text[:300]}")
@@ -294,3 +296,4 @@ print("\n✅ VPD Scanner v1.4 완료")
 print("KRW 마켓:",len(markets),"분석 완료:",len(VPD_ALL),"분석 제외:",len(excluded),"TOP10:",len(VPD_TOP10),"Qualified Rockets:",len(rocket_df),"NEW TOP10:",len(new_top10_df),"History rows:",len(HISTORY))
 print("소요시간:",round(elapsed,1),"초")
 print("GitHub:","latest.json",("OK" if ok1 else "FAIL"),"all_latest",("OK" if ok2 else "FAIL"),"history",("OK" if ok3 else "FAIL"))
+

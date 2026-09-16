@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: magi1-scanner
+  group: vpd-main-data-writer
   cancel-in-progress: false
 
 jobs:
@@ -84,3 +84,4 @@ jobs:
           curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MSG}"
+

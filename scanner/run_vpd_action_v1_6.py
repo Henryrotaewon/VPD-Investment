@@ -78,22 +78,4 @@ source = source.replace(
 
 exec(compile(source, str(BASE), "exec"), globals())
 
-# Session state: Telegram MAGI1 commands read this snapshot; they do NOT start a scan.
-session = os.getenv("MAGI1_SESSION", "").strip().lower()
-if session in {"morning", "evening"}:
-    latest = Path(__file__).resolve().parents[1] / ".runtime" / "vpd_latest.json"
-    state = json.loads(latest.read_text(encoding="utf-8"))
-    state["magi1_session"] = session
-    state["magi1_state_role"] = "UPBIT_SCAN_STATE"
-    text = json.dumps(state, ensure_ascii=False, indent=2)
-    token = os.getenv("GITHUB_TOKEN", "").strip()
-    repo_path = f"data/magi1_upbit_{session}_state.json"
-    url = f"https://api.github.com/repos/Henryrotaewon/VPD-Investment/contents/{repo_path}"
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
-    g = requests.get(url, headers=headers, params={"ref":"main"}, timeout=20)
-    payload = {"message": f"Update MAGI1 {session} Upbit scan state", "content": base64.b64encode(text.encode()).decode(), "branch":"main"}
-    if g.status_code == 200: payload["sha"] = g.json()["sha"]
-    elif g.status_code != 404: raise RuntimeError(f"MAGI1 state read failed: {g.status_code}")
-    p = requests.put(url, headers=headers, json=payload, timeout=30)
-    if p.status_code not in (200, 201): raise RuntimeError(f"MAGI1 state write failed: {p.status_code} {p.text[:200]}")
-    print(f"✅ MAGI1 {session} Upbit scan state persisted: {repo_path}")
+# Session state is included in the base runner atomic publication.

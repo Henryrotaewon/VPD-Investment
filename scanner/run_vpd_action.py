@@ -4,6 +4,7 @@ import pathlib
 import requests
 import json
 import base64
+from github_publish import publish_bundle
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORK = ROOT / ".runtime"
@@ -18,6 +19,7 @@ source = source_path.read_text(encoding="utf-8")
 
 globals_dict = {
     "GITHUB_TOKEN": token,
+    "DEFER_GITHUB_PUBLISH": True,
     "__name__": "__main__",
     "__file__": str(source_path),
     "LOCAL_LATEST_JSON": str(WORK / "vpd_latest.json"),
@@ -80,34 +82,21 @@ data["wpi5_replay_30d"] = {
 }
 latest_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-# Persist Shadow/Replay outputs so ChatGPT briefings can read them from GitHub later.
-def github_put_text(repo_path, text):
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    url = f"https://api.github.com/repos/Henryrotaewon/VPD-Investment/contents/{repo_path}"
-    g = requests.get(url, headers=headers, params={"ref":"main"}, timeout=20)
-    payload = {
-        "message": f"Update {repo_path} from VPD WPI5 pipeline",
-        "content": base64.b64encode(text.encode("utf-8")).decode("ascii"),
-        "branch": "main",
-    }
-    if g.status_code == 200:
-        payload["sha"] = g.json()["sha"]
-    elif g.status_code != 404:
-        raise RuntimeError(f"GitHub read failed for {repo_path}: {g.status_code} {g.text[:200]}")
-    p = requests.put(url, headers=headers, json=payload, timeout=30)
-    if p.status_code not in (200, 201):
-        raise RuntimeError(f"GitHub write failed for {repo_path}: {p.status_code} {p.text[:300]}")
-
-# Enriched latest JSON + raw validation outputs.
-github_put_text("data/vpd_latest.json", latest_path.read_text(encoding="utf-8"))
-github_put_text("data/wpi5_shadow_latest.json", wpi_path.read_text(encoding="utf-8"))
-github_put_text("data/wpi5_validation_30d.csv", (WORK / "wpi5_validation_30d.csv").read_text(encoding="utf-8-sig"))
-github_put_text("data/wpi5_replay_30d_latest.json", replay_path.read_text(encoding="utf-8"))
-github_put_text("data/wpi5_replay_30d.csv", (WORK / "wpi5_replay_30d.csv").read_text(encoding="utf-8-sig"))
+# Publish all outputs together: no base-only snapshot or stale session window.
+bundle = {
+    "data/vpd_latest.json": latest_path.read_text(encoding="utf-8"),
+    "data/vpd_all_latest.csv": (WORK / "vpd_all_latest.csv").read_text(encoding="utf-8-sig"),
+    "data/vpd_history.csv": (WORK / "vpd_history.csv").read_text(encoding="utf-8-sig"),
+    "data/wpi5_shadow_latest.json": wpi_path.read_text(encoding="utf-8"),
+    "data/wpi5_validation_30d.csv": (WORK / "wpi5_validation_30d.csv").read_text(encoding="utf-8-sig"),
+    "data/wpi5_replay_30d_latest.json": replay_path.read_text(encoding="utf-8"),
+    "data/wpi5_replay_30d.csv": (WORK / "wpi5_replay_30d.csv").read_text(encoding="utf-8-sig"),
+}
+session = os.getenv("MAGI1_SESSION", "").strip().lower()
+if session in {"morning", "evening"}:
+    state = dict(data, magi1_session=session, magi1_state_role="UPBIT_SCAN_STATE")
+    bundle[f"data/magi1_upbit_{session}_state.json"] = json.dumps(state, ensure_ascii=False, indent=2)
+publish_bundle(bundle, token)
 
 
 def fmt_num(v, digits=2):
@@ -174,3 +163,4 @@ r=requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",json={"ch
 if r.status_code!=200 or not r.json().get("ok"):
     raise RuntimeError(f"Telegram send failed: {r.status_code} {r.text[:300]}")
 print("✅ Telegram sent, message_id:",r.json()["result"]["message_id"])
+
