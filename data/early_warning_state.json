@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-16T10:40:10.311729+09:00",
+  "updated_at": "2026-09-16T15:43:33.136801+09:00",
   "coins": {
     "ZKC": {
       "level": "QUIET",
@@ -7,9 +7,9 @@
       "reason": "OUT_OF_WATCHLIST"
     },
     "OPG": {
-      "level": "RED",
-      "updated_at": "2026-09-16T10:40:10.311729+09:00",
-      "EWScore": 89
+      "level": "QUIET",
+      "updated_at": "2026-09-16T15:43:33.136801+09:00",
+      "EWScore": 40
     },
     "DKA": {
       "level": "QUIET",
