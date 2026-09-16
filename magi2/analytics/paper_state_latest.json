@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 352072.2607224752,
+  "cash_krw": 662010.6486225282,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -1831,7 +1831,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1367.0,
+      "last_price": 1368.0,
       "peak_price": 1370.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3416,8 +3416,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1353.0,
-      "peak_price": 1369.0,
+      "last_price": 1371.0,
+      "peak_price": 1371.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
       "hold_signal_reasons": [
@@ -3484,7 +3484,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 16.7,
+      "last_price": 16.4,
       "peak_price": 17.8,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -3954,7 +3954,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1366.0,
+      "last_price": 1370.0,
       "peak_price": 1370.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -4007,7 +4007,7 @@
     },
     "GAS": {
       "market": "KRW-GAS",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-14T07:32:03.067041+09:00",
       "entry_session": "AM",
       "entry_session_id": "2026-09-14-AM-001",
@@ -4026,7 +4026,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1661.0,
+      "last_price": 1630.0,
       "peak_price": 1816.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -4038,7 +4038,14 @@
       ],
       "hold_signal_checked_at": "2026-09-16T07:28:13.840854+09:00",
       "hold_state": "ACTIVE",
-      "weakening_count": 0
+      "weakening_count": 0,
+      "exit_at": "2026-09-17T02:56:50.090269+09:00",
+      "exit_price": 1630.0,
+      "sell_fee_krw": 155.04671730868085,
+      "net_proceeds_krw": 309938.387900053,
+      "pnl_krw": -20625.658867289778,
+      "return_pct": -6.2395348402200845,
+      "exit_reason": "HARD_STOP"
     },
     "ESP": {
       "market": "KRW-ESP",
@@ -4225,8 +4232,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 21508.213955132524,
-  "lifetime_realized_pnl_krw": 287729.420871226,
+  "realized_pnl_krw": 882.5550878427457,
+  "lifetime_realized_pnl_krw": 267103.7620039362,
   "paper_only": true,
   "cohort_id": "2026-09-16-AM-001",
   "cohort_date": "2026-09-16",
@@ -4235,7 +4242,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-16T21:34:53.523012+09:00",
+  "updated_at": "2026-09-17T02:56:50.090674+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
