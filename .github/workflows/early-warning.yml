@@ -2,9 +2,8 @@ name: VPD Early Warning Operations
 
 on:
   workflow_dispatch:
-  schedule:
-    # Operations: re-check the VPD-derived watchlist every 15 minutes.
-    - cron: '*/15 * * * *'
+  # Early Warning paused during the scheduled VPD PAPER evaluation.
+  # Previous schedule: '*/15 * * * *'. Restore only when resuming this experiment.
 
 permissions:
   contents: write
@@ -15,6 +14,8 @@ concurrency:
 
 jobs:
   watch:
+    # Pause manual execution as well; retain code and history for later research.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
