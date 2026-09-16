@@ -112,7 +112,11 @@ class Adapter:
                 return [trade(v,m['code'],m['trade_price'],m['trade_volume'],m.get('trade_timestamp'),'BUY' if m['ask_bid']=='BID' else 'SELL',m.get('sequential_id'),received)]
             if m.get('type')=='orderbook':
                 rows=m['orderbook_units']
-                return [book(v,m['code'],[(x['bid_price'],x['bid_size']) for x in rows],[(x['ask_price'],x['ask_size']) for x in rows],m.get('timestamp'),None,received)]
+                ts=m.get('timestamp')
+                # Bithumb documents orderbook timestamps in microseconds;
+                # Upbit uses milliseconds. Do not mix these units in diagnostics.
+                if v=='bithumb' and ts is not None: ts=int(ts)//1000
+                return [book(v,m['code'],[(x['bid_price'],x['bid_size']) for x in rows],[(x['ask_price'],x['ask_size']) for x in rows],ts,None,received)]
         elif v=='coinone' and m.get('response_type')=='DATA':
             d=m['data']; symbol=f"{d['target_currency']}-{d['quote_currency']}"
             if m.get('channel')=='TRADE':

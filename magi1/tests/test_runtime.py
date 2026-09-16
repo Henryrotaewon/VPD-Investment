@@ -8,9 +8,18 @@ from unittest.mock import AsyncMock, patch
 
 from magi1 import runner
 from magi1.storage import Storage
+from magi1.collectors.public_ws import Adapter
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_bithumb_book_microseconds_upbit_milliseconds(self):
+        row={'type':'orderbook','code':'KRW-BTC','timestamp':1789524249030123,
+             'orderbook_units':[{'bid_price':100,'bid_size':1,'ask_price':101,'ask_size':2}]}
+        event=Adapter('bithumb').parse(row,1789524249200)[0]
+        self.assertEqual(event.exchange_ts_ms,1789524249030)
+        row['timestamp']=1789524249030
+        self.assertEqual(Adapter('upbit').parse(row,1789524249200)[0].exchange_ts_ms,1789524249030)
+
     def test_module_entrypoint(self):
         result = subprocess.run([sys.executable, '-m', 'magi1.runner', '--help'],
                                 capture_output=True, text=True, timeout=10)

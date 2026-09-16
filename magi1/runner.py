@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import signal
+import sys
 from datetime import datetime
 from pathlib import Path
 from .collectors import CollectorSupervisor
@@ -155,7 +156,7 @@ def main():
     if args.duration is not None and args.duration <= 0:
         parser.error('--duration must be positive')
     logging.basicConfig(level=os.getenv('LOG_LEVEL', 'INFO').upper(),
-                        format='%(asctime)s %(levelname)s %(name)s %(message)s', force=True)
+                        format='%(asctime)s %(levelname)s %(name)s %(message)s', stream=sys.stdout, force=True)
     asyncio.run(start(args.duration))
 
 
