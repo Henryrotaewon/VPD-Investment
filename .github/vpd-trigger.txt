@@ -1,3 +1,3 @@
 VPD scanner ChatGPT trigger anchor.
-Triggered by ChatGPT: 2026-09-17 07:35:49 KST
-Purpose: morning recovery scan after atomic publication fix a94af48.
+Triggered by ChatGPT: 2026-09-18 07:21:18 KST
+Purpose: morning scan trigger
