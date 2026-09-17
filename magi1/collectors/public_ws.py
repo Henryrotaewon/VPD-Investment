@@ -479,5 +479,8 @@ class CollectorSupervisor:
                     'same-process receive clock is primary; exchange clocks '
                     'are secondary diagnostics and include path latency'
                 ),
+                'receive_jitter_ms': max(
+                    [x['spread_p95_p05_ms'] or 0 for x in timing.values()]
+                ),
             }
         return result
