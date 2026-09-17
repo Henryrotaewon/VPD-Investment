@@ -115,13 +115,17 @@ class Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             s=Storage(d);e=ResearchEngine(s,['BTC'],0)
             e.add_vpd({'ts_ms':0,'available_ms':0,'event_ts_ms':0,'assets':{'BTC':{'vpd':85,'delta_vpd':10,'momentum':'↑'}}})
-            for i in range(21):e.ingest(trade('upbit','BTC-KRW',100,1,i*1000,'BUY',received_ts_ms=i*1000))
+            for i in range(21):
+                e.ingest(book('upbit','BTC-KRW',[[99,1]],[[101,1]],i*1000,received_ts_ms=i*1000))
+                e.ingest(trade('upbit','BTC-KRW',100,1,i*1000,'BUY',received_ts_ms=i*1000))
+                e.tick(i*1000)
             e.formation.ingest(self.feature('binance',20000))
             for i in range(21,3631):
+                e.ingest(book('upbit','BTC-KRW',[[99,1]],[[101,1]],i*1000,received_ts_ms=i*1000))
                 e.ingest(trade('upbit','BTC-KRW',100,1,i*1000,'BUY',received_ts_ms=i*1000));e.tick(i*1000)
             ev=s.query('evaluation',0,4000000)
             self.assertEqual({x['cohort'] for x in ev},{'VPD_ONLY','FLOW_ONLY','FLOW_VPD','FLOW_VPD_NON_REACTION'})
-            self.assertEqual({x['horizon_sec'] for x in ev},{10,30,60,300,1800,3600})
+            self.assertEqual({x['horizon_sec'] for x in ev},{10,30,60,300})
             self.assertTrue(all(x['status']=='COMPLETE' for x in ev))
             e.checkpoint();count=len(ev);s.flush()
             r=ResearchEngine(s,['BTC'],4000000);r.tick(4000000)

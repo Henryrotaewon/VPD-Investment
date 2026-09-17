@@ -125,6 +125,7 @@ class Archiver:
     def __init__(self, storage):
         self.storage = storage
         self.started = time.time()
+        self.needs_compaction = True
         self.state = storage.restore('drive_archive_v1', {'files': {}})
 
     async def cycle(self, drive):
@@ -136,7 +137,7 @@ class Archiver:
                       if hour_end(p) is not None and hour_end(p) < now - 3600 and p.stat().st_mtime < now - 300]
         pending = [p for p in candidates if p.name not in self.state['files']][:12]
         day = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        if pending or self.state.get('research_day') != day:
+        if pending or self.state.get('research_day') != day or self.needs_compaction:
             tmp = self.storage.root / 'archive_work'
             tmp.mkdir(exist_ok=True)
             dest = tmp / ('research-%s.db' % time.time_ns())
@@ -144,6 +145,11 @@ class Archiver:
             compressed = Path(str(dest) + '.gz')
             try:
                 proof = await drive.upload(compressed, folder, {'kind': 'research', 'permanent': 'true'})
+                if hasattr(drive,'session'):
+                    from .compact import compact_backups
+                    result=await compact_backups(drive,folder,proof,compressed,tmp)
+                    self.storage.checkpoint('archive_compaction_latest',result)
+                self.needs_compaction=False
             finally:
                 compressed.unlink(missing_ok=True)
             self.state['research_day'] = day

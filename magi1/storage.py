@@ -49,6 +49,8 @@ class Storage:
                 total=self.raw_stats['kinds'].setdefault(kind,{'count':0,'last_ts_ms':0})
                 total['count']+=stats['count']; total['last_ts_ms']=max(total['last_ts_ms'],stats['last_ts_ms'])
             self.db.execute('INSERT OR REPLACE INTO checkpoints VALUES(?,?)',('raw_write_stats',json.dumps(self.raw_stats)))
+            if hasattr(self,'quality_counters'):
+                self.db.execute('INSERT OR REPLACE INTO checkpoints VALUES(?,?)',('quality_counts_v2',json.dumps(self.quality_counters)))
             self.pending_raw_stats.clear()
             self.buffer.clear(); self.raw_rows=0; self.db.commit()
     def maintain(self,raw_days=2):

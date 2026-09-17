@@ -16,6 +16,7 @@ from .research import ResearchEngine
 from .report import build_daily,report_cutoff,KST
 from .storage import Storage
 from .archive import Archiver
+from .quality import cleanup_invalid, VERSION, quality_summary
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -24,7 +25,9 @@ LOG=logging.getLogger('magi1')
 
 class App:
     def __init__(self,root,assets):
-        self.storage=Storage(root);self.engine=ResearchEngine(self.storage,assets,now_ms());self.assets=assets
+        self.storage=Storage(root)
+        LOG.info('quality_cleanup=%s',json.dumps(cleanup_invalid(self.storage,now_ms())))
+        self.engine=ResearchEngine(self.storage,assets,now_ms());self.assets=assets
         self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
         self.analysis_started=now_ms()/1000
         self.tick_count=0;self.onchain_status={'received':0};self.derivative_status={}
@@ -41,8 +44,9 @@ class App:
             if self.tick_count%30==0:
                 self.engine.checkpoint()
                 self.storage.checkpoint('analysis_coverage_v1', {'start':self.analysis_started,'through':value/1000})
-                diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status}
-                self.storage.append('diagnostics',diag);LOG.info('feed_diagnostics=%s',json.dumps(diag))
+                diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status,'evaluation_version':VERSION,'quality':quality_summary(self.storage)}
+                if self.tick_count%300==0:self.storage.append('diagnostics',diag)
+                LOG.info('feed_diagnostics=%s',json.dumps(diag))
                 cutoff=report_cutoff(datetime.now(KST)).isoformat()
                 if self.storage.restore('last_report')!=cutoff:
                     path=build_daily(self.storage);self.storage.checkpoint('last_report',cutoff);LOG.info('daily_report=%s',path)

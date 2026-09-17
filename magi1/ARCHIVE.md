@@ -26,3 +26,24 @@ cannot be proven. These exceptions require verified replay before deletion.
 Logs: archive_research_verified, archive_raw_verified, archive_cycle_ok,
 archive_cycle_failed. A failed OAuth refresh requires renewing authentication;
 the service does not print tokens or discard unarchived local data.
+
+## Quality v2 cleanup and evaluation
+
+- One-time migration replaces legacy MISSING_DATA evaluation and propagation_missing
+  rows with UTC-day/asset/horizon/cohort counters. All COMPLETE outcomes and raw files
+  remain. VACUUM reclaims unused database pages once at startup.
+- Every verified research snapshot can supersede older snapshots only after comparing
+  the actual record multisets (excluding the intentionally summarized invalid rows).
+  Unique history is retained. Raw-file research references are relinked and verified
+  before the superseded snapshot is permanently deleted.
+- Evaluation v2 uses locally received, valid Upbit quotes no older than two seconds,
+  with one-second observations and gaps no longer than 2.5 seconds. Horizons are
+  10/30/60/300 seconds. BUY uses entry ask and exit bid. SELL is a hypothetical
+  directional observation using entry bid and exit ask, never an order.
+- Spread is included; fees, execution latency and size-dependent slippage are not.
+  These are quote observations, not simulated fills. v1 and v2 are not pooled.
+- Invalid outcomes are summarized, not written as individual evaluation rows. Counts
+  preserve the denominator. Restarts discard pending trials with an interruption count.
+- Repeated trade IDs are deduplicated with a bounded cache. Changed books are all
+  retained; identical books are retained once per second as liveness evidence.
+- Diagnostics remain logged every 30 seconds but stored in SQLite every five minutes.

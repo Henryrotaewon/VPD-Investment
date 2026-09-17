@@ -12,7 +12,7 @@ def wilson(success,n):
 class PropagationStats:
     def __init__(self): self.samples=defaultdict(list)
     def add(self,row):
-        key=tuple(row[x] for x in ('asset','direction','horizon','origin_venue','follower_venue'))
+        key=(row.get('coverage_version','legacy'),)+tuple(row[x] for x in ('asset','direction','horizon','origin_venue','follower_venue'))
         self.samples[key].append(row)
         self.samples[key]=self.samples[key][-10000:]
         xs=self.samples[key]; successes=sum(x['received'] for x in xs); lags=[x['lag_ms'] for x in xs if x['lag_ms'] is not None]
