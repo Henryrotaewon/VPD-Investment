@@ -19,6 +19,7 @@ from .report import build_daily,report_cutoff,KST
 from .storage import Storage
 from .archive import Archiver
 from .quality import cleanup_invalid, VERSION, quality_summary
+from .timing_quality import pair_resolution_matrix
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -61,7 +62,7 @@ class App:
             if self.tick_count%30==0:
                 self.engine.checkpoint()
                 self.storage.checkpoint('analysis_coverage_v1', {'start':self.analysis_started,'through':value/1000})
-                diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status,'evaluation_version':VERSION,'quality':quality_summary(self.storage)}
+                feeds=self.collector.diagnostics();diag={'event_ts_ms':value,'feeds':feeds,'pair_timing_resolution':pair_resolution_matrix(feeds),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status,'evaluation_version':VERSION,'quality':quality_summary(self.storage)}
                 if self.tick_count%300==0:self.storage.append('diagnostics',diag)
                 LOG.info('feed_diagnostics=%s',json.dumps(diag))
                 cutoff=report_cutoff(datetime.now(KST)).isoformat()
