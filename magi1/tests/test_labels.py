@@ -6,6 +6,11 @@ from magi1.labels import AddressLabelRegistry, reclassify_onchain
 
 
 class LabelTests(unittest.TestCase):
+    def test_bitcoin_base58_case_is_preserved(self):
+        r=AddressLabelRegistry()
+        r.add({'chain':'BTC','address':'AbC','entity':'ExchangeA','role':'HOT','evidence_grade':'A_OFFICIAL','source':'official','known_at_ms':1},persist=False)
+        self.assertEqual(r.resolve('BTC','abc',100)['status'],'UNKNOWN')
+
     def test_event_asof_does_not_use_future_label(self):
         with tempfile.TemporaryDirectory() as d:
             r=AddressLabelRegistry(Path(d)/'labels.jsonl')

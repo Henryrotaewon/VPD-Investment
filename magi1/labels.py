@@ -29,7 +29,7 @@ class AddressLabel:
     notes: str = ""
 
     def key(self) -> str:
-        return f"{self.chain.lower()}|{self.address.lower()}"
+        return f"{self.chain.lower()}|{self.address}"
 
 
 class AddressLabelRegistry:
@@ -118,7 +118,7 @@ class AddressLabelRegistry:
         ``current_ms`` is intentionally optional and only included in the
         returned audit fields.  The lookup itself always uses ``asof_ms``.
         """
-        key = f"{chain.lower()}|{address.lower()}"
+        key = f"{chain.lower()}|{address}"
         candidates = [
             x for x in self.rows
             if x.key() == key and x.status == "ACTIVE"

@@ -13,6 +13,7 @@ from .collectors import CollectorSupervisor
 from .normalizer import now_ms
 from .onchain import BitcoinPublicWebSocketProvider,OnChainShockAdapter
 from .labels import AddressLabelRegistry, reclassify_onchain
+from .auto_summary import publish_summary
 from .research import ResearchEngine
 from .report import build_daily,report_cutoff,KST
 from .storage import Storage
@@ -33,6 +34,7 @@ class App:
         self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
         self.analysis_started=now_ms()/1000
         self.tick_count=0;self.onchain_status={'received':0};self.derivative_status={}
+        self.last_summary_ms=0
     async def enqueue(self,event):await self.queue.put(('market',event))
     def process(self,kind,value):
         if kind=='market':self.engine.ingest(value)
@@ -49,6 +51,12 @@ class App:
         elif kind=='derivatives':self.storage.append('derivatives_context',value);self.engine.derivatives.append(value)
         elif kind=='tick':
             self.engine.tick(value);self.tick_count+=1
+            if value-self.last_summary_ms>=900000:
+                try:
+                    publish_summary(self.storage,value,LOG)
+                except Exception:
+                    LOG.exception('analysis_summary_failed')
+                self.last_summary_ms=value
             if self.tick_count%5==0:self.storage.flush()
             if self.tick_count%30==0:
                 self.engine.checkpoint()
