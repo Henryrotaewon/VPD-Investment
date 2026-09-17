@@ -103,7 +103,14 @@ class ResearchEngine:
         for follower in sorted(VENUES-{origin}):
             x=a['venues'].get(follower); received=bool(x and 0<=x['ts_ms']-ts<=30000)
             # Do not count disconnected feeds as negative receptions.
-            if not self.quotes.covered(follower,asset,ts,a['event_ts_ms']):
+            covered=self.quotes.covered(follower,asset,ts,a['event_ts_ms'])
+            self.storage.append('reception_trial_v3',{
+                'event_ts_ms':a['event_ts_ms'],'origin_ts_ms':ts,'shock_id':a['shock_id'],
+                'asset':asset,'direction':a['direction'],'horizon':a['horizon'],
+                'origin_venue':origin,'follower_venue':follower,
+                'status':('RECEIVED' if received else 'NON_REACTION') if covered else 'UNOBSERVABLE',
+                'reason':None if covered else 'QUOTE_GAP'})
+            if not covered:
                 record_quality(self.storage,'PROPAGATION_QUOTE_GAP',a['event_ts_ms'],asset,follower=follower,origin=origin);continue
             lag=x['ts_ms']-ts if received else None
             move=a['origin_move_bps']

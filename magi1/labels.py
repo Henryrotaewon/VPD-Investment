@@ -49,6 +49,17 @@ class AddressLabelRegistry:
         self._mtime_ns: Optional[int] = None
         if self.path and self.path.exists():
             self.load()
+        else:
+            import gzip
+            seed=Path(__file__).with_name('okx_verified_seed.json.gz')
+            if seed.exists():
+                with gzip.open(seed,'rt') as f: data=json.load(f)
+                for address in data['addresses']:
+                    self.rows.append(AddressLabel(chain='BTC',address=address,entity='okx',role='RESERVE_ROLE_UNSPECIFIED',
+                        evidence_grade='A_OFFICIAL',source=data['source'],known_at_ms=data['known_at_ms'],
+                        valid_from_ms=data['known_at_ms'],valid_to_ms=data['review_after_ms'],
+                        notes='Verified signed reserve report association; current control and deposit role unverified'))
+                self._refresh_version()
 
     @staticmethod
     def _normalise(row: AddressLabel | dict[str, Any]) -> AddressLabel:
@@ -144,6 +155,7 @@ class AddressLabelRegistry:
             "roles": sorted({x.role for x in candidates}),
             "evidence_grades": sorted({x.evidence_grade for x in candidates}),
             "sources": sorted({x.source for x in candidates}),
+            "evidence_notes": sorted({x.notes for x in candidates}),
             "registry_version": self.version,
             "asof_ms": asof_ms,
             "current_ms": current_ms,
