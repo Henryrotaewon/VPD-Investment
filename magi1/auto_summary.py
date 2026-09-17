@@ -30,38 +30,79 @@ def build_summary(storage, now):
                     for label in tx.get(side, []):
                         onchain['label_' + label.get('status', 'UNKNOWN')] += 1
             elif kind == 'reception_trial_v3':
-                key=tuple(row.get(k) for k in ('asset','direction','horizon','origin_venue','follower_venue'))
-                ident=(row['shock_id'],key)
+                key = tuple(row.get(k) for k in
+                            ('asset','direction','horizon','origin_venue','follower_venue'))
+                ident = (row['shock_id'], key)
                 if ident not in seen:
-                    trials[key][row['status']]+=1
+                    trials[key][row['status']] += 1
                     seen.add(ident)
             elif row.get('coverage_version') == 'quote-v2':
-                key = tuple(row.get(k) for k in ('asset', 'direction', 'horizon', 'origin_venue', 'follower_venue'))
+                key = tuple(row.get(k) for k in
+                            ('asset','direction','horizon','origin_venue','follower_venue'))
                 edges[key]['received' if row.get('received') else 'non_reaction'] += 1
     result = []
     for key, count in sorted(edges.items()):
         n = count['received'] + count['non_reaction']
-        result.append(dict(zip(('asset', 'direction', 'horizon', 'origin', 'follower'), key),
-                           **count, observed_n=n, observed_probability=count['received']/n))
-    return {'version': 'private-summary-v1', 'generated_at_ms': now,
-            'window_start_ms': start, 'window_end_ms': now,
-            'onchain': dict(onchain), 'edges': result,
-            'coverage_edges': [dict(zip(('asset','direction','horizon','origin','follower'),key),
-                **reception_summary(c['RECEIVED'],c['NON_REACTION'],c['UNOBSERVABLE'])) for key,c in sorted(trials.items())],
-            'scope': 'retained 24h records; counts are observations, not unique wallets or independent shocks',
-            'limitations': ['onchain labels do not establish market causality',
-                           'quote-v2 excludes unobservable trials; exact edge missing denominators unavailable',
-                           'overlapping shocks: predictive confidence intervals not estimated']}
+        result.append(dict(
+            zip(('asset','direction','horizon','origin','follower'), key),
+            **count, observed_n=n,
+            observed_probability=count['received']/n))
+    return {
+        'version': 'private-summary-v2',
+        'generated_at_ms': now,
+        'window_start_ms': start,
+        'window_end_ms': now,
+        'onchain': dict(onchain),
+        'edges': result,
+        'coverage_edges': [
+            dict(zip(('asset','direction','horizon','origin','follower'), key),
+                 **reception_summary(c['RECEIVED'], c['NON_REACTION'],
+                                     c['UNOBSERVABLE']))
+            for key, c in sorted(trials.items())
+        ],
+        'scope': (
+            'retained 24h records; counts are observations, not unique '
+            'wallets or independent shocks'
+        ),
+        'limitations': [
+            'onchain labels do not establish market causality',
+            'quote-v2 excludes unobservable trials; exact edge missing '
+            'denominators unavailable',
+            'overlapping shocks: predictive confidence intervals not estimated',
+        ],
+    }
 
 
 def publish_summary(storage, now, logger):
     report = build_summary(storage, now)
-    # Checkpoint is included in existing verified research DB backups.
     storage.checkpoint('analysis_summary_v1', report)
-    summary = {k:v for k,v in report.items() if k not in ('edges','coverage_edges')}
-    summary['edge_groups'] = len(report['edges'])
-    logger.info('analysis_summary=%s', json.dumps(summary, separators=(',', ':')))
-    for edge in report['edges']:
-        logger.info('analysis_edge=%s', json.dumps({'generated_at_ms': now, **edge}, separators=(',', ':')))
-    for edge in report['coverage_edges']:
-        logger.info('analysis_coverage_edge=%s',json.dumps({'generated_at_ms':now,**edge},separators=(',',':')))
+
+    # Railway has a per-replica log-rate ceiling. Earlier versions emitted
+    # every edge as a separate line and caused dropped diagnostic logs.
+    # Persist all edges in SQLite/checkpoint, but log only one compact payload.
+    ranked = sorted(
+        report['edges'],
+        key=lambda x: (x.get('observed_n', 0), x.get('received', 0)),
+        reverse=True,
+    )
+    coverage_ranked = sorted(
+        report['coverage_edges'],
+        key=lambda x: x.get('observed_n', 0),
+        reverse=True,
+    )
+    summary = {k: v for k, v in report.items()
+               if k not in ('edges', 'coverage_edges')}
+    summary.update({
+        'edge_groups': len(report['edges']),
+        'coverage_edge_groups': len(report['coverage_edges']),
+        'top_edges_by_n': ranked[:12],
+        'top_coverage_edges_by_n': coverage_ranked[:12],
+        'log_policy': (
+            'full edge detail retained in research DB/checkpoint; '
+            'logs capped to avoid Railway rate-limit loss'
+        ),
+    })
+    logger.info(
+        'analysis_summary=%s',
+        json.dumps(summary, separators=(',', ':'))
+    )
