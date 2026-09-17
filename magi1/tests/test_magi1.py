@@ -17,6 +17,7 @@ from magi1.vpd_join import VPDPointInTimeJoin,snapshot
 from magi1.universe import select,VENUES
 from magi1.report import build_daily
 from magi1.propagation import wilson
+from magi1.onchain import BitcoinPublicWebSocketProvider
 
 class Tests(unittest.TestCase):
     def test_subscriptions_arrays(self):
@@ -141,5 +142,18 @@ class Tests(unittest.TestCase):
         async def sink(e):pass
         c=CollectorSupervisor(['BTC'],sink)
         self.assertTrue(all(x['stale'] for x in c.diagnostics().values()))
+
+    def test_onchain_keeps_address_level_raw_evidence_without_labels(self):
+        tx=BitcoinPublicWebSocketProvider.normalize_transaction({
+            'hash':'abc',
+            'inputs':[{'prev_out':{'addr':'in1','value':12000000000}}],
+            'out':[{'addr':'out1','value':10000000000},{'addr':'change','value':1990000000}],
+        })
+        self.assertEqual(tx['confirmation_status'],'UNCONFIRMED')
+        self.assertEqual(tx['input_total_sats'],12000000000)
+        self.assertEqual(tx['output_total_sats'],11990000000)
+        self.assertEqual(tx['fee_sats'],10000000)
+        self.assertEqual(tx['inputs'][0]['address'],'in1')
+        self.assertEqual(tx['outputs'][1]['address'],'change')
 
 if __name__=='__main__':unittest.main()

@@ -12,6 +12,7 @@ from pathlib import Path
 from .collectors import CollectorSupervisor
 from .normalizer import now_ms
 from .onchain import BitcoinPublicWebSocketProvider,OnChainShockAdapter
+from .labels import AddressLabelRegistry, reclassify_onchain
 from .research import ResearchEngine
 from .report import build_daily,report_cutoff,KST
 from .storage import Storage
@@ -26,6 +27,7 @@ LOG=logging.getLogger('magi1')
 class App:
     def __init__(self,root,assets):
         self.storage=Storage(root)
+        self.labels=AddressLabelRegistry(root/'address_labels.jsonl')
         LOG.info('quality_cleanup=%s',json.dumps(cleanup_invalid(self.storage,now_ms())))
         self.engine=ResearchEngine(self.storage,assets,now_ms());self.assets=assets
         self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
@@ -36,7 +38,14 @@ class App:
         if kind=='market':self.engine.ingest(value)
         elif kind=='vpd':self.engine.add_vpd(value)
         elif kind=='onchain':
-            row=self.storage.payload(value);self.storage.append_raw('onchain',row);self.storage.append('onchain_candidate',row);self.engine.onchain.append(row)
+            row=self.storage.payload(value)
+            # Keep the immutable raw observation untouched.  The candidate view
+            # is point-in-time classified and can be regenerated when labels
+            # are corrected later.
+            self.storage.append_raw('onchain',row)
+            self.labels.reload_if_changed()
+            classified=reclassify_onchain(row,self.labels,'event',row.get('received_ts_ms'))
+            self.storage.append('onchain_candidate',classified);self.engine.onchain.append(classified)
         elif kind=='derivatives':self.storage.append('derivatives_context',value);self.engine.derivatives.append(value)
         elif kind=='tick':
             self.engine.tick(value);self.tick_count+=1
