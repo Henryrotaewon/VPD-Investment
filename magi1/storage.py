@@ -53,8 +53,7 @@ class Storage:
             self.buffer.clear(); self.raw_rows=0; self.db.commit()
     def maintain(self,raw_days=2):
         self.flush()
-        for p in self.raw.glob('*.jsonl.gz'):
-            if p.stat().st_mtime<time.time()-raw_days*86400:p.unlink()
+        # Raw removal is owned by the verified Drive archiver, never by age alone.
         if self.health()['free_bytes']<100*1024*1024: raise RuntimeError('volume below 100 MiB free; stop collection to protect research DB')
     def health(self):
         x=os.statvfs(self.root)

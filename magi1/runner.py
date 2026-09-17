@@ -15,6 +15,7 @@ from .onchain import BitcoinPublicWebSocketProvider,OnChainShockAdapter
 from .research import ResearchEngine
 from .report import build_daily,report_cutoff,KST
 from .storage import Storage
+from .archive import Archiver
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -25,6 +26,7 @@ class App:
     def __init__(self,root,assets):
         self.storage=Storage(root);self.engine=ResearchEngine(self.storage,assets,now_ms());self.assets=assets
         self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
+        self.analysis_started=now_ms()/1000
         self.tick_count=0;self.onchain_status={'received':0};self.derivative_status={}
     async def enqueue(self,event):await self.queue.put(('market',event))
     def process(self,kind,value):
@@ -38,6 +40,7 @@ class App:
             if self.tick_count%5==0:self.storage.flush()
             if self.tick_count%30==0:
                 self.engine.checkpoint()
+                self.storage.checkpoint('analysis_coverage_v1', {'start':self.analysis_started,'through':value/1000})
                 diag={'event_ts_ms':value,'feeds':self.collector.diagnostics(),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status}
                 self.storage.append('diagnostics',diag);LOG.info('feed_diagnostics=%s',json.dumps(diag))
                 cutoff=report_cutoff(datetime.now(KST)).isoformat()
@@ -105,6 +108,8 @@ class App:
         self.collector_task=asyncio.create_task(self.collector.run())
         consumer=asyncio.create_task(self.consume())
         tasks=[asyncio.create_task(f()) for f in (self.ticks,self.vpd_loop,self.onchain_loop,self.derivatives_loop,self.universe_loop)]
+        if os.getenv('MAGI1_DRIVE_ARCHIVE_ENABLED') == '1':
+            tasks.append(asyncio.create_task(Archiver(self.storage).run()))
         stopper=asyncio.create_task(stop.wait())
         timer=asyncio.create_task(asyncio.sleep(duration)) if duration else None
         try:
