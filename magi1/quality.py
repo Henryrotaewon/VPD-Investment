@@ -73,6 +73,7 @@ def cleanup_invalid(storage, now):
     import json
     with storage._lock:
         if storage.restore('cleanup_quality_v2'):
+            storage.db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
             return storage.restore('cleanup_quality_v2')
         storage.flush()
         counts = defaultdict(int)
@@ -98,6 +99,7 @@ def cleanup_invalid(storage, now):
             raise
         storage.db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
         storage.db.execute('VACUUM')
+        storage.db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
         return result
 
 
