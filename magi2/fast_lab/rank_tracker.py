@@ -1,7 +1,7 @@
 """FAST v2: sparse venue-local rankings and candidate-only repeated PAPER scalps.
 
 Pure causal state machines. No network, credentials, real orders or Shadow state.
-Feed one price snapshot per minute; call scan every 10/15/30 minutes.
+Feed one price snapshot per minute; call scan every 5/10/15/30 minutes.
 Feed L1 quotes ONLY for the returned watchlist during its bounded watch window.
 """
 from collections import defaultdict, deque
@@ -23,7 +23,7 @@ class RankPolicy:
     baseline_tolerance_ms:int=90000
     max_current_age_ms:int=90000
     def __post_init__(self):
-        if self.scan_minutes not in (10,15,30) or not 1<=self.top_n<=10 or not 5<=self.watch_minutes<=10:
+        if self.scan_minutes not in (5,10,15,30) or not 1<=self.top_n<=10 or not 5<=self.watch_minutes<=15:
             raise ValueError('INVALID_RANK_POLICY')
         if not positive(self.min_rise_bps) or self.min_rank_jump<1 or self.baseline_tolerance_ms<0 or self.max_current_age_ms<0:
             raise ValueError('INVALID_RANK_POLICY')
@@ -49,7 +49,7 @@ class RankTracker:
         for (v,symbol),rows in self.history.items():
             if v!=venue or ts-rows[-1][0]>self.p.max_current_age_ms:continue
             values={};price=rows[-1][1]
-            for minutes in (10,15,30):
+            for minutes in (5,10,15,30):
                 target=ts-minutes*60000
                 base=next(((t,p) for t,p in reversed(rows) if t<=target),None)
                 values[str(minutes)]=(price/base[1]-1)*10000 if base and target-base[0]<=self.p.baseline_tolerance_ms else None

@@ -38,6 +38,7 @@ CONFIRMATIONS=Confirmations()
 EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
 ENGINE_JOB=None
 ENGINE_MODE=None
+FAST_MONITOR=None
 ALLOWED_USER_IDS={x.strip() for x in os.getenv('TELEGRAM_ALLOWED_USER_IDS','').split(',') if x.strip()}
 
 
@@ -180,25 +181,25 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v9')
+    log('MAGI Telegram menu registered: Korean v10')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v9','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v10','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
         'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
                '📊 VPD 모의투자: 현황 보고 · VPD 조회 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
-               '🤖 시스템 상태: MAGI1·2·3 선택\n🧪 shadows 모의투자: 현재 자산현황 · 최근 3일 매매이력\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
+               '🤖 시스템 상태: MAGI1·2·3 선택\n⚡ FAST 후보 버튼을 제거했습니다. 초기 상승 포착 시 자동 알림으로 안내합니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v9')
+    log('MAGI reply keyboard refreshed: magi-menu-v10')
 
 
 def start_engine(mode):
@@ -332,7 +333,7 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='assets': telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd=='wave': telegram(strategy_text('wave'),strategy_keyboard(detail=True))
-        elif cmd in ('signals','fast'): telegram(signals_text('fast'))
+        elif cmd in ('signals','fast'): telegram(FAST_MONITOR.summary() if FAST_MONITOR else 'FAST 자동 감시 시작 전입니다.')
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
         log(f'Command failed [{cmd}]: {type(e).__name__}')
@@ -435,6 +436,7 @@ def poll_updates(offset,timeout=LONG_POLL_SECONDS):
 
 
 def main():
+    global FAST_MONITOR
     prepare_persistent_state()
     start_shadow_bridge(STATE_DIR,GITHUB_REPO,log)
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
@@ -447,19 +449,22 @@ def main():
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
+    from magi2.fast_monitor import FastMonitor
+    FAST_MONITOR=FastMonitor(STATE_DIR,log);FAST_MONITOR.start()
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
     probe_job=None
-    log(f'Telegram responsive polling active: long_poll={LONG_POLL_SECONDS}s; fixed_sleep=0; probe=background')
+    log(f'Telegram responsive polling active: long_poll={LONG_POLL_SECONDS}s; fixed_sleep=0; probe=background; notification_poll_cap=1s')
     while True:
         if time.monotonic()>=next_execution_probe:
             if os.getenv('MAGI3_SERVICE_URL') and (probe_job is None or probe_job.done()):
                 probe_job=PROBE_EXECUTOR.submit(execution_probe)
             next_execution_probe=time.monotonic()+300
+        for event in FAST_MONITOR.drain(): telegram(event['text'])
         finish_engine_job()
         if time.monotonic()>=next_monitor:
             next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
         timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)
-        offset=poll_updates(offset,timeout=timeout)
+        offset=poll_updates(offset,timeout=min(timeout,1))
 
 if __name__=='__main__': main()
