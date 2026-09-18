@@ -14,6 +14,7 @@ import uuid
 import requests
 from magi2.fast_lab.rank_tracker import RankPolicy, RankTracker
 from magi3.fast_audit import FastAudit
+from magi2.fast_comparison import ForwardCheck, VERSION as EVALUATION_VERSION
 
 VENUES=('upbit','bithumb','binance','kraken')
 STABLE={'USDT','USDC','DAI','TUSD','FDUSD','USDP','USD1','EUR','KRW','USD'}
@@ -70,7 +71,7 @@ class PublicMarket:
 class Watch:
     """Fresh 30s high breakout, max spread 15bps, max chase 2% since selection."""
     def __init__(self,row,ts):
-        self.signal_id='fast-'+uuid.uuid4().hex;self.started=ts;self.metrics={};self.row=row;self.until=ts+900000;self.history=deque();self.alerted=False;self.last=0
+        self.evaluation=None;self.signal_id='fast-'+uuid.uuid4().hex;self.started=ts;self.metrics={};self.row=row;self.until=ts+900000;self.history=deque();self.alerted=False;self.last=0
     def quote(self,ts,bid,ask):
         import math
         if not all(math.isfinite(x) and x>0 for x in (bid,ask)) or ask<bid:return False
@@ -117,6 +118,7 @@ class FastMonitor:
             except Empty:break
         return rows
     def record_signal(self,venue,symbol,watch,ts,duration_ms):
+        watch.evaluation=ForwardCheck(ts,watch.metrics['ask'])
         self.audit.record('SIGNAL_DETECTED',watch.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
             rule_version='fast-auto-v1',exchange_ts_ms=None,duration_ms=duration_ms,
             criteria={'min_rise_bps':100,'scan_minutes':5,'top_n':5,'min_rank_jump':5,
@@ -124,7 +126,7 @@ class FastMonitor:
                       'max_chase_bps':200,'max_response_ms':1500,'max_quote_gap_ms':3000,'watch_ms':900000},
             observed={**watch.metrics,'asset':watch.row.get('asset'),'quote_currency':watch.row.get('quote_currency'),'returns_bps':watch.row['returns_bps'],'rank':watch.row['rank'],
                       'previous_rank':watch.row.get('previous_rank'),'rank_jump':watch.row.get('rank_jump'),
-                      'selection_reason':watch.row.get('reason'),'watch_started_ts_ms':watch.started,'watch_until_ts_ms':watch.until})
+                      'selection_scan_ts_ms':watch.row.get('selection_scan_ts_ms'),'selection_reason':watch.row.get('reason'),'watch_started_ts_ms':watch.started,'watch_until_ts_ms':watch.until})
         self.audit.record('ORDER_SKIPPED',watch.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
                           reason='LIVE_EXECUTION_NOT_CONNECTED',result={'submitted':False})
 
@@ -148,11 +150,13 @@ class FastMonitor:
                         for row in scan['watchlist']:
                             symbol=row['symbol']
                             if symbol not in watches and symbol not in cooldown and len(watches)<5:
-                                row=dict(row,asset=market.symbols[symbol],quote_currency='KRW' if venue in ('upbit','bithumb') else 'USDT' if venue=='binance' else 'USD')
+                                row=dict(row,selection_scan_ts_ms=ts,asset=market.symbols[symbol],quote_currency='KRW' if venue in ('upbit','bithumb') else 'USDT' if venue=='binance' else 'USD')
                                 w=Watch(row,ts)
                                 self.audit.record('CANDIDATE_SELECTED',w.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
                                     rule_version='fast-auto-v1',criteria=scan['policy'],observed=dict(row,watch_until_ms=w.until),exchange_ts_ms=None)
                                 watches[symbol]=w
+                        self.audit.record('SCAN_COMPLETED',f'scan:{venue}:{ts}',venue,'*','ALERT_ONLY',ts_ms=ts,
+                                          rule_version='fast-auto-v1',observed={'status':scan['status'],'ranked':scan['ranked']})
                         self.update(venue,status=scan['status'],watching=len(watches),symbols=len(prices))
                         self.log(f'fast_scan venue={venue} status={scan["status"]} symbols={len(prices)} watching={len(watches)}')
                 quote_started=now()
@@ -160,7 +164,13 @@ class FastMonitor:
                 if ts-quote_started<=1500:
                     for symbol,(bid,ask) in quotes.items():
                         watch=watches.get(symbol)
-                        if watch and watch.quote(ts,bid,ask):
+                        hit=watch.quote(ts,bid,ask) if watch else False
+                        if watch and watch.evaluation and watch.last==ts:
+                            outcome=watch.evaluation.quote(ts,bid)
+                            if outcome:
+                                self.audit.record('SIGNAL_EVALUATED',watch.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
+                                                  rule_version=EVALUATION_VERSION,result=outcome)
+                        if hit:
                             stamp=datetime.fromtimestamp(ts/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
                             event={'id':watch.signal_id, 'venue':venue,'symbol':symbol,
                                    'created_ts_ms':ts,'watch_until_ms':watch.until,'bid':bid,'ask':ask,'mode':'ALERT_ONLY',

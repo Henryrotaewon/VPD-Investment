@@ -3,8 +3,9 @@ import json
 from pathlib import Path
 
 
-def strategy_keyboard(detail=False):
+def strategy_keyboard(detail=False,fast=False):
     rows=[[{'text':name,'callback_data':'guide:'+name.lower()} for name in ('WAVE','VPD','FAST')]]
+    if fast:rows.append([{'text':'📊 거래소별 신호·오탐 비교','callback_data':'nav:fast_compare'}])
     if detail:rows.append([{'text':'↩️ 전략검증','callback_data':'nav:strategies'}])
     rows.append([{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}])
     return {'inline_keyboard':rows}
