@@ -30,7 +30,7 @@ class ObservationViewTests(unittest.TestCase):
                'evidence':{'fast_rule_version':'fast-rise-v1','venue':'upbit','return_bps':25,'volume_ratio':3,'coverage_ms':9000}}]
         fast=observation_text(rows,'fast');wave=observation_text(rows,'wave')
         self.assertIn('+0.25%',fast);self.assertIn('3.00배',fast);self.assertNotIn('1,080',fast)
-        self.assertIn('1,080.00 BTC',wave);self.assertIn('독립 매매 전략이 아닙니다',wave)
+        self.assertIn('1,080.0 BTC',wave);self.assertIn('독립 매매 전략이 아닙니다',wave)
         self.assertNotIn('ETH',wave);self.assertNotIn('규모점수',wave)
 
     def test_raw_whale_amount_is_output_sum_not_buy_sell_flow(self):
@@ -39,7 +39,7 @@ class ObservationViewTests(unittest.TestCase):
              'evidence':{'amount':500,'classification':'unclassified_public_raw',
                          'transaction':{'confirmation_status':'UNCONFIRMED'}}}
         text=observation_text([row],'wave')
-        self.assertIn('거래 출력 합계 500.00 BTC',text)
+        self.assertIn('거래 출력 합계 500.0 BTC',text)
         self.assertIn('미확정 거래',text)
         self.assertIn('아직 연결되지 않았습니다',text)
         self.assertNotIn('unclassified_public_raw',text)

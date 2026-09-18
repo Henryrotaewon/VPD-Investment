@@ -144,3 +144,11 @@ The MAGI1 read-only background analyzer publishes a private `/wave` snapshot;
 MAGI2 caches it so pressing a button does not wait for a network call.
 See [WAVE_TIMESHIFT.md](WAVE_TIMESHIFT.md) for the prespecified shifts, quote
 coverage exclusions, source-catalog bias and unvalidated trading status.
+
+## Quantity display
+
+All Telegram asset quantities use the shared one-decimal formatter, including
+real-account holdings, Shadow holdings/order history and legacy on-chain views.
+Positive holdings smaller than 0.1 display as `<0.1` to avoid implying zero.
+This is presentation-only; balances, stored JSON, valuation and order precision
+are unchanged. Money, prices and return percentages retain their own formats.

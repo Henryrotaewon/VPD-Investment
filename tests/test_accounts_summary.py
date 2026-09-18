@@ -18,7 +18,7 @@ class AccountSummaryTests(unittest.TestCase):
         text=render_accounts(r,1000)
         self.assertIn('총 평가금액: 1,210원',text)
         self.assertIn('보유 수익률: +5.00%',text)
-        self.assertIn('BTC 1개 · 120원 · +20.00% (VPD)',text)
+        self.assertIn('BTC 1.0개 · 120원 · +20.00% (VPD)',text)
         self.assertIn('VPD: 투자 100원 · +20.00%',text)
         self.assertIn('FAST+WAVE: 투자 100원 · -10.00%',text)
         self.assertNotIn('FAST: 투자',text)
@@ -32,7 +32,7 @@ class AccountSummaryTests(unittest.TestCase):
         self.assertIn('보유 수익률: 미확인',text)
         self.assertIn('미분류: 투자 미확인 · 미확인',text)
         self.assertIn('바이낸스: 미연결',text)
-        self.assertNotIn('GIFT 20개 · 0원',text)
+        self.assertNotIn('GIFT 20.0개 · 0원',text)
     def test_missing_account_and_cash_only(self):
         r=report([venue('upbit',[],error='ACCOUNT_QUERY_FAILED')])
         self.assertIn('총 평가금액: 미확인',render_accounts(r,1000))
