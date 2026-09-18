@@ -178,25 +178,25 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v7')
+    log('MAGI Telegram menu registered: Korean v8')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v7','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v8','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
         'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
                '📊 VPD 모의투자: 현황 보고 · VPD 조회 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
-               '🤖 시스템 상태: MAGI1·2·3 선택\n🐋 WHALE 참고: 온체인 거래 참고자료\n신호조회는 /signals로 합쳐보기만 제공합니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
+               '🤖 시스템 상태: MAGI1·2·3 선택\nWHALE 독립 조회를 제거했습니다. WAVE 보조지표 검증 데이터로만 보존합니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v7')
+    log('MAGI reply keyboard refreshed: magi-menu-v8')
 
 
 def start_engine(mode):
@@ -323,7 +323,8 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd in ('magi3','execution','status3'): telegram(execution_view('magi3' if cmd=='status3' else cmd),status_keyboard())
         elif cmd in ('shadow','orders','assets'): telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
-        elif cmd in ('signals','fast','wave'): telegram(signals_text(cmd))
+        elif cmd=='wave': telegram(strategy_text('wave'),strategy_keyboard(detail=True))
+        elif cmd in ('signals','fast'): telegram(signals_text('fast'))
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
         log(f'Command failed [{cmd}]: {type(e).__name__}')
@@ -405,7 +406,7 @@ def main():
     try: refresh_telegram_keyboard()
     except Exception as e: log(f'Telegram keyboard refresh failed: {type(e).__name__}')
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
-        log('intelligence_probe: '+signals_text().replace('\n',' | ')[:1200])
+        log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
