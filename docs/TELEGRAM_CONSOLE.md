@@ -161,3 +161,8 @@ dated cash-and-carry separately from perpetual funding carry. These are read-onl
 guides. Opening them never starts execution or a new simulation.
 See [WAVE/FAST plan](WAVE_FAST_TRADE_PLAN.md) and [BASIS plan](BASIS_TRADE_PLAN.md).
 Pure decision/calculation helpers are not wired to any deployed execution loop.
+
+Strategy validation and WAVE views also provide `크로스마켓 연구`, a read-only
+literature-based expansion guide. It describes cross-venue spot/derivative paths
+and the additional data needed; it does not render new live opportunities.
+See [cross-market research](CROSS_MARKET_RESEARCH.md).

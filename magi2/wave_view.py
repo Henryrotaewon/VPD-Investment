@@ -29,7 +29,8 @@ def keyboard(section='overview', offset=0, total=0):
     rows = [[{'text': '📡 신호 강도', 'callback_data': 'wave:strength:0'},
              {'text': '🌊 전파 근거', 'callback_data': 'wave:evidence:0'}],
             [{'text': '💰 매매 가능성', 'callback_data': 'wave:trading:0'},
-             {'text': '📖 전략 설명', 'callback_data': 'wave:guide:0'}]]
+             {'text': '📖 전략 설명', 'callback_data': 'wave:guide:0'}],
+            [{'text': '🌐 크로스마켓 연구', 'callback_data': 'guide:cross'}]]
     nav = []
     if offset > 0:
         nav.append({'text': '◀ 이전', 'callback_data': f'wave:{section}:{max(0, offset-PAGE_SIZE)}'})

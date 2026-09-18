@@ -3,11 +3,13 @@ import json
 from pathlib import Path
 from magi2.trade_plan import strategy_plan_text
 from magi2.basis_plan import basis_text
+from magi2.cross_market import guide_text as cross_market_text
 
 
 def strategy_keyboard(detail=False,fast=False):
     rows=[[{'text':name,'callback_data':'guide:'+name.lower()} for name in ('WAVE','VPD','FAST')]]
-    rows.append([{'text':'⚖️ BASIS · 현선물 준비','callback_data':'guide:basis'}])
+    rows.append([{'text':'⚖️ BASIS · 현선물 준비','callback_data':'guide:basis'},
+                 {'text':'🌐 크로스마켓 연구','callback_data':'guide:cross'}])
     if fast:rows.append([{'text':'📊 거래소별 신호·오탐 비교','callback_data':'nav:fast_compare'}])
     if detail:rows.append([{'text':'↩️ 전략검증','callback_data':'nav:strategies'}])
     rows.append([{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}])
@@ -15,6 +17,8 @@ def strategy_keyboard(detail=False,fast=False):
 
 
 def strategy_text(name):
+    if name=='cross':
+        return cross_market_text()
     if name=='basis':
         return basis_text()
     if name in ('wave','fast'):
