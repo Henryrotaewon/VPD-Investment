@@ -153,6 +153,29 @@ class RoutingTests(unittest.TestCase):
         self.assertIn('💼 실계좌 자산',labels)
         self.assertNotIn('⚙️ 실행 상태',labels)
 
+    def test_vpd_submenu_routes_actions_through_confirmation(self):
+        server.handle_command('📊 VPD 모의투자','7','7')
+        self.start.assert_not_called()
+        menu=self.send.call_args.args[1]['inline_keyboard']
+        self.assertEqual(menu[0][0]['callback_data'],'nav:report')
+        for button,action in zip(menu[1],('morning','refill')):
+            server.handle_callback(self.callback(button['callback_data']))
+            self.start.assert_not_called()
+            confirm=self.send.call_args.args[1]['inline_keyboard'][0][0]['callback_data']
+            server.handle_callback(self.callback(confirm))
+            self.start.assert_called_once_with(action)
+            self.start.reset_mock()
+        server.handle_callback(self.callback('nav:refill',user='8'))
+        self.start.assert_not_called()
+        self.assertIn('실행 권한',self.send.call_args.args[0])
+        labels=[b['text'] for row in main_keyboard()['keyboard'] for b in row]
+        self.assertNotIn('🔄 PAPER 리밸런싱',labels)
+        self.assertNotIn('♻️ PAPER 빈자리 채우기',labels)
+        self.assertEqual(parse_command('🔄 PAPER 리밸런싱'),'morning')
+        self.assertEqual(parse_command('♻️ PAPER 빈자리 채우기'),'refill')
+        server.handle_callback(self.callback(menu[-1][0]['callback_data']))
+        self.assertEqual(self.send.call_args.args[1],main_keyboard())
+
     def test_group_mutations_need_named_operator(self):
         with patch.object(server,'ALLOWED_CHAT_ID','-100'):
             self.assertFalse(server.may_execute('-100','7'))
