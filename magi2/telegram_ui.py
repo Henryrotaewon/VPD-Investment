@@ -1,6 +1,7 @@
 """Korean Telegram navigation and actor-bound, one-use PAPER confirmations."""
 import secrets
 import time
+from magi3.accounts import quantity
 
 BOT_NAME = 'MAGI'
 BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · FAST · WAVE'
@@ -165,7 +166,7 @@ def observation_text(rows,view='signals'):
                 f'{len(whale)}건 중 최근 {min(15,len(whale))}건']
         for r in whale[-15:]:
             e=r.get('evidence',{});amount=e.get('amount')
-            amount_text=f"{amount:,.2f} {r['asset']}" if isinstance(amount,(int,float)) else '전송량 미확인'
+            amount_text=f"{quantity(amount)} {r['asset']}" if isinstance(amount,(int,float)) else '전송량 미확인'
             raw=e.get('classification')=='unclassified_public_raw' or (e.get('transaction') or {}).get('raw_provider')=='blockchain-info-public-ws'
             amount_label='거래 출력 합계' if raw else '관측 수량'
             status=(e.get('transaction') or {}).get('confirmation_status')

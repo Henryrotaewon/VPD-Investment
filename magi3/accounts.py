@@ -109,8 +109,8 @@ def pick_strategy(position):
 
 
 def quantity(value):
-    text=f'{value:,.8f}'.rstrip('0').rstrip('.')
-    return '<0.00000001' if value>0 and text=='0' else text
+    """Display only; preserve tiny positive holdings without showing zero."""
+    return '<0.1' if 0<value<0.1 else f'{value:,.1f}'
 
 
 def render_accounts(report,now_ms=None):

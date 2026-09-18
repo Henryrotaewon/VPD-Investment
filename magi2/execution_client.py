@@ -2,7 +2,7 @@
 import os
 import time
 import requests
-from magi3.accounts import render_accounts,money
+from magi3.accounts import render_accounts,money,quantity
 
 
 def fetch(path):
@@ -26,7 +26,7 @@ def render_shadow(r):
            '실현손익: '+money(r['realized_pnl_krw']),'평가손익: '+money(r['unrealized_pnl_krw']),
            f"수수료 가정: 편도 {r['fee_bps_per_side']:g}bps · 누적 {money(r['fees_krw'])}",'']
     for p in r['positions']:
-        lines.append(f"{p['venue'].upper()} {p['asset']} {p['qty']:.8g} | {money(p['value_krw'])} | PICK={'+'.join(p['strategy_tags'])}")
+        lines.append(f"{p['venue'].upper()} {p['asset']} {quantity(p['qty'])} | {money(p['value_krw'])} | PICK={'+'.join(p['strategy_tags'])}")
     if not r['positions']:lines.append('보유 없음')
     for tag,summary in r.get('strategy_summary',{}).items():
         lines.append(f"{tag} | 실현 {money(summary['realized_pnl_krw'])} · 평가 {money(summary['unrealized_pnl_krw'])}")
@@ -45,7 +45,7 @@ def render_orders(r):
            f"{date(r['since_ts_ms'])} ~ {date(r['until_ts_ms'])} KST · 최근 72시간",
            f"전체 {r['total']}건 · {r['offset']+1 if r['orders'] else 0}~{r['offset']+len(r['orders'])}건 표시"]
     for o in r['orders']:
-        qty='—' if o['qty'] is None else f"{o['qty']:.8g}"
+        qty='—' if o['qty'] is None else quantity(o['qty'])
         side={'BUY':'매수','SELL':'매도'}.get(o['side'],o['side'])
         lines.append(f"{date(o['ts_ms'])} · {side} {o['venue'].upper()} {o['asset']} {qty} | {o['status']}\n체결 {amount(o['notional'])} · 수수료 {amount(o['fee'])} · 실현 {amount(o['realized'])}")
     if not r['orders']:lines.append('해당 기간에 모의 매매이력이 없습니다.')
