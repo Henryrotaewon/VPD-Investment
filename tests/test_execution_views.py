@@ -32,3 +32,15 @@ class ObservationViewTests(unittest.TestCase):
         self.assertIn('+0.25%',fast);self.assertIn('3.00배',fast);self.assertNotIn('1,080',fast)
         self.assertIn('1,080.00 BTC',wave);self.assertIn('독립 매매 전략이 아닙니다',wave)
         self.assertNotIn('ETH',wave);self.assertNotIn('규모점수',wave)
+
+    def test_raw_whale_amount_is_output_sum_not_buy_sell_flow(self):
+        from magi2.telegram_ui import observation_text
+        row={'event_ts_ms':1000,'asset':'BTC','strategy_tag':'WHALE','direction':'UNKNOWN',
+             'evidence':{'amount':500,'classification':'unclassified_public_raw',
+                         'transaction':{'confirmation_status':'UNCONFIRMED'}}}
+        text=observation_text([row],'wave')
+        self.assertIn('거래 출력 합계 500.00 BTC',text)
+        self.assertIn('미확정 거래',text)
+        self.assertIn('아직 연결되지 않았습니다',text)
+        self.assertNotIn('unclassified_public_raw',text)
+        self.assertNotIn('UNKNOWN',text)
