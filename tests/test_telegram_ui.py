@@ -200,8 +200,23 @@ class WorkerTests(unittest.TestCase):
     def test_get_updates_requests_callback_updates(self):
         response=Mock()
         response.json.return_value={'ok':True,'result':[]}
-        with patch.object(server.requests,'get',return_value=response) as get:
+        with patch.object(server.TELEGRAM_HTTP,'get',return_value=response) as get:
             server.get_updates(4)
         self.assertIn('callback_query',json.loads(get.call_args.kwargs['params']['allowed_updates']))
+        self.assertEqual(get.call_args.kwargs['params']['timeout'],25)
+        self.assertGreater(get.call_args.kwargs['timeout'][1],25)
+
+    def test_polling_wait_respects_schedules_and_busy_engine(self):
+        with patch.object(server.time,'monotonic',return_value=100):
+            self.assertEqual(server.poll_timeout(400,400),25)
+            self.assertEqual(server.poll_timeout(103,400),3)
+            self.assertEqual(server.poll_timeout(400,400,True),1)
+            self.assertEqual(server.poll_timeout(99,400),1)
+
+    def test_startup_drain_is_nonblocking(self):
+        with patch.object(server,'get_updates',side_effect=[[{'update_id':7}],[]]) as get:
+            self.assertEqual(server.discard_pending_updates(),8)
+        self.assertEqual(get.call_args_list[0].kwargs['timeout'],0)
+        self.assertEqual(get.call_args_list[1].kwargs['timeout'],0)
 
 if __name__=='__main__': unittest.main()

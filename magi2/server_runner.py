@@ -25,7 +25,9 @@ ROOT=Path(__file__).resolve().parents[1]
 REPO_STATE_DIR=ROOT/'magi2'/'state'
 KST=ZoneInfo('Asia/Seoul')
 INTERVAL=int(os.getenv('MAGI2_MONITOR_INTERVAL_SEC',os.getenv('MAGI2_MONITOR_INTERVAL_SECONDS','60')))
-POLL_SECONDS=5
+LONG_POLL_SECONDS=25
+TELEGRAM_HTTP=requests.Session()
+PROBE_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='status-probe')
 BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN','').strip()
 ALLOWED_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID','').strip()
 GITHUB_REPO=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
@@ -138,7 +140,7 @@ def backup_paper_history():
 
 
 def telegram_api(method,payload):
-    response=requests.post(f'https://api.telegram.org/bot{BOT_TOKEN}/{method}',json=payload,timeout=15)
+    response=TELEGRAM_HTTP.post(f'https://api.telegram.org/bot{BOT_TOKEN}/{method}',json=payload,timeout=15)
     response.raise_for_status()
     data=response.json()
     if not data.get('ok'): raise RuntimeError('TELEGRAM_API_REJECTED')
@@ -279,6 +281,7 @@ def may_execute(chat_id,user_id):
 
 
 def handle_command(text,chat_id=None,user_id=None):
+    started=time.monotonic()
     cmd=parse_command(text,BOT_USERNAME)
     chat_id=str(chat_id or ALLOWED_CHAT_ID)
     try:
@@ -294,6 +297,7 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='evening_scan': return_magi1_state('evening')
         elif cmd=='report':
             if not start_engine('report'): telegram('다른 PAPER 작업이 진행 중입니다. 잠시 후 다시 조회하세요.')
+            else: telegram('📊 VPD 현황을 조회하고 있습니다. 결과를 곧 보내드리겠습니다.')
         elif cmd in ('morning','refill'):
             if not may_execute(chat_id,user_id):
                 telegram('실행 권한이 없는 사용자입니다. 조회 메뉴는 이용할 수 있습니다.'); return
@@ -329,6 +333,8 @@ def handle_command(text,chat_id=None,user_id=None):
     except Exception as e:
         log(f'Command failed [{cmd}]: {type(e).__name__}')
         telegram('명령을 처리하지 못했습니다. 잠시 후 다시 시도하세요.')
+    finally:
+        log(f'telegram_command command={cmd or "unknown"} handler_ms={round((time.monotonic()-started)*1000)}')
 
 
 def handle_callback(callback):
@@ -365,23 +371,39 @@ def handle_callback(callback):
         else: telegram('다른 PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.')
 
 
-def get_updates(offset):
-    r=requests.get(f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',params={'offset':offset,'timeout':0,'allowed_updates':json.dumps(['message','callback_query'])},timeout=10); r.raise_for_status(); return r.json().get('result',[])
+def get_updates(offset,timeout=LONG_POLL_SECONDS):
+    # Telegram returns immediately when an update arrives; timeout is idle wait only.
+    r=TELEGRAM_HTTP.get(f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',
+        params={'offset':offset,'timeout':timeout,'allowed_updates':json.dumps(['message','callback_query'])},
+        timeout=(5,timeout+10))
+    r.raise_for_status(); data=r.json()
+    if not data.get('ok',True): raise RuntimeError('TELEGRAM_POLL_REJECTED')
+    return data.get('result',[])
+
+
+def poll_timeout(next_monitor,next_probe,engine_busy=False):
+    remaining=min(next_monitor,next_probe)-time.monotonic()
+    return max(1,min(LONG_POLL_SECONDS,int(remaining),1 if engine_busy else LONG_POLL_SECONDS))
+
+
+def execution_probe():
+    try: log('magi3_probe: '+execution_view('execution').replace('\n',' | '))
+    except Exception as exc: log(f'magi3_probe_failed: {type(exc).__name__}')
 
 
 def discard_pending_updates():
     offset=0
     try:
-        updates=get_updates(0)
+        updates=get_updates(0,timeout=0)
         if updates:
-            offset=max(int(x['update_id']) for x in updates)+1; get_updates(offset); log(f'Discarded {len(updates)} pending Telegram update(s) on startup')
+            offset=max(int(x['update_id']) for x in updates)+1; get_updates(offset,timeout=0); log(f'Discarded {len(updates)} pending Telegram update(s) on startup')
     except Exception as e: log(f'Telegram startup flush error: {type(e).__name__}')
     return offset
 
 
-def poll_updates(offset):
+def poll_updates(offset,timeout=LONG_POLL_SECONDS):
     try:
-        for update in get_updates(offset):
+        for update in get_updates(offset,timeout=timeout):
             ident=int(update['update_id'])
             if ident<offset: continue
             offset=ident+1
@@ -391,7 +413,9 @@ def poll_updates(offset):
             chat_id=str((msg.get('chat') or {}).get('id',''))
             if chat_id!=ALLOWED_CHAT_ID: continue
             handle_command(msg.get('text') or '',chat_id,str((msg.get('from') or {}).get('id','')))
-    except Exception as e: log(f'Telegram polling error: {type(e).__name__}')
+    except Exception as e:
+        log(f'Telegram polling error: {type(e).__name__}')
+        time.sleep(1)  # Back off on failures only; no healthy-path polling sleep.
     return offset
 
 
@@ -410,14 +434,17 @@ def main():
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
+    probe_job=None
+    log(f'Telegram responsive polling active: long_poll={LONG_POLL_SECONDS}s; fixed_sleep=0; probe=background')
     while True:
-        if time.monotonic()>=next_execution_probe and os.getenv('MAGI3_SERVICE_URL'):
-            log('magi3_probe: '+execution_view('execution').replace('\n',' | '))
+        if time.monotonic()>=next_execution_probe:
+            if os.getenv('MAGI3_SERVICE_URL') and (probe_job is None or probe_job.done()):
+                probe_job=PROBE_EXECUTOR.submit(execution_probe)
             next_execution_probe=time.monotonic()+300
         finish_engine_job()
-        offset=poll_updates(offset)
         if time.monotonic()>=next_monitor:
-            if start_engine('monitor'): next_monitor=time.monotonic()+INTERVAL
-        time.sleep(POLL_SECONDS)
+            next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
+        timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)
+        offset=poll_updates(offset,timeout=timeout)
 
 if __name__=='__main__': main()
