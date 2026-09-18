@@ -1,5 +1,7 @@
 import json
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import patch, Mock
 from magi2.telegram_ui import (parse_command, Confirmations, main_keyboard, help_text,
                               COMMANDS, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, role_keyboard)
@@ -117,6 +119,20 @@ class RoutingTests(unittest.TestCase):
         self.api.side_effect=reply
         server.setup_telegram_menu()
         self.assertTrue(any(c.args[0]=='setMyCommands' for c in self.api.call_args_list))
+
+    def test_keyboard_migration_retries_failure_and_persists_success(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(server,'STATE_DIR',Path(directory)):
+            self.api.side_effect=RuntimeError('network')
+            with self.assertRaises(RuntimeError): server.refresh_telegram_keyboard()
+            self.assertFalse((Path(directory)/'telegram_keyboard.json').exists())
+            self.api.side_effect=None
+            server.refresh_telegram_keyboard()
+            payload=self.api.call_args.args[1]
+            self.assertEqual(payload['reply_markup'],main_keyboard())
+            calls=self.api.call_count
+            server.refresh_telegram_keyboard()
+            self.assertEqual(self.api.call_count,calls)
+        self.start.assert_not_called()
 
     def test_queries_never_invoke_trading(self):
         for command in ('help','menu','about','status','assets','magi3','signals','strategies'):
