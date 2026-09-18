@@ -1,0 +1,23 @@
+{
+  "version": "cross-market-research-v1",
+  "mode": "RESEARCH_PREPARATION",
+  "live_enabled": false,
+  "allocated_real_capital_pct": 0,
+  "initial_assets": ["BTC", "ETH"],
+  "spot_observation_venues": ["binance", "bybit", "kraken", "upbit", "bithumb", "coinone"],
+  "proposed_derivative_venues": ["binance", "bybit"],
+  "market_kinds": ["SPOT", "PERPETUAL", "DATED"],
+  "max_quote_age_ms": 1500,
+  "max_pair_skew_ms": 500,
+  "max_fx_age_ms": 1500,
+  "prefunded_execution_required": true,
+  "cross_venue_collateral_netting": false,
+  "families": [
+    {"id":"WAVE_LEAD_LAG", "priority":1, "label":"현물·선물 선행/후행", "role":"신호 전파·확인 후 남은 상승 여력", "phase":"OBSERVATION_DESIGN"},
+    {"id":"CROSS_BASIS", "priority":2, "label":"거래소 간 현선물 가격차", "role":"A 현물 매수·B 선물 매도", "phase":"RESEARCH_ARITHMETIC"},
+    {"id":"CROSS_FUNDING", "priority":2, "label":"거래소 간 펀딩 차이", "role":"낮은 펀딩 쪽 롱·높은 쪽 숏, 실제 지급일정 합산", "phase":"RESEARCH_ARITHMETIC"},
+    {"id":"SPOT_INVENTORY", "priority":2, "label":"현물 거래소 간 재고 차익", "role":"A 현금·B 코인 사전 배치, 양쪽 체결 후 재고 회복 비용 평가", "phase":"RESEARCH_ARITHMETIC"},
+    {"id":"TERM_SPREAD", "priority":3, "label":"만기·무기한 상대 가격차", "role":"기초자산·승수·만기·정산가격을 구분해 잔여 가격차 평가", "phase":"DESIGN_ONLY"},
+    {"id":"XEMM", "priority":3, "label":"거래소 간 시장조성", "role":"A 지정가 체결 후 B 헤지, WAVE 급변 시 취소·축소 연구", "phase":"DESIGN_ONLY"}
+  ]
+}

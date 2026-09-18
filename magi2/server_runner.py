@@ -390,7 +390,7 @@ def handle_callback(callback):
         name=data[6:]
         if name=='wave':
             send_wave()
-        elif name in ('vpd','fast','basis'):
+        elif name in ('vpd','fast','basis','cross'):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
