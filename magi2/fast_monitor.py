@@ -10,8 +10,10 @@ from threading import Thread, Lock, Event
 from zoneinfo import ZoneInfo
 import json
 import time
+import uuid
 import requests
 from magi2.fast_lab.rank_tracker import RankPolicy, RankTracker
+from magi3.fast_audit import FastAudit
 
 VENUES=('upbit','bithumb','binance','kraken')
 STABLE={'USDT','USDC','DAI','TUSD','FDUSD','USDP','USD1','EUR','KRW','USD'}
@@ -68,7 +70,7 @@ class PublicMarket:
 class Watch:
     """Fresh 30s high breakout, max spread 15bps, max chase 2% since selection."""
     def __init__(self,row,ts):
-        self.row=row;self.until=ts+900000;self.history=deque();self.alerted=False;self.last=0
+        self.signal_id='fast-'+uuid.uuid4().hex;self.started=ts;self.metrics={};self.row=row;self.until=ts+900000;self.history=deque();self.alerted=False;self.last=0
     def quote(self,ts,bid,ask):
         import math
         if not all(math.isfinite(x) and x>0 for x in (bid,ask)) or ask<bid:return False
@@ -79,6 +81,10 @@ class Watch:
         high=max((p for _,p in self.history),default=bid)
         hit=bool(not self.alerted and ts<self.until and ready and bid>=high*1.0005 and
                  (ask/bid-1)*10000<=15 and bid<=self.row['price']*1.02)
+        self.metrics={'bid':bid,'ask':ask,'spread_bps':(ask/bid-1)*10000,
+                      'prior_high':high,'breakout_bps':(bid/high-1)*10000,
+                      'chase_bps':(bid/self.row['price']-1)*10000,
+                      'history_span_ms':ts-self.history[0][0] if self.history else 0}
         self.history.append((ts,bid))
         if hit:self.alerted=True
         return hit
@@ -87,6 +93,8 @@ class FastMonitor:
     def __init__(self,root,log):
         self.root=Path(root);self.log=log;self.events=Queue(maxsize=100);self.lock=Lock();self.stop=Event()
         self.state={};self.threads=[]
+        self.audit=FastAudit(self.root/'fast_evidence.sqlite3')
+        self.log('fast_audit_ready schema=fast-evidence-v1 storage=persistent_sqlite')
     def start(self):
         for venue in VENUES:
             t=Thread(target=self.worker,args=(venue,),daemon=True,name='fast-'+venue);t.start();self.threads.append(t)
@@ -108,6 +116,18 @@ class FastMonitor:
             try:rows.append(self.events.get_nowait())
             except Empty:break
         return rows
+    def record_signal(self,venue,symbol,watch,ts,duration_ms):
+        self.audit.record('SIGNAL_DETECTED',watch.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
+            rule_version='fast-auto-v1',exchange_ts_ms=None,duration_ms=duration_ms,
+            criteria={'min_rise_bps':100,'scan_minutes':5,'top_n':5,'min_rank_jump':5,
+                      'lookback_ms':30000,'min_breakout_bps':5,'max_spread_bps':15,
+                      'max_chase_bps':200,'max_response_ms':1500,'max_quote_gap_ms':3000,'watch_ms':900000},
+            observed={**watch.metrics,'asset':watch.row.get('asset'),'quote_currency':watch.row.get('quote_currency'),'returns_bps':watch.row['returns_bps'],'rank':watch.row['rank'],
+                      'previous_rank':watch.row.get('previous_rank'),'rank_jump':watch.row.get('rank_jump'),
+                      'selection_reason':watch.row.get('reason'),'watch_started_ts_ms':watch.started,'watch_until_ts_ms':watch.until})
+        self.audit.record('ORDER_SKIPPED',watch.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
+                          reason='LIVE_EXECUTION_NOT_CONNECTED',result={'submitted':False})
+
     def worker(self,venue):
         market=PublicMarket(venue);tracker=RankTracker(RankPolicy(scan_minutes=5,watch_minutes=15))
         watches={};cooldown={};snapshot_due=0;backoff=1
@@ -115,7 +135,11 @@ class FastMonitor:
             started=time.monotonic();ts=now()
             try:
                 for symbol in list(watches):
-                    if ts>=watches[symbol].until:del watches[symbol];cooldown[symbol]=ts+900000
+                    if ts>=watches[symbol].until:
+                        w=watches[symbol]
+                        self.audit.record('WATCH_ENDED',w.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
+                                          observed={'alerted':w.alerted,'last_quote_ts_ms':w.last,'last_quote':w.metrics},reason='15_MINUTE_WINDOW_ENDED')
+                        del watches[symbol];cooldown[symbol]=ts+900000
                 cooldown={s:t for s,t in cooldown.items() if t>ts}
                 if ts>=snapshot_due:
                     prices=market.prices();ts=now();tracker.snapshot(venue,ts,prices);snapshot_due=ts+60000
@@ -123,7 +147,12 @@ class FastMonitor:
                     if scan:
                         for row in scan['watchlist']:
                             symbol=row['symbol']
-                            if symbol not in watches and symbol not in cooldown and len(watches)<5:watches[symbol]=Watch(row,ts)
+                            if symbol not in watches and symbol not in cooldown and len(watches)<5:
+                                row=dict(row,asset=market.symbols[symbol],quote_currency='KRW' if venue in ('upbit','bithumb') else 'USDT' if venue=='binance' else 'USD')
+                                w=Watch(row,ts)
+                                self.audit.record('CANDIDATE_SELECTED',w.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
+                                    rule_version='fast-auto-v1',criteria=scan['policy'],observed=dict(row,watch_until_ms=w.until),exchange_ts_ms=None)
+                                watches[symbol]=w
                         self.update(venue,status=scan['status'],watching=len(watches),symbols=len(prices))
                         self.log(f'fast_scan venue={venue} status={scan["status"]} symbols={len(prices)} watching={len(watches)}')
                 quote_started=now()
@@ -133,11 +162,14 @@ class FastMonitor:
                         watch=watches.get(symbol)
                         if watch and watch.quote(ts,bid,ask):
                             stamp=datetime.fromtimestamp(ts/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
-                            event={'id':f'fast:{venue}:{symbol}:{watch.until}', 'venue':venue,'symbol':symbol,
+                            event={'id':watch.signal_id, 'venue':venue,'symbol':symbol,
                                    'created_ts_ms':ts,'watch_until_ms':watch.until,'bid':bid,'ask':ask,'mode':'ALERT_ONLY',
                                    'text':f'⚡ FAST WARNING · 초기 상승 조건 포착\n{stamp} KST · {venue.upper()} {symbol}\n5분 상승 {watch.row["returns_bps"]["5"]/100:+.2f}% · 순위 {watch.row["rank"]}\n30초 고점 돌파 · 후보별 15분 집중 감시\n실주문 OFF · 예산 설계: FAST 전체 5% 미만. 수익 보장 신호가 아닙니다.'}
+                            self.record_signal(venue,symbol,watch,ts,ts-quote_started)
                             try:self.events.put_nowait(event)
-                            except Full:self.log('fast_alert_queue_full')
+                            except Full:
+                                self.audit.record('NOTIFICATION_DROPPED',watch.signal_id,venue,symbol,'ALERT_ONLY',reason='QUEUE_FULL')
+                                self.log('fast_alert_queue_full')
                             self.log(f'fast_breakout venue={venue} symbol={symbol} mode=ALERT_ONLY')
                 self.update(venue,watching=len(watches));backoff=1
             except Exception as exc:

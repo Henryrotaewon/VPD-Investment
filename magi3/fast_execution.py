@@ -9,6 +9,7 @@ import sqlite3
 import threading
 import time
 import uuid
+from .fast_audit import FastAudit,order_result
 
 
 def decimal(value):
@@ -25,6 +26,7 @@ class FastBudget:
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.execute('CREATE TABLE IF NOT EXISTS fast_orders(id TEXT PRIMARY KEY,signal TEXT UNIQUE,payload TEXT,state TEXT,reserved TEXT,result TEXT)')
         self.db.commit()
+        self.audit=FastAudit(connection=self.db,lock=self.lock)
     def reserve(self,signal,payload,snapshot,amount,fee_rate,now=None):
         now=time.time_ns()//1000000 if now is None else now
         if not snapshot.get('complete') or not 0<=now-int(snapshot['observed_ts_ms'])<=5000:
@@ -70,32 +72,53 @@ actual partial fills and fees must be applied before releasing reservations.
 """
     def __init__(self,adapter,budget,enabled=False):self.adapter=adapter;self.budget=budget;self.enabled=enabled
     def buy(self,signal,market,ask,amount,snapshot,fee_rate,min_order):
-        if not self.enabled:return {'status':'BLOCKED','reason':'LIVE_DISABLED'}
+        if not self.enabled:
+            self.budget.audit.record('ORDER_SKIPPED',signal,'upbit',market,'DISABLED',reason='LIVE_DISABLED')
+            return {'status':'BLOCKED','reason':'LIVE_DISABLED'}
         price=decimal(ask);amount=decimal(amount)
         if not market.startswith('KRW-') or price<=0 or amount<decimal(min_order):raise ValueError('INVALID_KRW_ORDER')
         quantity=(amount/price).quantize(Decimal('.00000001'),rounding=ROUND_DOWN)
         if quantity*price<decimal(min_order):raise ValueError('BELOW_MINIMUM_AFTER_ROUNDING')
         body={'market':market,'side':'bid','ord_type':'limit','price':str(price),
               'volume':str(quantity),'time_in_force':'ioc','smp_type':'cancel_taker'}
-        ident,new=self.budget.reserve(signal,body,snapshot,amount,fee_rate)
+        try:ident,new=self.budget.reserve(signal,body,snapshot,amount,fee_rate)
+        except ValueError as exc:
+            self.budget.audit.record('ORDER_SKIPPED',signal,'upbit',market,'LIVE',reason=str(exc),
+                                     capital={k:snapshot.get(k) for k in ('complete','observed_ts_ms','total_equity_krw','available_cash_krw','fast_position_value_krw','external_fast_pending_krw')})
+            raise
         if not new:return {'status':'EXISTING','identifier':ident}
         body['identifier']=ident
+        self.budget.audit.record('ORDER_REQUEST',signal,'upbit',market,'LIVE',order_id=ident,request=body,
+                                 capital={k:snapshot.get(k) for k in ('observed_ts_ms','total_equity_krw','available_cash_krw','fast_position_value_krw','external_fast_pending_krw')})
         self.budget.state(ident,'SENDING')
+        started=time.monotonic()
         try:
             headers={**self.adapter._auth(body),'Content-Type':'application/json'}
             r=self.adapter.http.post('https://api.upbit.com/v1/orders',json=body,headers=headers,timeout=(3,5))
             r.raise_for_status();data=r.json()
             self.budget.state(ident,'ACKNOWLEDGED',data)
+            self.budget.audit.record('ORDER_RESPONSE',signal,'upbit',market,'LIVE',order_id=ident,
+                                     duration_ms=round((time.monotonic()-started)*1000),result=order_result(data))
             return {'status':'ACKNOWLEDGED','identifier':ident,'order':data}
-        except Exception:
+        except Exception as exc:
             self.budget.state(ident,'UNKNOWN')
+            self.budget.audit.record('ORDER_OUTCOME_UNKNOWN',signal,'upbit',market,'LIVE',order_id=ident,
+                                     duration_ms=round((time.monotonic()-started)*1000),reason='RECONCILE_DO_NOT_RESUBMIT',
+                                     result={'error_type':type(exc).__name__,'http_status':getattr(getattr(exc,'response',None),'status_code',None)})
             return {'status':'UNKNOWN','identifier':ident,'action':'RECONCILE_DO_NOT_RESUBMIT'}
     def reconcile(self,ident):
         if not self.enabled:return {'status':'BLOCKED','reason':'LIVE_DISABLED'}
         row=self.budget.get(ident)
         if not row:raise ValueError('UNKNOWN_LOCAL_IDENTIFIER')
         params={'identifier':ident}
-        r=self.adapter.http.get('https://api.upbit.com/v1/order',params=params,headers=self.adapter._auth(params),timeout=(3,5))
-        r.raise_for_status();data=r.json()
+        try:
+            r=self.adapter.http.get('https://api.upbit.com/v1/order',params=params,headers=self.adapter._auth(params),timeout=(3,5))
+            r.raise_for_status();data=r.json()
+        except Exception as exc:
+            self.budget.audit.record('ORDER_RECONCILE_FAILED',row['signal'],'upbit',json.loads(row['payload'])['market'],'LIVE',order_id=ident,
+                                     result={'error_type':type(exc).__name__,'http_status':getattr(getattr(exc,'response',None),'status_code',None)},reason='RESERVATION_RETAINED')
+            raise
         self.budget.state(ident,'TERMINAL' if data.get('state') in ('done','cancel') else 'ACKNOWLEDGED',data)
+        self.budget.audit.record('ORDER_RECONCILED',row['signal'],'upbit',json.loads(row['payload'])['market'],'LIVE',
+                                 order_id=ident,result=order_result(data))
         return data
