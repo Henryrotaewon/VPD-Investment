@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
-    scan_keyboard, parse_command, magi3_status, validation_text)
+    scan_keyboard, parse_command, magi3_status, validation_text, observation_text)
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
@@ -240,12 +240,7 @@ def signals_text():
               fetch_intelligence(url,os.getenv('MAGI_INTELLIGENCE_TOKEN',''),int(time.time()*1000)))
     except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
         return '⚡ FAST · Whale 신호\n최신 관측을 확인할 수 없습니다. 파일 누락·만료·형식을 점검해야 합니다.'
-    lines=['⚡ FAST · Whale 최근 5분 관측 (매매 지시 아님)']
-    for row in rows[-15:]:
-        venue=row.get('evidence',{}).get('venue','onchain')
-        lines.append(f"{row['asset']} | {row['strategy_tag']} | {venue} | {row['direction']} | 점수 {row['heuristic_score']:.1f}")
-    if not rows: lines.append('이 관측 구간에 신호가 없습니다.')
-    return '\n'.join(lines)
+    return observation_text(rows)
 
 
 def may_execute(chat_id,user_id):
@@ -259,7 +254,7 @@ def handle_command(text,chat_id=None,user_id=None):
     chat_id=str(chat_id or ALLOWED_CHAT_ID)
     try:
         if cmd in ('help','menu'):
-            telegram(help_text() if cmd=='help' else '📋 메뉴를 선택하세요. 자산보고와 실행 기능은 PAPER 기준입니다.',main_keyboard())
+            telegram(help_text() if cmd=='help' else '📋 메뉴를 선택하세요. 실계좌 조회·PAPER·Shadow를 구분해 표시합니다.',main_keyboard())
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
         elif cmd=='morning_scan': return_magi1_state('morning')
         elif cmd=='evening_scan': return_magi1_state('evening')
