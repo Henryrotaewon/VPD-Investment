@@ -3,7 +3,7 @@ from unittest.mock import patch
 from magi3.config import Config
 from magi3.models import OrderIntent
 from magi3.risk import RiskSnapshot,check
-from magi3.adapters.upbit import UpbitAdapter
+from magi3.adapters.upbit import UpbitAdapter\nfrom magi3.shadow import simulate_market
 
 class TestFoundation(unittest.TestCase):
     def test_live_is_off_by_default(self):
@@ -28,4 +28,12 @@ class TestFoundation(unittest.TestCase):
         self.assertEqual(x["status"],"BLOCKED")
         with self.assertRaises(RuntimeError):UpbitAdapter().submit(i,live_allowed=True)
 
+    def test_shadow_walks_visible_asks(self):
+        book=[{"orderbook_units":[
+            {"ask_price":100.0,"ask_size":1.0,"bid_price":99.0,"bid_size":1.0},
+            {"ask_price":101.0,"ask_size":2.0,"bid_price":98.0,"bid_size":2.0}]}]
+        x=simulate_market(book,"BUY",150,fee_rate=0.0005)
+        self.assertTrue(x.complete);self.assertGreater(x.avg_price,100.0);self.assertGreater(x.slippage_bps,0)
+
 if __name__=="__main__":unittest.main()
+
