@@ -181,25 +181,25 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v10')
+    log('MAGI Telegram menu registered: Korean v11')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v10','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v11','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
         'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
                '📊 VPD 모의투자: 현황 보고 · VPD 조회 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
-               '🤖 시스템 상태: MAGI1·2·3 선택\n⚡ FAST 후보 버튼을 제거했습니다. 초기 상승 포착 시 자동 알림으로 안내합니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
+               '🤖 시스템 상태: MAGI1·2·3 선택\n⚡ FAST 포착: 최근 24시간 강한 매수세 · 경과 조회. 알림은 동일 종목 1시간 1회, 전체 시간당 최대 3건으로 줄였습니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v10')
+    log('MAGI reply keyboard refreshed: magi-menu-v11')
 
 
 def start_engine(mode):
@@ -336,7 +336,9 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='fast_compare':
             from magi2.fast_comparison import report
             telegram(report(FAST_MONITOR.audit,time.time_ns()//1000000) if FAST_MONITOR else 'FAST 검증 자료 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
-        elif cmd in ('signals','fast'): telegram(FAST_MONITOR.summary() if FAST_MONITOR else 'FAST 자동 감시 시작 전입니다.')
+        elif cmd in ('signals','fast'):
+            if FAST_MONITOR: telegram(*FAST_MONITOR.captures())
+            else: telegram('FAST 포착 자료 준비 중입니다.')
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
         log(f'Command failed [{cmd}]: {type(e).__name__}')
@@ -362,7 +364,11 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('orders:'):
+    if data.startswith('captures:'):
+        try:offset=max(0,int(data.split(':')[1]))
+        except ValueError:return
+        if FAST_MONITOR:telegram(*FAST_MONITOR.captures(offset))
+    elif data.startswith('orders:'):
         try:
             _,until,offset=data.split(':')
             send_shadow_orders(int(until),int(offset))
