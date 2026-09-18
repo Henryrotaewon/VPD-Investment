@@ -1,22 +1,56 @@
-# MAGI3 구현 상태
+# MAGI3 Shadow runtime and read-only accounts
 
-2026-09-18 코드 확인 기준. **실거래 미가동, 구성요소 기반 단계**다. runner는 설정을 출력하고 종료한다. 배포 SUCCESS는 상시 주문 엔진 가동의 증거가 아니다.
+2026-09-18 implementation. **No live order runtime exists.** `LIVE` mode or `MAGI3_LIVE_ENABLED=1` makes the new runner refuse startup. Code completion and unit tests do not prove that exchange credentials are valid.
 
-| 영역 | 구현 수준 |
-|---|---|
-| StrategySignal | 생성·파싱 계약 있음; 상시 소비/검증/라우팅 미연결 |
-| 4개 거래소 | Upbit/Binance/Kraken/Bithumb 공개 호가 호출 및 공통 최우선호가 정규화 |
-| 개인 계좌 | Upbit JWT/Binance 서명 조회 코드; 실제 연결 검증 별도. Kraken/Bithumb 서명 미구현 |
-| Shadow | 제공된 호가를 걸어 체결·수수료·슬리피지를 계산하는 함수와 별도 원장 있음 |
-| 위험관리 | 주문금액·총노출·일손실·kill switch 검사 함수; 실계좌 상태 기반 연결 미완료 |
-| 실행관리 | 실주문 제출·중복주문 방지/체결 대사·재시작 복구·자동 청산 루프 미구현 |
-| 보고 | 입력된 KRW 정규화 포트폴리오로 총자산/거래소/종목 PICK/전략별 평가손익 계산 |
-| 보고 데이터 | 실계좌 자동수집·환율 정규화·수수료 포함 실현손익 연결 미구현 |
-| 전략 배분 | 복합 태그는 원가·평가손익을 균등 분배. 독립 전략의 실거래 성과로 해석하지 않음 |
+| Area | Implemented | Boundary |
+|---|---|---|
+| Signal path | MAGI1 VPD saved scan → MAGI2 durable Shadow outbox → MAGI3 private polling | MAGI1 FAST/Whale observations are not promoted directly to trades |
+| Shadow execution | Public depth IOC buy, partial fill/remainder cancellation, holding deadline exit, partial exit retry | Virtual KRW cash; no exchange orders or real fills |
+| Recovery | SQLite WAL, atomic signal/order/fill/position/cash transactions, stable IDs, pending recovery, persisted deadlines, single-process file lock | Persistent Railway volume required; no live order reconciliation |
+| Risk | Per-order and total cost-basis exposure including entry fees; virtual cash, realized KST daily-loss limit; kill switch blocks new entries | Not mark-to-market drawdown control; exits still run; config changes require restart |
+| Reporting | Shadow cash/equity/fees/realized/unrealized PnL and original strategy tags; equal-split multi-tag attribution | Midpoint valuation, future exit fees excluded from unrealized PnL; no queue/latency impact model |
+| Accounts | Upbit/Bithumb JWT, Binance signed account, Kraken BalanceEx; locked balances included | Read-only spot API scope; Earn, futures and subaccounts not separately aggregated |
+| Real valuation | Venue books, KRW and market-implied USDT/USD conversions | Missing quotes/venues remain unknown; partial sums are labeled; no fictional fallback |
+| Real cost/PICK | Exchange KRW average acquisition cost where supplied | Unknown cost, realized PnL and strategy basis remain unknown/UNATTRIBUTED |
 
-Defaults: `MAGI3_MODE=DRY_RUN`, `MAGI3_LIVE_ENABLED=0`, `MAGI3_KILL_SWITCH=0`, max order/total exposure 30,000 KRW, daily loss 10,000 KRW. These are configuration defaults, not verified live-account risk enforcement.
+## Shadow experiment policy
 
-Run configuration diagnostic: `python -m magi3.runner`.
-Run a synthetic report: `python -m magi3.report_cli --input magi3/sample_portfolio.json`. The sample contains fictional balances.
+`VPD_SHADOW_V1` uses the newest Upbit KRW morning/evening scan no older than 12 hours. MAGI2 creates one intent per snapshot/asset with VPD ≥75, a 10,000 KRW budget and 300-second maximum holding time. Intent lifetime is 120 seconds from first observation by MAGI2; restart never refreshes it. VPD score is a heuristic, not a probability. This is a plumbing/forward-observation experiment, not the existing PAPER strategy or a profitability-approved strategy. FAST/WAVE/Whale automated entries are not enabled.
 
-Upbit `order_test` uses a non-executing test endpoint. `submit(live_allowed=True)` deliberately raises `LIVE_ORDER_PATH_NOT_IMPLEMENTED`. No withdrawal implementation exists. Never turn on live trading based only on these configuration flags or unit tests.
+Initial virtual cash is 100,000 KRW and is initialized only once. Default fee model is 10 bps per side (`MAGI3_SHADOW_FEE_BPS`), not a claim about actual account commissions. Default exposure limit 30,000 KRW includes entry fees, so three 10,000 KRW buys cannot all fit. Rejected signals are not repeatedly reissued. An expired/illiquid signal may produce no trade. Deadline exits can be delayed when public quotes are unavailable; `/execution` exposes pending exits.
+
+## Operation
+
+Run `python -m magi3.runner` with:
+
+- `MAGI3_MODE=SHADOW`, `MAGI3_LIVE_ENABLED=0`
+- `MAGI3_DATA_DIR=/data/magi3` on an attached persistent volume
+- `MAGI2_SHADOW_SIGNALS_URL=http://vpd-investment.railway.internal:8082/signals`
+- `MAGI_SERVICE_TOKEN` (at least 32 characters, same private transport token on MAGI2)
+- `MAGI3_HTTP_PORT=8083` (private IPv6 bind by default)
+- Existing risk limits and exchange API keys in Railway variables only
+
+MAGI2 needs `MAGI2_SHADOW_BRIDGE_ENABLED=1`, `MAGI2_SHADOW_PORT=8082`, `MAGI3_SERVICE_URL=http://magi3-execution.railway.internal:8083`, and the same service token. Its outbox lives under the existing MAGI2 volume, separately from PAPER state. Account reads run separately from the execution loop with independent HTTP sessions.
+
+Private authenticated GET endpoints: `/status`, `/accounts`, `/shadow`, `/orders`; no HTTP mutation routes. Logs contain operational status, not account balances or secrets. Ledger and real balance snapshots remain on the private volume, never GitHub.
+
+Telegram: `/help`, `/menu`, `/assets` (real read-only), `/shadow` (virtual), `/orders` (virtual fills), `/execution` or legacy `/magi3` (runtime status), `/report` (existing PAPER). Korean buttons and unprefixed commands are supported.
+
+Placeholders such as `1` are rejected before network access. Use exchange read-only balance permissions and a dedicated Kraken key to avoid cross-process nonce collisions. Four real account connections are only confirmed when runtime reports successful authenticated reads. A credential failure is not a zero balance.
+
+## Verification
+
+`python -m unittest discover -s magi3/tests -v`
+
+`python -m unittest discover -s tests -v`
+
+Tests cover atomic rollback, restart deduplication, partial buy/exit, deadline recovery, fees and realized PnL, limits, source expiry, credential placeholders, account gaps and unknown cost, official Kraken signature vector, private endpoint authorization and Telegram routing.
+
+Official signing/account references:
+
+- [Bithumb JWT](https://apidocs.bithumb.com/docs/%EC%9D%B8%EC%A6%9D-%ED%86%A0%ED%81%B0-%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0)
+- [Kraken REST authentication](https://docs.kraken.com/exchange/guides/rest/authentication)
+- [Kraken BalanceEx](https://docs.kraken.com/api-reference/account-data/get-extended-balance)
+- [Binance account](https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account)
+
+The legacy `report_cli` sample remains synthetic and is never used by `/assets`. Legacy Upbit `order_test` and `submit` are not called by this runtime; `submit` remains blocked.

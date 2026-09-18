@@ -16,6 +16,8 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
     scan_keyboard, parse_command, magi3_status, validation_text)
+from magi2.execution_client import view as execution_view
+from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -165,7 +167,7 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('Telegram command menu registered: Korean v2')
+    log('Telegram command menu registered: Korean v3')
 
 
 def start_engine(mode):
@@ -277,11 +279,9 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='status':
             running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
             telegram(f'🤖 봇 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초\nMAGI1·MAGI3 운영 상태: 이 화면에서는 미조회')
-        elif cmd=='magi3': telegram(magi3_status())
+        elif cmd in ('magi3','execution','shadow','orders','assets'): telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text())
         elif cmd=='signals': telegram(signals_text())
-        elif cmd=='assets':
-            telegram('💼 MAGI3 통합자산\n실계좌 통합 수집은 아직 연결되지 않았습니다. 샘플 자산을 실제 잔고로 표시하지 않습니다.\nPAPER 자산은 /report, 구현 수준은 /magi3에서 확인하세요.')
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
         log(f'Command failed [{cmd}]: {type(e).__name__}')
@@ -350,6 +350,7 @@ def poll_updates(offset):
 
 def main():
     prepare_persistent_state()
+    start_shadow_bridge(STATE_DIR,GITHUB_REPO,log)
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
     try: backup_paper_history()
     except Exception as e: log(f'Initial GitHub PAPER backup error (engine unaffected): {e}')
@@ -359,7 +360,11 @@ def main():
         log('intelligence_probe: '+signals_text().replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     next_monitor=time.monotonic()+INTERVAL
+    next_execution_probe=time.monotonic()+30
     while True:
+        if time.monotonic()>=next_execution_probe and os.getenv('MAGI3_SERVICE_URL'):
+            log('magi3_probe: '+execution_view('execution').replace('\n',' | '))
+            next_execution_probe=time.monotonic()+300
         finish_engine_job()
         offset=poll_updates(offset)
         if time.monotonic()>=next_monitor:
