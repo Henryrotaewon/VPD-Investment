@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
-    scan_keyboard, status_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
+    scan_keyboard, status_keyboard, vpd_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
@@ -177,25 +177,25 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v4')
+    log('MAGI Telegram menu registered: Korean v5')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v4','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v5','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
         'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
-               '📊 VPD 모의투자: 가상자금 현황\n💼 실계좌 자산: 거래소 실제 잔고\n'
+               '📊 VPD 모의투자: 현황 보고 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
                '🤖 시스템 상태: MAGI1·2·3 선택\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v4')
+    log('MAGI reply keyboard refreshed: magi-menu-v5')
 
 
 def start_engine(mode):
@@ -283,6 +283,10 @@ def handle_command(text,chat_id=None,user_id=None):
     try:
         if cmd in ('help','menu'):
             telegram(help_text() if cmd=='help' else '📋 MAGI 메뉴\n시장 관측 · 전략 검증 · 자산 관리\n실계좌 조회·PAPER·Shadow를 구분해 표시합니다.\n역할별 안내는 🧩 MAGI 역할을 누르세요.',main_keyboard())
+        elif cmd=='vpd':
+            telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n'
+                     '현황 보고: 보유 종목·손익 조회\n리밸런싱: 보유 종목 재조정\n종목 리필: 빈자리 채우기\n'
+                     '실행 버튼을 누르면 먼저 확인 화면이 열립니다.',vpd_keyboard())
         elif cmd=='about': telegram(role_text(),role_keyboard())
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
         elif cmd=='morning_scan': return_magi1_state('morning')
@@ -294,7 +298,7 @@ def handle_command(text,chat_id=None,user_id=None):
                 telegram('실행 권한이 없는 사용자입니다. 조회 메뉴는 이용할 수 있습니다.'); return
             if ENGINE_JOB is not None and not ENGINE_JOB.done():
                 telegram('PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.'); return
-            label='리밸런싱 (기존 보유 종목의 모의 매도·매수 가능)' if cmd=='morning' else '빈자리 채우기 (모의 신규 매수)'
+            label='리밸런싱 (기존 보유 종목의 모의 매도·매수 가능)' if cmd=='morning' else '종목 리필 (빈자리 모의 신규 매수)'
             telegram(f'PAPER {label}을 실행할까요?\n60초 안에 확인하세요. 실제 주문은 발생하지 않습니다.',
                      CONFIRMATIONS.issue(cmd,chat_id,user_id))
         elif cmd=='cancel':
@@ -338,7 +342,7 @@ def handle_callback(callback):
     data=callback.get('data','')
     if data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow','vpd','morning','refill'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
