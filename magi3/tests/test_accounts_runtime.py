@@ -44,7 +44,7 @@ class AccountsTests(unittest.TestCase):
         self.assertFalse(r['complete']);self.assertIsNone(r['total_asset_krw'])
         self.assertEqual(r['venues'][1]['status'],'PARTIAL_VALUATION')
         self.assertIsNone(r['venues'][1]['positions'][0]['value_krw'])
-        self.assertIn('확인된 부분합',render_accounts(r))
+        self.assertIn('(확인분)',render_accounts(r))
     def test_invalid_account_values_rejected(self):
         for value in ('nan','inf','-1'):
             with self.assertRaises(ValueError):normalise('binance',{'balances':[{'asset':'BTC','free':value,'locked':'0'}]})

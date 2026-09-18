@@ -84,20 +84,73 @@ def collect_accounts(adapters,market,now_ms=None):
 def money(x):return '미확인' if x is None else f'{x:,.0f}원'
 
 
+VENUE_LABELS={'upbit':'업비트','bithumb':'빗썸','binance':'바이낸스','kraken':'크라켄'}
+CASH_ASSETS={'KRW','USD','EUR','USDT','USDC','JPY','GBP'}
+
+
+def holding_return(positions):
+    """Current holdings return, cost weighted. Unknown basis is never zero."""
+    invested=[p for p in positions if p['asset'] not in CASH_ASSETS]
+    if not invested:return None
+    if any(p.get('cost_krw') is None or p['cost_krw']<=0 or p.get('value_krw') is None for p in invested):return None
+    cost=sum(p['cost_krw'] for p in invested)
+    return (sum(p['value_krw'] for p in invested)/cost-1)*100
+
+
+def percentage(value):return '미확인' if value is None else f'{value:+.2f}%'
+
+
+def pick_strategy(position):
+    tags=position.get('pick_basis') or []
+    if isinstance(tags,str):tags=[tags]
+    known=sorted(set(tags)-{'UNATTRIBUTED','UNKNOWN','unknown',''})
+    # A joint strategy is one bucket: never double count the same holding.
+    return '+'.join(known) if known and 'UNATTRIBUTED' not in tags and 'UNKNOWN' not in tags else '미분류'
+
+
+def quantity(value):
+    text=f'{value:,.8f}'.rstrip('0').rstrip('.')
+    return '<0.00000001' if value>0 and text=='0' else text
+
+
 def render_accounts(report,now_ms=None):
-    now=now_ms or time.time_ns()//1000000
-    age=max(0,(now-report['generated_ts_ms'])//1000)
-    stale=age>180
-    lines=['💼 실계좌 통합자산 [조회 전용]',f'갱신 {age}초 전'+(' · 오래된 자료' if stale else ''),
-        ('전체 합계: ' if report['complete'] and not stale else '확인된 부분합: ')+money(report['known_subtotal_krw'])]
-    for v in report['venues']:
-        lines+=['',f"[{v['venue'].upper()}] {v['status']} · {money(v['valued_total_krw'])}"]
-        if v['observed_ts_ms']:
-            venue_age=max(0,(now-v['observed_ts_ms'])//1000)
-            lines.append(f'잔고 관측 {venue_age}초 전'+(' · 오래된 자료' if venue_age>180 else ''))
-        if v['error']:lines.append('조회 상태: '+v['error'])
-        for p in v['positions']:
-            lines.append(f"{p['asset']} {p['qty']:.8g} | 평가 {money(p['value_krw'])} | 평가손익 {money(p['unrealized_pnl_krw'])} | PICK=UNATTRIBUTED")
-    lines+=['','부분합에는 조회 실패·미평가 자산이 빠집니다. 해외 환산은 시장 USDT 경유 기준입니다.',
-            '기존 보유자산의 전략·실현손익은 확인되지 않았습니다. Shadow 성과는 /shadow로 분리 조회하세요.']
+    now=time.time_ns()//1000000 if now_ms is None else now_ms
+    venues=report.get('venues',[])
+    connected=[v for v in venues if v.get('valued_total_krw') is not None and v.get('status')!='UNAVAILABLE' and not v.get('error')]
+    positions=[p for v in connected for p in v.get('positions',[])]
+    incomplete=any(v.get('status')=='PARTIAL_VALUATION' or any(p.get('value_krw') is None for p in v.get('positions',[])) for v in connected)
+    unavailable=any(v.get('error')!='CREDENTIALS_NOT_READY' and v not in connected for v in venues)
+    partial=incomplete or unavailable
+    total=sum(v['valued_total_krw'] for v in connected) if connected else None
+    rate=holding_return(positions) if not unavailable else None
+    header='💼 실계좌 통합자산'
+    if now-report.get('generated_ts_ms',now)>180000 or any(v.get('status')=='STALE_VALUATION' for v in connected):header+=' · 마지막 조회값'
+    lines=[header,f"총 평가금액: {money(total)}"+(' (확인분)' if partial and total is not None else ''),
+           f"보유 수익률: {percentage(rate)}"]
+    groups={}
+    for v in sorted(venues,key=lambda v:('upbit','bithumb','binance','kraken').index(v['venue']) if v['venue'] in VENUE_LABELS else 99):
+        label=VENUE_LABELS.get(v['venue'],v['venue'])
+        if v not in connected:
+            lines.extend(['',f"{label}: "+('미연결' if v.get('error')=='CREDENTIALS_NOT_READY' else '금액 미확인')]);continue
+        ps=v.get('positions',[])
+        vpartial=any(p.get('value_krw') is None for p in ps)
+        lines.extend(['',f"{label}: {money(v['valued_total_krw'])}"+(' (확인분)' if vpartial else '')])
+        for p in sorted(ps,key=lambda p:(p['asset'] not in CASH_ASSETS,-(p.get('value_krw') or 0),p['asset'])):
+            if p['asset'] in CASH_ASSETS:
+                name='예수금' if p['asset']=='KRW' else f"예수금 {p['asset']}"
+                lines.append(f"• {name}: {money(p.get('value_krw'))}");continue
+            strategy=pick_strategy(p)
+            lines.append(f"• {p['asset']} {quantity(p['qty'])}개 · {money(p.get('value_krw'))} · {percentage(holding_return([p]))} ({strategy})")
+            groups.setdefault(strategy,[]).append(p)
+        if not ps:lines.append('보유 잔고 없음')
+    lines.extend(['','픽 전략별 · 현재 보유분'])
+    if not connected:lines.append('투자금액·수익률 미확인')
+    else:
+        absent=[tag for tag in ('VPD','FAST','WAVE') if not any(tag in name.split('+') for name in groups)]
+        if absent:lines.append(' · '.join(absent)+': 보유 없음')
+        for strategy,ps in sorted(groups.items(),key=lambda item:(item[0]=='미분류',item[0])):
+            cost=sum(p['cost_krw'] for p in ps) if all(p.get('cost_krw') is not None and p['cost_krw']>0 for p in ps) else None
+            lines.append(f'{strategy}: 투자 {money(cost)} · {percentage(holding_return(ps))}')
+    lines.extend(['','수익률: 보유종목 매입금액 기준 · 예수금 제외'])
+    if partial or len(connected)<len(venues):lines.append('합계는 연결 계좌의 확인된 평가금액 기준입니다.')
     return '\n'.join(lines)
