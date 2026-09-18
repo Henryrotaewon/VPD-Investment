@@ -114,7 +114,7 @@ def vpd_keyboard():
 def status_keyboard():
     return {'inline_keyboard': [[{'text': label, 'callback_data': 'nav:'+command}]
         for label, command in [('MAGI1 · 시세·관측', 'status1'),
-                               ('MAGI2 · VPD 모의투자', 'status2'),
+                               ('MAGI2 • 전략 • 검증', 'status2'),
                                ('MAGI3 · 계좌·실행', 'status3')]]}
 
 
