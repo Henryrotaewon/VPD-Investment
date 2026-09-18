@@ -20,6 +20,7 @@ from .storage import Storage
 from .archive import Archiver
 from .quality import cleanup_invalid, VERSION, quality_summary
 from .timing_quality import pair_resolution_matrix
+from .event_scan import publish_new_events
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -35,7 +36,7 @@ class App:
         self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
         self.analysis_started=now_ms()/1000
         self.tick_count=0;self.onchain_status={'received':0};self.derivative_status={}
-        self.last_summary_ms=0
+        self.last_summary_ms=0;self.last_event_scan_ms=now_ms()
     async def enqueue(self,event):await self.queue.put(('market',event))
     def process(self,kind,value):
         if kind=='market':self.engine.ingest(value)
@@ -53,6 +54,10 @@ class App:
         elif kind=='derivatives':self.storage.append('derivatives_context',value);self.engine.derivatives.append(value)
         elif kind=='tick':
             self.engine.tick(value);self.tick_count+=1
+            if value-self.last_event_scan_ms>=60000:
+                events=publish_new_events(self.storage,self.last_event_scan_ms,value,int(os.getenv('MAGI1_EVENT_MIN_SCORE','70')))
+                if events: LOG.info('event_reports=%s',json.dumps(events[-10:],separators=(',',':')))
+                self.last_event_scan_ms=value
             if value-self.last_summary_ms>=900000:
                 try:
                     publish_summary(self.storage,value,LOG)
