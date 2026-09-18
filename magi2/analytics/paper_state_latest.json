@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 400709.7794185697,
+  "cash_krw": 82139.82170046086,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -4299,6 +4299,32 @@
       "hold_signal_checked_at": "2026-09-18T07:26:25.962284+09:00",
       "hold_state": "ACTIVE",
       "weakening_count": 0
+    },
+    "QUID": {
+      "market": "KRW-QUID",
+      "status": "OPEN",
+      "entry_at": "2026-09-18T11:12:31.142831+09:00",
+      "entry_session": "REFILL",
+      "entry_session_id": "2026-09-18-REFILL-1112",
+      "first_selected_date": "2026-09-18",
+      "last_selected_date": "2026-09-18",
+      "consecutive_top10_days": 1,
+      "signal_rank": 2,
+      "signal_vpd": 85.0,
+      "signal_price": 89.6,
+      "entry_market_price": 85.5,
+      "entry_price": 85.5855,
+      "buy_notional_krw": 318410.7523419379,
+      "buy_fee_krw": 159.20537617092486,
+      "qty": 3720.3819845877856,
+      "cost_krw": 318569.95771810884,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 85.5,
+      "peak_price": 85.5,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
     }
   },
   "realized_pnl_krw": 71136.51367278898,
@@ -4311,16 +4337,16 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-18T09:48:25.227138+09:00",
+  "updated_at": "2026-09-18T11:12:31.143087+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
   "daily_equal_buy_krw": 318569.95771810884,
   "daily_equal_buy_date": "2026-09-18",
   "daily_equal_buy_source": "MORNING_AVAILABLE_CASH_PER_NEW_SLOT",
-  "last_refill_at": "2026-09-16T12:51:33.561741+09:00",
-  "last_refill_session_id": "2026-09-16-REFILL-1251",
-  "source_refill_snapshot_asof_kst": "2026-09-16 07:25:46 KST",
+  "last_refill_at": "2026-09-18T11:12:31.143069+09:00",
+  "last_refill_session_id": "2026-09-18-REFILL-1112",
+  "source_refill_snapshot_asof_kst": "2026-09-18 07:24:44 KST",
   "closed_positions": [
     {
       "market": "KRW-BONK",
