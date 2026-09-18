@@ -9,6 +9,10 @@ class BinanceAdapter:
         r=self.http.get(BASE+"/api/v3/depth",params={"symbol":symbol,"limit":limit},timeout=5);r.raise_for_status();return r.json()
     def account(self):
         require_credentials("BINANCE_API_KEY","BINANCE_SECRET_KEY")
-        p={"timestamp":int(time.time()*1000)};q=urlencode(p)
+        p={"timestamp":int(time.time()*1000),"recvWindow":5000,"omitZeroBalances":"true"};q=urlencode(p)
         p["signature"]=hmac.new(os.environ["BINANCE_SECRET_KEY"].encode(),q.encode(),hashlib.sha256).hexdigest()
         r=self.http.get(BASE+"/api/v3/account",params=p,headers={"X-MBX-APIKEY":os.environ["BINANCE_API_KEY"]},timeout=5);r.raise_for_status();return r.json()
+
+    def ticker(self,symbol):
+        r=self.http.get(BASE+"/api/v3/ticker/price",params={"symbol":symbol},timeout=8)
+        r.raise_for_status();return r.json()

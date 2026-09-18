@@ -5,22 +5,26 @@ import time
 COMMANDS = [
     ('help', '도움말 · 전체 명령어'), ('menu', '버튼 메뉴 열기'),
     ('status', '봇 상태 · PAPER 작업 상태'), ('report', 'PAPER 자산보고'),
-    ('assets', 'MAGI3 통합 자산보고 연결 상태'),
+    ('assets', '4개 거래소 실계좌 통합자산 · 조회 전용'),
+    ('shadow', 'Shadow 모의 자산·손익'), ('orders', 'Shadow 주문·체결 원장'),
+    ('execution', 'MAGI3 운영 상태'),
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST · Whale 관측 신호'), ('strategies', '전략 검증 기준'),
-    ('magi3', 'MAGI3 구현 수준'), ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
+    ('magi3', 'MAGI3 운영 상태 · execution과 동일'), ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
 LABELS = {
     '📊 자산보고': 'report', '💼 통합자산': 'assets', '🔎 VPD 조회': 'scan',
-    '⚡ 신호조회': 'signals', '🧭 전략검증': 'strategies', '🤖 상태': 'status',
+    '🧪 Shadow 자산': 'shadow', '📒 Shadow 원장': 'orders',
+    '⚙️ 실행 상태': 'execution', '⚡ 신호조회': 'signals', '🧭 전략검증': 'strategies', '🤖 상태': 'status',
     '🔄 PAPER 리밸런싱': 'morning', '♻️ PAPER 빈자리 채우기': 'refill',
     '❓ 도움말': 'help', '📋 메뉴': 'menu',
 }
 ALIASES = {
     'start': 'menu', '도움말': 'help', '메뉴': 'menu', '상태': 'status',
     '보고서': 'report', '자산보고': 'report', '통합자산': 'assets',
+    '모의자산': 'shadow', '주문원장': 'orders', '실행상태': 'execution',
     '신호': 'signals', '전략': 'strategies', '취소': 'cancel',
     'morning scan': 'morning_scan', 'evening scan': 'evening_scan',
     'magi1 morning scan': 'morning_scan', 'magi1 evening scan': 'evening_scan',
@@ -59,10 +63,11 @@ def scan_keyboard():
 
 def help_text():
     return ('🤖 명령어 안내\n\n[조회 · 거래 없음]\n'
-            '/report — PAPER 자산·보유종목\n/assets — MAGI3 통합자산 연결 상태\n'
+            '/report — PAPER 자산·보유종목\n/assets — 4개 거래소 실계좌 통합자산\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/signals — FAST · Whale 신호\n/strategies — 전략 검증 기준\n'
-            '/status — 봇·작업 상태\n/magi3 — 구현 수준\n\n'
+            '/shadow — Shadow 모의 자산·손익\n/orders — Shadow 주문·체결 원장\n'
+            '/status — 봇·작업 상태\n/execution · /magi3 — MAGI3 운영 상태\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 리밸런싱\n/refill — 빈자리 채우기\n'
             '/cancel — 대기 중 확인 취소 (진행 중 작업 중단 아님)\n\n'
             '[화면]\n/menu — 버튼 메뉴\n/help — 이 안내\n\n'
@@ -71,14 +76,8 @@ def help_text():
 
 
 def magi3_status():
-    return ('🧩 MAGI3 구현 수준 — 코드 기준\n\n'
-            '구현: 4개 거래소 호가 정규화, Shadow 체결 계산, 위험한도 검사, StrategySignal 계약, '
-            '통합자산·전략별 평가손익 계산\n'
-            '부분 구현: Upbit·Binance 계좌조회 코드 (실인증 확인 별도)\n'
-            '미구현: Kraken·Bithumb 계좌 인증, 상시 신호 소비·주문 실행, 주문/체결 대사, '
-            '자동 청산, 실계좌 통합 수집, 수수료 포함 실현손익 집계\n\n'
-            '현재 runner는 설정을 출력하고 종료하는 기반 단계입니다. 이 화면은 운영 상태 조회가 아닙니다.\n'
-            '보고서 계산 가능 ≠ 실계좌 연결 완료 ≠ 실거래 가동')
+    from magi2.execution_client import view
+    return view('magi3')
 
 
 def validation_text():

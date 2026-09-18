@@ -7,6 +7,7 @@ live-submit implementation in this phase.
 import hashlib,os,uuid
 from urllib.parse import urlencode,unquote
 import jwt,requests
+from .base import PLACEHOLDER_VALUES, CredentialsNotReady
 
 BASE="https://api.upbit.com"
 
@@ -22,8 +23,8 @@ class UpbitAdapter:
         return unquote(urlencode(params or {},doseq=True))
 
     def _auth(self,params=None):
-        if not self.access_key or not self.secret_key:
-            raise RuntimeError("UPBIT_CREDENTIALS_MISSING")
+        if any(not k or k.strip().lower() in PLACEHOLDER_VALUES for k in (self.access_key,self.secret_key)):
+            raise CredentialsNotReady("UPBIT_CREDENTIALS_NOT_READY")
         q=self._query(params)
         payload={"access_key":self.access_key,"nonce":str(uuid.uuid4())}
         if q:
@@ -34,6 +35,10 @@ class UpbitAdapter:
 
     def orderbook(self,market):
         r=self.http.get(BASE+"/v1/orderbook",params={"markets":market},timeout=5)
+        r.raise_for_status();return r.json()
+
+    def ticker(self,markets):
+        r=self.http.get(BASE+"/v1/ticker",params={"markets":",".join(markets)},timeout=8)
         r.raise_for_status();return r.json()
 
     def accounts(self):
