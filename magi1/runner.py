@@ -49,6 +49,7 @@ class App:
             self.labels.reload_if_changed()
             classified=reclassify_onchain(row,self.labels,'event',row.get('received_ts_ms'))
             self.storage.append('onchain_candidate',classified);self.engine.onchain.append(classified)
+            self.engine.derived.on_onchain(value)
         elif kind=='derivatives':self.storage.append('derivatives_context',value);self.engine.derivatives.append(value)
         elif kind=='tick':
             self.engine.tick(value);self.tick_count+=1
