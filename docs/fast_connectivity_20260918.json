@@ -1,0 +1,148 @@
+{
+  "schema": "fast-connectivity-check-v1",
+  "run_id": "fast-public-003",
+  "deployment_id": "ba55ebd7-9d82-4bbc-9adf-367d41dfe425",
+  "purpose": "Superseded full-universe connectivity/replay check. NOT a validation of FAST v2 rank-triggered trading.",
+  "raw_retention": "User authorized deletion of FAST-only raw tapes; aggregated evidence retained here.",
+  "results": [
+    {
+      "time": "2026-09-18T12:08:21.824601379Z",
+      "message": "",
+      "level": "info",
+      "event": "fast_venue_result",
+      "venue": "upbit",
+      "quality": {
+        "counts": {
+          "capture_start": 1,
+          "universe": 1,
+          "connection": 2,
+          "trade": 8929,
+          "book": 8929,
+          "capture_end": 1
+        },
+        "selected_markets": 264,
+        "markets_with_trades": 240,
+        "markets_with_books": 240,
+        "first_data_ms": 1789732695633,
+        "last_data_ms": 1789733293360,
+        "data_span_seconds": 597.727,
+        "missing_event_timestamp": {},
+        "receipt_minus_exchange_clock": {
+          "trade": {
+            "samples": 8929,
+            "p50_bucket_ms": 200,
+            "p95_bucket_ms": 210,
+            "p99_bucket_ms": 260
+          },
+          "book": {
+            "samples": 8929,
+            "p50_bucket_ms": 200,
+            "p95_bucket_ms": 210,
+            "p99_bucket_ms": 260
+          }
+        },
+        "timing_note": "Not pure network latency; includes clock skew. 10ms floor buckets capped at +/-60000ms.",
+        "coverage_note": "No activity is not proof of data loss. Gaps are observed connection errors, not a completeness guarantee.",
+        "stop_reason": "DURATION_LIMIT",
+        "uncompressed_bytes": 4054374,
+        "compressed_bytes": 332260
+      },
+      "trials": 0,
+      "counts": {},
+      "feature_quality": {
+        "inactive_or_missing_trade_gap": 1860
+      },
+      "groups": [],
+      "policy": {
+        "version": "fast-research-v1",
+        "min_return_bps": 20,
+        "min_volume_ratio": 2,
+        "min_buy_ratio": 0.6,
+        "max_spread_bps": 30,
+        "volatility_multiple": 3,
+        "latency_ms": 250,
+        "quote_wait_ms": 2000,
+        "fee_bps": 10,
+        "slippage_bps": 5,
+        "take_profit_bps": 40,
+        "stop_loss_bps": 30,
+        "max_hold_ms": 60000,
+        "cooldown_ms": 300000,
+        "notional_krw": 10000,
+        "notional_usdt": 10
+      },
+      "tape_sha256": "6517f8ec08ce5b2f17da6deda78c4f5099cef3c4d521d93e269246bcd1ef73c2",
+      "profitability_verdict": "NOT_VALIDATED"
+    },
+    {
+      "time": "2026-09-18T12:02:32.908900147Z",
+      "message": "",
+      "level": "info",
+      "event": "fast_venue_result",
+      "venue": "binance",
+      "quality": {
+        "counts": {
+          "capture_start": 1,
+          "universe": 1,
+          "connection": 4,
+          "book": 560157,
+          "trade": 80318,
+          "capture_end": 1
+        },
+        "selected_markets": 487,
+        "markets_with_trades": 455,
+        "markets_with_books": 484,
+        "first_data_ms": 1789732695322,
+        "last_data_ms": 1789732947637,
+        "data_span_seconds": 252.315,
+        "missing_event_timestamp": {
+          "book": 560157
+        },
+        "receipt_minus_exchange_clock": {
+          "trade": {
+            "samples": 80318,
+            "p50_bucket_ms": 110,
+            "p95_bucket_ms": 120,
+            "p99_bucket_ms": 120
+          }
+        },
+        "timing_note": "Not pure network latency; includes clock skew. 10ms floor buckets capped at +/-60000ms.",
+        "coverage_note": "No activity is not proof of data loss. Gaps are observed connection errors, not a completeness guarantee.",
+        "stop_reason": "BYTE_LIMIT",
+        "uncompressed_bytes": 149999995,
+        "compressed_bytes": 9435470
+      },
+      "trials": 0,
+      "counts": {
+        "FEATURE_ROWS": 888,
+        "REJECT_PRICE": 819,
+        "REJECT_VOLATILITY_NORMALIZED_RETURN": 66,
+        "REJECT_VOLUME": 3
+      },
+      "feature_quality": {
+        "inactive_or_missing_trade_gap": 2821
+      },
+      "groups": [],
+      "policy": {
+        "version": "fast-research-v1",
+        "min_return_bps": 20,
+        "min_volume_ratio": 2,
+        "min_buy_ratio": 0.6,
+        "max_spread_bps": 30,
+        "volatility_multiple": 3,
+        "latency_ms": 250,
+        "quote_wait_ms": 2000,
+        "fee_bps": 10,
+        "slippage_bps": 5,
+        "take_profit_bps": 40,
+        "stop_loss_bps": 30,
+        "max_hold_ms": 60000,
+        "cooldown_ms": 300000,
+        "notional_krw": 10000,
+        "notional_usdt": 10
+      },
+      "tape_sha256": "c8fda5baa32e40aa7e1acdbb1c790b0aa45811556508d152a75a0dccabebcb9b",
+      "profitability_verdict": "NOT_VALIDATED"
+    }
+  ]
+}
