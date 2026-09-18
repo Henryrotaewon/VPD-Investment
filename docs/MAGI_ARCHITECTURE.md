@@ -22,3 +22,7 @@ Required: signal_id, created_ts_ms, asset, side, strategy, confidence, expected_
 Optional: preferred_venues, regime, exit_policy, metadata.
 
 MAGI3 treats this as an intent, not an order. Risk and venue checks may reject it.
+
+## User-defined strategy roles
+
+FAST finds rapidly rising assets within each venue. WAVE examines global cross-venue formation and propagation. WHALE is one of WAVE's raw/context inputs, not an independent strategy or order tag. Legacy WHALE type identifiers remain for observation compatibility. The current FAST candidate detector uses WAVE's common selected assets; a separate venue-wide discovery universe remains to be built.

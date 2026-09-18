@@ -19,9 +19,9 @@ def build_daily(storage,now=None,output_dir=None):
     evaluations=[x for x in evaluations if x.get('evaluation_version')=='quote-v2']
     prop=[x for x in prop if x.get('coverage_version')=='quote-v2']
     lines=[f'# MAGI1 Daily Crypto Shock Report — {end:%Y-%m-%d} 07:00 KST','',f'Window: {start.isoformat()} to {end.isoformat()}','Research only. No orders. Origin causality is uncalibrated.','',f'Shocks: {len(chains)}; state events: {len(states)}; matured outcomes: {len(evaluations)}','', 'On-chain → Global → Derivatives → Korea → VPD → Price','']
-    fast=[x for x in derived if x.get('signal_type')=='FAST']; whale=[x for x in derived if x.get('signal_type')=='WHALE']
-    lines += [f'Derived FAST events: {len(fast)}; Whale evidence events: {len(whale)}','', '## Derived intelligence (additive; historical raw/flow semantics unchanged)','', '| Type | Asset | Direction | Score | Evidence |','|---|---|---|---:|---|']
-    for x in derived[-30:]: lines.append(f"| {x['signal_type']} | {x['asset']} | {x['direction']} | {x['score']:.1f} | {json.dumps(x.get('evidence',{}),ensure_ascii=False)[:240]} |")
+    fast=[x for x in derived if x.get('signal_type')=='FAST' and x.get('evidence',{}).get('fast_rule_version')=='fast-rise-v1']; whale=[x for x in derived if x.get('signal_type')=='WHALE']
+    lines += [f'FAST rapid-riser candidates (fast-rise-v1): {len(fast)}; WAVE on-chain input observations (WHALE): {len(whale)}','', '## Derived intelligence (historical raw/flow semantics unchanged)', 'WHALE is WAVE context, not a standalone strategy. Legacy acceleration rows are not new FAST candidates.','', '| Type | Asset | Direction | Score | Evidence |','|---|---|---|---:|---|']
+    for x in derived[-30:]: lines.append(f"| {('LEGACY_ACCELERATION' if x['signal_type']=='FAST' and x.get('evidence',{}).get('fast_rule_version')!='fast-rise-v1' else 'WAVE_INPUT:WHALE' if x['signal_type']=='WHALE' else 'FAST')} | {x['asset']} | {x['direction']} | {x['score']:.1f} | {json.dumps(x.get('evidence',{}),ensure_ascii=False)[:240]} |")
     lines += ['']
     for c in chains[-20:]:
         related=[s for s in states if s['shock_id']==c['shock_id']]

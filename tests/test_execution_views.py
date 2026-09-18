@@ -18,19 +18,17 @@ class ExecutionViewsTests(unittest.TestCase):
 
 
 class ObservationViewTests(unittest.TestCase):
-    def test_time_order_limit_and_score_meaning(self):
+    def test_old_acceleration_is_not_new_fast(self):
         from magi2.telegram_ui import observation_text
-        rows=[{'event_ts_ms':1000*i,'asset':'BTC','strategy_tag':'FAST','direction':'BUY',
-               'heuristic_score':100,'evidence':{'venue':'bybit'}} for i in reversed(range(20))]
-        text=observation_text(rows)
-        self.assertIn('20건 중 최근 15건',text)
-        self.assertLess(text.index('09:00:05'),text.index('09:00:19'))
-        self.assertNotIn('09:00:04',text)
-        self.assertIn('성공확률이 아닙니다',text)
-        self.assertIn('하락 둔화도 포함',text)
-    def test_whale_unknown_keeps_evidence_separate(self):
+        rows=[{'event_ts_ms':1,'asset':'BTC','strategy_tag':'FAST','direction':'BUY','heuristic_score':100,'evidence':{}}]
+        text=observation_text(rows,'fast')
+        self.assertIn('기존 가속 지표 1건',text);self.assertIn('후보 없음',text)
+    def test_separate_fast_and_wave_roles(self):
         from magi2.telegram_ui import observation_text
-        text=observation_text([{'event_ts_ms':1,'asset':'BTC','strategy_tag':'WHALE','direction':'UNKNOWN',
-               'heuristic_score':70.5,'evidence':{'amount':1080}}])
-        self.assertIn('입출금 방향 미확인',text);self.assertIn('1,080.00 BTC',text)
-        self.assertIn('규모점수 70.5',text)
+        rows=[{'event_ts_ms':1000,'asset':'BTC','strategy_tag':'WHALE','direction':'UNKNOWN','heuristic_score':70.5,'evidence':{'amount':1080}},
+              {'event_ts_ms':2000,'asset':'ETH','strategy_tag':'FAST','direction':'BUY','heuristic_score':90,
+               'evidence':{'fast_rule_version':'fast-rise-v1','venue':'upbit','return_bps':25,'volume_ratio':3,'coverage_ms':9000}}]
+        fast=observation_text(rows,'fast');wave=observation_text(rows,'wave')
+        self.assertIn('+0.25%',fast);self.assertIn('3.00배',fast);self.assertNotIn('1,080',fast)
+        self.assertIn('1,080.00 BTC',wave);self.assertIn('독립 매매 전략이 아닙니다',wave)
+        self.assertNotIn('ETH',wave);self.assertNotIn('규모점수',wave)

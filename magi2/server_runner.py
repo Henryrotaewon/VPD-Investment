@@ -230,7 +230,7 @@ def return_magi1_state(session):
     telegram('\n'.join(lines))
 
 
-def signals_text():
+def signals_text(view='signals'):
     path=os.getenv('MAGI1_INTELLIGENCE_PATH','').strip()
     url=os.getenv('MAGI1_INTELLIGENCE_URL','').strip()
     if not path and not url:
@@ -240,7 +240,7 @@ def signals_text():
               fetch_intelligence(url,os.getenv('MAGI_INTELLIGENCE_TOKEN',''),int(time.time()*1000)))
     except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
         return '⚡ FAST · Whale 신호\n최신 관측을 확인할 수 없습니다. 파일 누락·만료·형식을 점검해야 합니다.'
-    return observation_text(rows)
+    return observation_text(rows,view)
 
 
 def may_execute(chat_id,user_id):
@@ -276,7 +276,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram(f'🤖 봇 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초\nMAGI1·MAGI3 운영 상태: 이 화면에서는 미조회')
         elif cmd in ('magi3','execution','shadow','orders','assets'): telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text())
-        elif cmd=='signals': telegram(signals_text())
+        elif cmd in ('signals','fast','wave'): telegram(signals_text(cmd))
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
         log(f'Command failed [{cmd}]: {type(e).__name__}')
