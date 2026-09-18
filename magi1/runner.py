@@ -23,6 +23,7 @@ from .timing_quality import pair_resolution_matrix
 from .event_scan import publish_new_events
 from .intelligence import publish_intelligence
 from .intelligence_http import serve as serve_intelligence
+from .wave_analysis import run as run_wave_analysis
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -142,6 +143,7 @@ class App:
         self.collector_task=asyncio.create_task(self.collector.run())
         consumer=asyncio.create_task(self.consume())
         tasks=[asyncio.create_task(f()) for f in (self.ticks,self.vpd_loop,self.onchain_loop,self.derivatives_loop,self.universe_loop)]
+        tasks.append(asyncio.create_task(run_wave_analysis(self.storage.root,LOG)))
         if os.getenv('MAGI1_INTELLIGENCE_HTTP_ENABLED') == '1':
             tasks.append(asyncio.create_task(serve_intelligence(self.storage.root,LOG)))
         if os.getenv('MAGI1_DRIVE_ARCHIVE_ENABLED') == '1':
