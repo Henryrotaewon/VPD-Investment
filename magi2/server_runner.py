@@ -180,6 +180,24 @@ def setup_telegram_menu():
     log('MAGI Telegram menu registered: Korean v4')
 
 
+def refresh_telegram_keyboard():
+    """Replace a client's persistent legacy keyboard once per menu/chat version."""
+    marker=STATE_DIR/'telegram_keyboard.json'
+    expected={'version':'magi-menu-v4','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    try:
+        if load_json(marker)==expected: return
+    except (OSError,ValueError): pass
+    telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
+        'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
+               '📊 VPD 모의투자: 가상자금 현황\n💼 실계좌 자산: 거래소 실제 잔고\n'
+               '🤖 시스템 상태: MAGI1·2·3 선택\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
+        'reply_markup':main_keyboard()})
+    marker.parent.mkdir(parents=True,exist_ok=True)
+    temporary=marker.with_suffix('.tmp')
+    temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
+    log('MAGI reply keyboard refreshed: magi-menu-v4')
+
+
 def start_engine(mode):
     global ENGINE_JOB, ENGINE_MODE
     if ENGINE_JOB is not None and not ENGINE_JOB.done():
@@ -375,6 +393,8 @@ def main():
     except Exception as e: log(f'Initial GitHub PAPER backup error (engine unaffected): {e}')
     try: setup_telegram_menu()
     except Exception as e: log(f'Telegram menu registration failed: {type(e).__name__}')
+    try: refresh_telegram_keyboard()
+    except Exception as e: log(f'Telegram keyboard refresh failed: {type(e).__name__}')
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
         log('intelligence_probe: '+signals_text().replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')

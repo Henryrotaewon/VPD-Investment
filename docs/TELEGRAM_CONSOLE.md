@@ -41,3 +41,11 @@
 현재 MAGI2 privateNetworkEndpoint는 vpd-investment다. MAGI3 문서의 MAGI2_SHADOW_SIGNALS_URL은 http://vpd-investment.railway.internal:8082/signals다. 서비스 표시 이름을 바꿀 경우 이 엔드포인트를 유지하는지 확인해야 하며, DNS를 바꾸려면 호출측 URL도 함께 바꾸고 인증된 내부 통신을 재검증한다. 프로젝트/서비스 ID, 볼륨, 소스 연결, 토큰, 실행 중단 설정을 보존한다. GitHub 저장소명 VPD-Investment는 별도이며 Pages·백업 경로 등 영향 범위가 있으므로 동시에 변경하지 않는다.
 
 공식 문서: https://core.telegram.org/bots/api#setmydescription , https://docs.railway.com/networking/private-networking
+
+### 기존 채팅 버튼 갱신
+
+`setMyCommands`는 슬래시 명령 목록을 갱신하지만 기존 ReplyKeyboard를 교체하지 않는다.
+시작 시 현재 버튼을 포함한 안내 메시지를 한 번 전송하고, 성공한 메뉴 버전·채팅·봇을
+영구 상태 디렉터리에 기록한다. 전송 실패 시 성공 기록을 남기지 않는다.
+수동 갱신은 `/menu` 또는 `/help`. 기존 자산보고/통합자산/실행상태 버튼 입력도 호환된다.
+Railway 서비스 표시 이름은 MAGI2-Strategy, 내부 주소는 기존 vpd-investment를 유지한다.
