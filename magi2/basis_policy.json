@@ -1,0 +1,45 @@
+{
+  "version": "basis-plan-v1",
+  "stage": "RESEARCH_PREPARATION",
+  "live_enabled": false,
+  "allocated_real_capital_pct": 0,
+  "universe": ["BTC", "ETH"],
+  "same_venue_required": true,
+  "same_quote_required": true,
+  "linear_contract_only": true,
+  "allow_borrowing": false,
+  "max_quote_age_ms": 1500,
+  "max_pair_skew_ms": 500,
+  "max_delta_mismatch_pct": 0.1,
+  "min_margin_to_futures_notional": 1.0,
+  "min_cash_reserve_to_futures_notional": 0.2,
+  "max_unhedged_ms": 2000,
+  "DATED": {
+    "min_days_to_expiry": 7,
+    "max_days_to_expiry": 90,
+    "min_net_return_on_capital_bps": 50,
+    "min_net_simple_annualized_pct": 5
+  },
+  "PERPETUAL": {
+    "review_horizon_hours": 24,
+    "max_holding_hours": 72,
+    "min_positive_funding_fraction": 0.75,
+    "funding_lookback_days": 7,
+    "min_stressed_net_return_on_capital_bps": 10,
+    "positive_funding_haircut": 0.5,
+    "adverse_exit_basis_bps": 30
+  },
+  "exit": {
+    "max_net_capital_loss_bps": 50,
+    "max_margin_utilization_pct": 30,
+    "min_liquidation_distance_pct": 30,
+    "min_marked_margin_to_notional_pct": 75
+  },
+  "validation": {
+    "min_observation_days": 30,
+    "min_paired_roundtrips": 50,
+    "min_heldout_days": 14,
+    "min_unseen_expiries_for_dated": 2,
+    "manual_release_required": true
+  }
+}
