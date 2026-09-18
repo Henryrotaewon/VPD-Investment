@@ -9,7 +9,9 @@ def make_app(token,readers):
     async def get(request):
         if not hmac.compare_digest(request.headers.get('Authorization','').encode(),('Bearer '+token).encode()):
             raise web.HTTPUnauthorized()
-        result=readers[request.path]()
+        try:
+            result=readers[request.path](request) if request.path=='/orders/recent' else readers[request.path]()
+        except (ValueError,OverflowError):raise web.HTTPBadRequest(text='INVALID_WINDOW')
         if result is None:raise web.HTTPServiceUnavailable(text='SNAPSHOT_NOT_READY')
         return web.Response(text=encode(result),content_type='application/json',headers={'Cache-Control':'no-store'})
     app=web.Application()

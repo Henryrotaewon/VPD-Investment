@@ -65,5 +65,20 @@ class RuntimeStore:
         return self.rows('''SELECT o.*,f.qty,f.notional,f.fee,f.realized FROM orders o
             LEFT JOIN fills f ON f.order_id=o.id ORDER BY o.ts_ms DESC LIMIT ?''',(limit,))
 
+    def orders_window(self,until=None,offset=0):
+        now=time.time_ns()//1000000
+        until=now if until is None else int(until)
+        offset=int(offset)
+        if until<0 or until>now+5000 or offset<0:raise ValueError('INVALID_WINDOW')
+        since=until-72*60*60*1000
+        with self.lock:
+            total=self.rows('SELECT COUNT(*) AS n FROM orders WHERE ts_ms>=? AND ts_ms<=?',(since,until))[0]['n']
+            orders=self.rows('''SELECT o.*,f.qty,f.notional,f.fee,f.realized FROM orders o
+                LEFT JOIN fills f ON f.order_id=o.id WHERE o.ts_ms>=? AND o.ts_ms<=?
+                ORDER BY o.ts_ms DESC,o.id DESC LIMIT 20 OFFSET ?''',(since,until,offset))
+        return {'mode':'SHADOW','generated_ts_ms':now,'since_ts_ms':since,'until_ts_ms':until,
+                'offset':offset,'total':total,'orders':orders,
+                'next_offset':offset+len(orders) if offset+len(orders)<total else None}
+
     def close(self):
         with self.lock:self.db.close()

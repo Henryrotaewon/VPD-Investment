@@ -49,6 +49,7 @@ async def run():
                         'feed_status':'STARTING','loop_status':'STARTING','persistent':True})
     app=make_app(token,{'/status':lambda:store.get('status'),'/accounts':lambda:store.get('accounts'),
                         '/shadow':lambda:store.get('shadow'),
+                        '/orders/recent':lambda request:store.orders_window(request.query.get('until'),request.query.get('offset',0)),
                         '/orders':lambda:{'mode':'SHADOW','generated_ts_ms':stamp(),'orders':store.recent_orders()}})
     runner=web.AppRunner(app,access_log=None);await runner.setup()
     await web.TCPSite(runner,os.getenv('MAGI3_HTTP_BIND','::'),int(os.getenv('MAGI3_HTTP_PORT','8083'))).start()
