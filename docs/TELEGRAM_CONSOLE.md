@@ -152,3 +152,12 @@ real-account holdings, Shadow holdings/order history and legacy on-chain views.
 Positive holdings smaller than 0.1 display as `<0.1` to avoid implying zero.
 This is presentation-only; balances, stored JSON, valuation and order precision
 are unchanged. Money, prices and return percentages retain their own formats.
+
+## Trading preparation guides
+
+Strategy validation now includes `BASIS · 현선물 준비` alongside WAVE/VPD/FAST.
+WAVE and FAST descriptions read the versioned preparation policy; BASIS explains
+dated cash-and-carry separately from perpetual funding carry. These are read-only
+guides. Opening them never starts execution or a new simulation.
+See [WAVE/FAST plan](WAVE_FAST_TRADE_PLAN.md) and [BASIS plan](BASIS_TRADE_PLAN.md).
+Pure decision/calculation helpers are not wired to any deployed execution loop.

@@ -1,10 +1,13 @@
 """Read-only strategy explanations; opening a guide never authorizes execution."""
 import json
 from pathlib import Path
+from magi2.trade_plan import strategy_plan_text
+from magi2.basis_plan import basis_text
 
 
 def strategy_keyboard(detail=False,fast=False):
     rows=[[{'text':name,'callback_data':'guide:'+name.lower()} for name in ('WAVE','VPD','FAST')]]
+    rows.append([{'text':'⚖️ BASIS · 현선물 준비','callback_data':'guide:basis'}])
     if fast:rows.append([{'text':'📊 거래소별 신호·오탐 비교','callback_data':'nav:fast_compare'}])
     if detail:rows.append([{'text':'↩️ 전략검증','callback_data':'nav:strategies'}])
     rows.append([{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}])
@@ -12,15 +15,10 @@ def strategy_keyboard(detail=False,fast=False):
 
 
 def strategy_text(name):
-    if name=='wave':
-        return ('🌐 WAVE · 글로벌 시장 움직임의 시작과 확산\n\n'
-                '간단 설명\n여러 거래소에서 같은 종목의 움직임을 비교해 어디서 먼저 시작됐고 어디로 퍼지는지 살펴봅니다. WHALE은 이를 보조하는 온체인 자료입니다.\n\n'
-                '매매 공략 · 연구 가설\n'
-                '① 한 거래소의 급등만으로 진입하지 않고 다른 거래소의 후속 움직임과 거래 참여 확대를 확인합니다.\n'
-                '② 후행 거래소에서 확산이 이어지고 스프레드·유동성이 허용될 때 진입 후보로 검토합니다. 이미 과도하게 오른 구간은 추격하지 않습니다.\n'
-                '③ 전파 약화·선행 움직임 반전·제한 시간 초과를 청산 조건으로 연구합니다. 진입·청산 수치는 아직 확정하지 않았습니다.\n\n'
-                '검증 포인트\n거래소별 수신 지연을 고려해 가짜 선행성을 걸러냅니다. WHALE 없이 분석한 WAVE와 WHALE을 추가한 WAVE를 같은 기간·같은 조건에서 비교해 예측력·오탐률·비용 차감 손익이 개선되는지 검증합니다. 이는 검증 계획이며 개선 효과가 입증된 것은 아닙니다.\n\n'
-                '현재 단계\n최근 24시간 신호 강도·전파 근거·매매 가능성을 /wave에서 조회합니다. 기존 사건 목록의 시간 이동 대조군은 탐색 분석이며 사건 선별 편향·장세 차이·반복 관측을 모두 제거한 예측 검증은 아닙니다. 매매 규칙은 연구 단계입니다. WHALE 원본은 보조지표 검증용으로만 보존하며 독립 조회 버튼은 제공하지 않습니다. 지갑 소유·거래소 입출금 방향이 미확인인 큰 거래만으로 매수·매도를 판단하지 않습니다. 자동매매 연결·수익성 검증 완료를 뜻하지 않습니다.')
+    if name=='basis':
+        return basis_text()
+    if name in ('wave','fast'):
+        return strategy_plan_text(name.upper())
     if name=='vpd':
         cfg=json.loads((Path(__file__).with_name('config.json')).read_text())
         top=cfg['session']['top_n']; hold=cfg['hold']; exits=cfg['exit']
@@ -34,14 +32,4 @@ def strategy_text(name):
                 '④ 리밸런싱은 보유 종목 재조정, 종목 리필은 기존 보유분을 팔지 않고 빈자리를 채우는 기능입니다.\n\n'
                 '검증 포인트\n수수료·슬리피지 차감 손익, 최대 손실폭, 보유 기간과 순위 교체 효과를 확인합니다. 실제 수익률은 VPD 모의투자 → 현황 보고에서 조회하세요.\n\n'
                 '현재 단계\nPAPER 운영 중입니다. 실제 계좌 자산·MAGI3 Shadow와는 별도이며 실거래 수익을 의미하지 않습니다.')
-    if name=='fast':
-        return ('⚡ FAST · 단기 순위 급등 포착과 짧은 반복 매매\n\n'
-                '간단 설명\n거래소별 5분 상승률과 순위 급변으로 후보를 찾고, 상위 소수 종목만 잠깐 집중 관찰합니다. 전 종목 호가를 상시 저장하지 않습니다.\n\n'
-                '매매 공략 · 새 연구 로직\n'
-                '① 가벼운 현재가 스냅샷으로 Top Riser·순위 급상승을 탐색합니다. 운영 감시는 5분 탐색·거래소별 최대 5종목·후보별 15분 관찰입니다.\n'
-                '② 후보의 짧은 고점 재돌파를 확인하고 스프레드·잔량 조건이 맞을 때 모의 진입합니다. 순위 상승만으로 바로 매수하지 않습니다.\n'
-                '③ 수수료·슬리피지 차감 후 작은 순익 목표, 손절, 돌파 실패, 시간 초과를 기준으로 빠르게 청산합니다.\n'
-                '④ 청산 후 대기·새 돌파 조건을 충족하면 재진입합니다. 5~6회나 10~15회를 억지로 채우지 않으며 연구 세션 진입은 최대 15회로 제한합니다.\n\n'
-                '검증 포인트\n회전 횟수보다 거래당 순손익·누적 손실·늦은 추격 비율을 봅니다. 몇 틱 이익도 왕복 비용보다 작으면 손실입니다.\n\n'
-                '현재 단계\n공개 현재가·후보 호가 감시와 초기 상승 포착을 운영합니다. FAST 포착에서 최근 24시간 강한 매수세와 경과를 조회합니다. 알림은 매수 주도 거래대금 비중 70% 이상·유효 체결 표본 20개 이상·스프레드 0.10% 이하·돌파폭 0.10% 이상으로 제한합니다. 동일 종목은 거래소를 합쳐 1시간 1회, 전체 최대 3회/시간이며 알림 간 최소 10분을 둡니다. 강도는 예측확률이 아니며 확률 모델은 아직 미검증입니다. 호가 조회·판단 목표는 1초이며 네트워크 지연 시 건너뜁니다. 실주문 OFF. FAST 예산은 보유액·미체결·매수 수수료를 포함해 총 투자자산 5% 미만으로 설계했습니다. 실주문 실행기 전체 연결과 체결·청산 복구 검증은 아직 완료되지 않았습니다.')
     raise ValueError('UNKNOWN_STRATEGY_GUIDE')
