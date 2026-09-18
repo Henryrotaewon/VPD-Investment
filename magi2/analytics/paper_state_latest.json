@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 82139.82170046086,
+  "cash_krw": 453996.64317031956,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -610,8 +610,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3.86,
-      "peak_price": 3.86,
+      "last_price": 3.88,
+      "peak_price": 3.88,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
       "hold_signal_reasons": [
@@ -1369,8 +1369,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 190.0,
-      "peak_price": 190.0,
+      "last_price": 191.0,
+      "peak_price": 191.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -3252,7 +3252,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1394.0,
+      "last_price": 1380.0,
       "peak_price": 1394.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3420,7 +3420,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1374.0,
+      "last_price": 1372.0,
       "peak_price": 1374.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3469,7 +3469,7 @@
     },
     "PLUME": {
       "market": "KRW-PLUME",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-14T07:32:03.066526+09:00",
       "entry_session": "AM",
       "entry_session_id": "2026-09-14-AM-001",
@@ -3488,8 +3488,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 19.1,
-      "peak_price": 19.1,
+      "last_price": 19.5,
+      "peak_price": 19.5,
       "tp_warning_sent": true,
       "sl_warning_sent": false,
       "hold_signal_reasons": [
@@ -3499,7 +3499,14 @@
       ],
       "hold_signal_checked_at": "2026-09-18T07:26:25.761425+09:00",
       "hold_state": "ACTIVE",
-      "weakening_count": 0
+      "weakening_count": 0,
+      "exit_at": "2026-09-18T19:04:51.377706+09:00",
+      "exit_price": 19.5,
+      "sell_fee_krw": 186.02142144565218,
+      "net_proceeds_krw": 371856.8214698587,
+      "pnl_krw": 41292.77470251592,
+      "return_pct": 12.491610962028954,
+      "exit_reason": "TAKE_PROFIT"
     },
     "WLFI": {
       "market": "KRW-WLFI",
@@ -4327,8 +4334,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 71136.51367278898,
-  "lifetime_realized_pnl_krw": 337822.3711338287,
+  "realized_pnl_krw": 112429.2883753049,
+  "lifetime_realized_pnl_krw": 379115.1458363446,
   "paper_only": true,
   "cohort_id": "2026-09-18-AM-001",
   "cohort_date": "2026-09-18",
@@ -4337,7 +4344,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-18T18:14:41.310195+09:00",
+  "updated_at": "2026-09-18T19:04:51.378125+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
