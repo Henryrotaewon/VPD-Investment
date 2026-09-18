@@ -17,18 +17,19 @@ COMMANDS = [
     ('shadow', 'Shadow 모의 자산·손익'), ('orders', 'Shadow 주문·체결 원장'),
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
-    ('signals', 'FAST 후보 · WAVE 기초자료 요약'),
-    ('fast', '거래소별 급등 후보'), ('wave', '글로벌 WAVE 검토용 온체인 근거'), ('strategies', '전략 검증 기준'),
+    ('signals', 'FAST·WHALE 합쳐보기 · 기존 명령'),
+    ('fast', '거래소별 급등 후보'), ('wave', 'WHALE 온체인 참고 · WAVE 분석 아님'), ('strategies', '전략 검증 기준'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets', '🔎 VPD 조회': 'scan',
     '🧪 Shadow 자산': 'shadow', '📒 Shadow 원장': 'orders',
-    '⚡ FAST 후보': 'fast', '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
+    '⚡ FAST 후보': 'fast', '🐋 WHALE 참고': 'wave', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about', '❓ 도움말': 'help', '📋 메뉴': 'menu',
 }
 ALIASES = {
+    '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals',
     '🔄 paper 리밸런싱': 'morning', '♻️ paper 빈자리 채우기': 'refill',
     '리밸런싱': 'morning', '리벨런싱': 'morning', '종목리필': 'refill', '종목 리필': 'refill',
     '📊 자산보고': 'report', '💼 통합자산': 'assets', '🤖 상태': 'status',
@@ -81,7 +82,7 @@ def role_text():
 
 def role_keyboard():
     groups = [
-        [('MAGI1 · FAST 후보','fast'), ('MAGI1 · WAVE 근거','wave')],
+        [('MAGI1 · FAST 후보','fast'), ('MAGI1 · WHALE 참고','wave')],
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
         [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · Shadow','shadow')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
@@ -115,7 +116,7 @@ def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/vpd — VPD 모의투자 메뉴 (현황·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
-            '/signals — FAST 후보·WAVE 기초자료 요약\n/fast — 거래소 내 급등 후보\n/wave — WAVE 검토용 온체인 근거\n/strategies — 전략 검증 기준\n'
+            '/signals — FAST·WHALE 합쳐보기 (기존 명령)\n/fast — 거래소 내 급등 후보\n/wave — WHALE 온체인 참고 (WAVE 분석 미연결)\n/strategies — 전략 검증 기준\n'
             '/shadow — Shadow 모의 자산·손익\n/orders — Shadow 주문·체결 원장\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 리밸런싱\n/refill — 빈자리 채우기\n'
@@ -145,15 +146,20 @@ def observation_text(rows,view='signals'):
         if not fast:lines.append('현재 기준을 충족한 후보 없음')
         if legacy:lines.append(f'기존 가속 지표 {legacy}건은 새 FAST 후보에서 제외했습니다.')
     if view in ('signals','wave'):
-        lines+=['','🌐 글로벌 WAVE 검토 — WHALE 기초자료',
+        lines+=['','🐋 WHALE 참고 — 대규모 온체인 거래',
                 'WHALE은 WAVE의 여러 입력 중 하나이며 독립 매매 전략이 아닙니다.',
+                '거래소 간 WAVE 시작·확산 분석은 이 화면에 아직 연결되지 않았습니다.',
                 f'{len(whale)}건 중 최근 {min(15,len(whale))}건']
         for r in whale[-15:]:
             e=r.get('evidence',{});amount=e.get('amount')
             amount_text=f"{amount:,.2f} {r['asset']}" if isinstance(amount,(int,float)) else '전송량 미확인'
-            lines.append(f"{clock(r)} · {amount_text} | {r['direction']} | {e.get('classification','unclassified')}")
+            raw=e.get('classification')=='unclassified_public_raw' or (e.get('transaction') or {}).get('raw_provider')=='blockchain-info-public-ws'
+            amount_label='거래 출력 합계' if raw else '관측 수량'
+            status=(e.get('transaction') or {}).get('confirmation_status')
+            confirmation='미확정 거래' if status=='UNCONFIRMED' else '확정 상태 미확인'
+            lines.append(f"{clock(r)} · {amount_label} {amount_text} · {confirmation}")
         if not whale:lines.append('이 구간의 대규모 전송 관측 없음')
-        lines+=['주소 소유·거래소 입출금 방향이 확인되지 않으면 UNKNOWN입니다. 거스름돈·내부 이동이 포함될 수 있습니다.',
+        lines+=['지갑 소유자·거래소 입출금 여부·매수/매도 방향은 확인되지 않았습니다. 거래 출력 합계에는 거스름돈·내부 이동이 포함될 수 있습니다. 고래 순이동량이나 매매량을 뜻하지 않습니다.',
                 '이 화면은 온체인 참고자료입니다. 거래소 간 전파·선행성 분석의 전체 결과가 아닙니다.']
     lines+=['','현재는 후보·근거 조회이며 수익성 검증 성적표가 아닙니다. /strategies']
     return '\n'.join(lines)
