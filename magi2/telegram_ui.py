@@ -18,17 +18,18 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST 후보 조회 · 기존 명령'),
-    ('fast', '거래소별 급등 후보'), ('strategies', '전략 검증 기준'),
+    ('fast', 'FAST 자동 감시 상태'), ('strategies', '전략 검증 기준'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
     '🧪 shadows 모의투자': 'shadows',
-    '⚡ FAST 후보': 'fast', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
+    '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '⚡ fast 후보': 'fast',
     '🧪 shadow 자산': 'shadow', '📒 shadow 원장': 'orders', 'shadows 모의투자': 'shadows',
     '🐋 whale 참고': 'wave',
     '🔎 vpd 조회': 'scan', '❓ 도움말': 'help', '📋 메뉴': 'menu',
@@ -85,7 +86,6 @@ def role_text():
 
 def role_keyboard():
     groups = [
-        [('MAGI1 · FAST 후보','fast')],
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
         [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
@@ -128,7 +128,7 @@ def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
-            '/signals — FAST 후보 조회 (기존 명령)\n/fast — 거래소 내 급등 후보\n/wave — WAVE 전략·보조지표 검증 안내 (기존 명령)\n/strategies — 전략 검증 기준\n'
+            '/signals · /fast — FAST 자동 감시 상태\n/wave — WAVE 전략·보조지표 검증 안내 (기존 명령)\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 리밸런싱\n/refill — 빈자리 채우기\n'
