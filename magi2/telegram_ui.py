@@ -14,7 +14,7 @@ COMMANDS = [
     ('help', 'MAGI 도움말 · 전체 명령어'), ('about', 'MAGI 소개 · 역할별 메뉴'), ('menu', '버튼 메뉴 열기'),
     ('status', 'MAGI1·2·3 상태 선택'), ('vpd', 'VPD 모의투자 메뉴'), ('report', 'VPD 모의투자 현황'),
     ('assets', '실계좌 자산 · 거래소별 조회'),
-    ('shadow', 'Shadow 모의 자산·손익'), ('orders', 'Shadow 주문·체결 원장'),
+    ('shadows', 'shadows 모의투자 메뉴'), ('shadow', 'Shadow 현재 자산현황'), ('orders', 'Shadow 최근 3일 매매이력'),
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST 후보 조회 · 기존 명령'),
@@ -24,11 +24,12 @@ COMMANDS = [
 ]
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
-    '🧪 Shadow 자산': 'shadow', '📒 Shadow 원장': 'orders',
+    '🧪 shadows 모의투자': 'shadows',
     '⚡ FAST 후보': 'fast', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '🧪 shadow 자산': 'shadow', '📒 shadow 원장': 'orders', 'shadows 모의투자': 'shadows',
     '🐋 whale 참고': 'wave',
     '🔎 vpd 조회': 'scan', '❓ 도움말': 'help', '📋 메뉴': 'menu',
     '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals',
@@ -86,11 +87,18 @@ def role_keyboard():
     groups = [
         [('MAGI1 · FAST 후보','fast')],
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
-        [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · Shadow','shadow')],
+        [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
     ]
     return {'inline_keyboard': [[{'text': label, 'callback_data': 'nav:'+cmd}
                                 for label,cmd in row] for row in groups]}
+
+
+def shadow_keyboard():
+    return {'inline_keyboard': [
+        [{'text': '📊 자산현황(현재)', 'callback_data': 'nav:shadow'},
+         {'text': '📒 최근 3일 매매이력', 'callback_data': 'nav:orders'}],
+        [{'text': '↩️ 메인 메뉴', 'callback_data': 'nav:menu'}]]}
 
 
 def vpd_keyboard():
@@ -121,7 +129,7 @@ def help_text():
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/signals — FAST 후보 조회 (기존 명령)\n/fast — 거래소 내 급등 후보\n/wave — WAVE 전략·보조지표 검증 안내 (기존 명령)\n/strategies — 전략 검증 기준\n'
-            '/shadow — Shadow 모의 자산·손익\n/orders — Shadow 주문·체결 원장\n'
+            '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 리밸런싱\n/refill — 빈자리 채우기\n'
             '/cancel — 대기 중 확인 취소 (진행 중 작업 중단 아님)\n\n'
