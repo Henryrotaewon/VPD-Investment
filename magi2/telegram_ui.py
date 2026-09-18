@@ -23,12 +23,13 @@ COMMANDS = [
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
 LABELS = {
-    '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets', '🔎 VPD 조회': 'scan',
+    '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
     '🧪 Shadow 자산': 'shadow', '📒 Shadow 원장': 'orders',
     '⚡ FAST 후보': 'fast', '🐋 WHALE 참고': 'wave', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
-    '🧩 MAGI 역할': 'about', '❓ 도움말': 'help', '📋 메뉴': 'menu',
+    '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '🔎 vpd 조회': 'scan', '❓ 도움말': 'help', '📋 메뉴': 'menu',
     '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals',
     '🔄 paper 리밸런싱': 'morning', '♻️ paper 빈자리 채우기': 'refill',
     '리밸런싱': 'morning', '리벨런싱': 'morning', '종목리필': 'refill', '종목 리필': 'refill',
@@ -93,7 +94,8 @@ def role_keyboard():
 
 def vpd_keyboard():
     return {'inline_keyboard': [
-        [{'text': '📊 현황 보고', 'callback_data': 'nav:report'}],
+        [{'text': '📊 현황 보고', 'callback_data': 'nav:report'},
+         {'text': '🔎 VPD 조회', 'callback_data': 'nav:scan'}],
         [{'text': '🔄 리밸런싱', 'callback_data': 'nav:morning'},
          {'text': '♻️ 종목 리필', 'callback_data': 'nav:refill'}],
         [{'text': '↩️ 메인 메뉴', 'callback_data': 'nav:menu'}],
@@ -109,12 +111,13 @@ def status_keyboard():
 
 def scan_keyboard():
     return {'inline_keyboard': [[{'text': '🌅 오전 VPD', 'callback_data': 'nav:morning_scan'},
-                                 {'text': '🌙 저녁 VPD', 'callback_data': 'nav:evening_scan'}]]}
+                                 {'text': '🌙 저녁 VPD', 'callback_data': 'nav:evening_scan'}],
+        [{'text': '↩️ VPD 모의투자', 'callback_data': 'nav:vpd'}]]}
 
 
 def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
-            '/vpd — VPD 모의투자 메뉴 (현황·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
+            '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/signals — FAST·WHALE 합쳐보기 (기존 명령)\n/fast — 거래소 내 급등 후보\n/wave — WHALE 온체인 참고 (WAVE 분석 미연결)\n/strategies — 전략 검증 기준\n'
             '/shadow — Shadow 모의 자산·손익\n/orders — Shadow 주문·체결 원장\n'

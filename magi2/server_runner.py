@@ -177,25 +177,25 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v6')
+    log('MAGI Telegram menu registered: Korean v7')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v6','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v7','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
         'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
-               '📊 VPD 모의투자: 현황 보고 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
+               '📊 VPD 모의투자: 현황 보고 · VPD 조회 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
                '🤖 시스템 상태: MAGI1·2·3 선택\n🐋 WHALE 참고: 온체인 거래 참고자료\n신호조회는 /signals로 합쳐보기만 제공합니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v6')
+    log('MAGI reply keyboard refreshed: magi-menu-v7')
 
 
 def start_engine(mode):
@@ -285,7 +285,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram(help_text() if cmd=='help' else '📋 MAGI 메뉴\n시장 관측 · 전략 검증 · 자산 관리\n실계좌 조회·PAPER·Shadow를 구분해 표시합니다.\n역할별 안내는 🧩 MAGI 역할을 누르세요.',main_keyboard())
         elif cmd=='vpd':
             telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n'
-                     '현황 보고: 보유 종목·손익 조회\n리밸런싱: 보유 종목 재조정\n종목 리필: 빈자리 채우기\n'
+                     '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\n리밸런싱: 보유 종목 재조정\n종목 리필: 빈자리 채우기\n'
                      '실행 버튼을 누르면 먼저 확인 화면이 열립니다.',vpd_keyboard())
         elif cmd=='about': telegram(role_text(),role_keyboard())
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
