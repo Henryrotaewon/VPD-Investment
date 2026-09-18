@@ -110,3 +110,10 @@ Export for later analysis (JSONL, no alteration/deletion of history):
 `python -m magi3.fast_audit /data/magi2/fast_evidence.sqlite3 --since-ms <UTC_epoch_ms> --until-ms <UTC_epoch_ms>`
 
 These events support detection/order verification, not by themselves a complete profitability backtest: unobserved future prices and slippage cannot be invented. No historical evidence is backfilled from old console lines.
+
+### Venue comparison report
+`전략검증 → FAST → 거래소별 신호·오탐 비교` or `/fast_compare` shows a rolling 72-hour report. Counts are deduplicated by signal ID and grouped by venue. The 5-minute non-rising proportion is an explicitly named false-discovery proxy: first valid bid observed 300–305 seconds after detection versus detection ask, return <=0. This includes spread but no fees, is not trading P&L, and is not the statistical false-positive rate among all negative market events. Evaluated sample sizes <30 are marked insufficient; no venue ranking is asserted.
+
+Forward samples are collected only during the existing 15-minute candidate window; observation is not extended. Late detections, restart loss, gaps and historical events lacking a sample are pending until the deadline and then unavailable, never failures or successes. Evaluation version `forward-5m-bid-v1` is separate from detection version `fast-auto-v1`. No older outcomes are reconstructed.
+
+SCAN_COMPLETED records the eligible ranked universe per completed scan. Normalized signal frequency counts only signals joined to their recorded selection scan divided by summed ranked symbol counts, per 1,000 symbol-scans. This avoids assigning pre-instrumentation signals to newly collected denominators; the joined signal count is shown. It does not remove venue differences in market composition or outages. Absolute signal counts are also shown.

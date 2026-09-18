@@ -333,6 +333,9 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='assets': telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd=='wave': telegram(strategy_text('wave'),strategy_keyboard(detail=True))
+        elif cmd=='fast_compare':
+            from magi2.fast_comparison import report
+            telegram(report(FAST_MONITOR.audit,time.time_ns()//1000000) if FAST_MONITOR else 'FAST 검증 자료 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
         elif cmd in ('signals','fast'): telegram(FAST_MONITOR.summary() if FAST_MONITOR else 'FAST 자동 감시 시작 전입니다.')
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
@@ -367,10 +370,10 @@ def handle_callback(callback):
     elif data.startswith('guide:'):
         name=data[6:]
         if name in ('wave','vpd','fast'):
-            telegram(strategy_text(name),strategy_keyboard(detail=True))
+            telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','strategies'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','strategies'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
