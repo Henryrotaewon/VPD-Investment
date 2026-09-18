@@ -75,6 +75,30 @@ def help_text():
             'VPD 조회는 신규 스캔을 실행하지 않습니다. 실거래 시작 명령은 제공하지 않습니다.')
 
 
+def observation_text(rows):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    ordered=sorted(rows,key=lambda r:(r['event_ts_ms'],r.get('observation_id','')))
+    lines=['⚡ FAST · Whale 관측 [매매 지시 아님]',
+           f'최근 5분 {len(rows)}건 중 최근 {min(15,len(rows))}건 · 시각 KST',
+           '점수는 관측 강도이며 성공확률이 아닙니다.','']
+    directions={'BUY':'상승 쪽 가속','SELL':'하락 쪽 가속'}
+    for row in ordered[-15:]:
+        clock=datetime.fromtimestamp(row['event_ts_ms']/1000,ZoneInfo('Asia/Seoul')).strftime('%H:%M:%S')
+        evidence=row.get('evidence',{});score=row['heuristic_score']
+        if row['strategy_tag']=='FAST':
+            label=directions.get(row['direction'],'방향 미확인')
+            lines.append(f"{clock} {row['asset']} · FAST · {evidence.get('venue','미확인')}\n{row['direction']} ({label}) · 강도 {score:.1f}")
+        else:
+            amount=evidence.get('amount')
+            amount_text=f" · 전송 {amount:,.2f} {row['asset']}" if isinstance(amount,(int,float)) else ''
+            lines.append(f"{clock} {row['asset']} · WHALE · onchain\n{row['direction']} (입출금 방향 미확인) · 규모점수 {score:.1f}{amount_text}")
+    if not rows:lines.append('이 관측 구간에 신호가 없습니다.')
+    lines+=['','FAST BUY는 하락 둔화도 포함합니다. WHALE 전송에는 거스름돈·내부 이동이 포함될 수 있습니다.',
+            '관측 목록이며 검증 성적표가 아닙니다. 기준은 /strategies에서 확인하세요.']
+    return '\n'.join(lines)
+
+
 def magi3_status():
     from magi2.execution_client import view
     return view('magi3')

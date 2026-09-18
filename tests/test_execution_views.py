@@ -15,3 +15,22 @@ class ExecutionViewsTests(unittest.TestCase):
     def test_stale_status_disclosed(self):
         text=render_status({'mode':'SHADOW','heartbeat_ms':1,'loop_status':'OK','feed_status':'UNAVAILABLE'})
         self.assertIn('응답 지연',text);self.assertIn('실주문 OFF',text)
+
+
+class ObservationViewTests(unittest.TestCase):
+    def test_time_order_limit_and_score_meaning(self):
+        from magi2.telegram_ui import observation_text
+        rows=[{'event_ts_ms':1000*i,'asset':'BTC','strategy_tag':'FAST','direction':'BUY',
+               'heuristic_score':100,'evidence':{'venue':'bybit'}} for i in reversed(range(20))]
+        text=observation_text(rows)
+        self.assertIn('20건 중 최근 15건',text)
+        self.assertLess(text.index('09:00:05'),text.index('09:00:19'))
+        self.assertNotIn('09:00:04',text)
+        self.assertIn('성공확률이 아닙니다',text)
+        self.assertIn('하락 둔화도 포함',text)
+    def test_whale_unknown_keeps_evidence_separate(self):
+        from magi2.telegram_ui import observation_text
+        text=observation_text([{'event_ts_ms':1,'asset':'BTC','strategy_tag':'WHALE','direction':'UNKNOWN',
+               'heuristic_score':70.5,'evidence':{'amount':1080}}])
+        self.assertIn('입출금 방향 미확인',text);self.assertIn('1,080.00 BTC',text)
+        self.assertIn('규모점수 70.5',text)
