@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import patch, Mock
 from magi2.telegram_ui import (parse_command, Confirmations, main_keyboard, help_text,
-                              COMMANDS)
+                              COMMANDS, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, role_keyboard)
 from magi2 import server_runner as server
 
 
@@ -23,6 +23,15 @@ class MenuTests(unittest.TestCase):
             self.assertEqual(parse_command('/'+command),command)
             self.assertIn('/'+command,help_text())
             self.assertLessEqual(len(description),256)
+
+    def test_profile_limits_and_role_links_are_query_only(self):
+        self.assertLessEqual(len(BOT_DESCRIPTION),512)
+        self.assertLessEqual(len(BOT_SHORT_DESCRIPTION),120)
+        for row in role_keyboard()['inline_keyboard']:
+            for button in row:
+                command=button['callback_data'].split(':',1)[1]
+                self.assertIsNotNone(parse_command(command))
+                self.assertNotIn(command,('morning','refill'))
 
     def test_confirmation_expiry_actor_and_replay(self):
         now=[1]
@@ -100,8 +109,17 @@ class RoutingTests(unittest.TestCase):
         self.assertEqual(len(calls),2)
         self.assertEqual(calls[0].args[1]['scope'],{'type':'chat','chat_id':'7'})
 
+    def test_branding_failure_does_not_block_command_registration(self):
+        def reply(method,payload):
+            if method=='getMe':return {'username':'mybot'}
+            if method=='setMyDescription':raise RuntimeError('unavailable')
+            return True
+        self.api.side_effect=reply
+        server.setup_telegram_menu()
+        self.assertTrue(any(c.args[0]=='setMyCommands' for c in self.api.call_args_list))
+
     def test_queries_never_invoke_trading(self):
-        for command in ('help','menu','status','assets','magi3','signals','strategies'):
+        for command in ('help','menu','about','status','assets','magi3','signals','strategies'):
             server.handle_command(command,'7','7')
         self.start.assert_not_called()
 
