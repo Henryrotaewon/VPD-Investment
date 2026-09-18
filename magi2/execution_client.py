@@ -21,7 +21,7 @@ def age(report,key='generated_ts_ms'):
 
 def render_shadow(r):
     elapsed=age(r)
-    lines=['🧪 Shadow 모의 실행 [실자산 아님]',f'갱신 {elapsed}초 전'+(' · 오래된 자료' if elapsed>60 else ''),
+    lines=['🧪 Shadow 자산현황(현재) [실자산 아님]',f'갱신 {elapsed}초 전'+(' · 오래된 자료' if elapsed>60 else ''),
            '가상 현금: '+money(r['cash_krw']),'총 평가: '+money(r['equity_krw']),
            '실현손익: '+money(r['realized_pnl_krw']),'평가손익: '+money(r['unrealized_pnl_krw']),
            f"수수료 가정: 편도 {r['fee_bps_per_side']:g}bps · 누적 {money(r['fees_krw'])}",'']
@@ -37,12 +37,34 @@ def render_shadow(r):
 
 
 def render_orders(r):
-    lines=['📒 Shadow 주문·체결 원장 [실주문 아님]']
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    def date(ms):return datetime.fromtimestamp(ms/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
+    def amount(value):return '—' if value is None else money(value)
+    lines=['📒 Shadow 최근 3일 매매이력 [실주문 아님]',
+           f"{date(r['since_ts_ms'])} ~ {date(r['until_ts_ms'])} KST · 최근 72시간",
+           f"전체 {r['total']}건 · {r['offset']+1 if r['orders'] else 0}~{r['offset']+len(r['orders'])}건 표시"]
     for o in r['orders']:
-        qty='-' if o['qty'] is None else f"{o['qty']:.8g}"
-        lines.append(f"{o['side']} {o['venue'].upper()} {o['asset']} {qty} | {o['status']}\n체결 {money(o['notional'])} · 수수료 {money(o['fee'])} · 실현 {money(o['realized'])}\nID {o['id'][:12]}")
-    if not r['orders']:lines.append('아직 모의 체결이 없습니다.')
+        qty='—' if o['qty'] is None else f"{o['qty']:.8g}"
+        side={'BUY':'매수','SELL':'매도'}.get(o['side'],o['side'])
+        lines.append(f"{date(o['ts_ms'])} · {side} {o['venue'].upper()} {o['asset']} {qty} | {o['status']}\n체결 {amount(o['notional'])} · 수수료 {amount(o['fee'])} · 실현 {amount(o['realized'])}")
+    if not r['orders']:lines.append('해당 기간에 모의 매매이력이 없습니다.')
     return '\n\n'.join(lines)
+
+
+def orders_page(until=None,offset=0):
+    from magi2.telegram_ui import shadow_keyboard
+    markup=shadow_keyboard()
+    try:
+        query=f'?offset={int(offset)}'+(f'&until={int(until)}' if until is not None else '')
+        r=fetch('/orders/recent'+query)
+        text=render_orders(r)
+        if r['next_offset'] is not None:
+            markup['inline_keyboard'].insert(0,[{'text':'다음 이력 ▶',
+                'callback_data':f"orders:{r['until_ts_ms']}:{r['next_offset']}"}])
+        return text,markup
+    except Exception:
+        return '최근 3일 매매이력을 불러오지 못했습니다. 잠시 후 다시 조회하세요.',markup
 
 
 def render_status(r):
@@ -56,7 +78,7 @@ def render_status(r):
 
 def view(command):
     path,renderer={'assets':('/accounts',render_accounts),'shadow':('/shadow',render_shadow),
-                   'orders':('/orders',render_orders),'magi3':('/status',render_status),
+                   'orders':('/orders/recent',render_orders),'magi3':('/status',render_status),
                    'execution':('/status',render_status)}[command]
     try:return renderer(fetch(path))
     except Exception:return 'MAGI3 조회 서비스에 연결하지 못했거나 첫 자료를 준비 중입니다. 잠시 후 다시 조회하세요. 실제 잔고나 실행 상태가 정상이라는 뜻은 아닙니다.'

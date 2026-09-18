@@ -6,7 +6,7 @@ from magi2.execution_client import view,render_status
 class ExecutionViewsTests(unittest.TestCase):
     def test_routes_do_not_start_paper_or_live(self):
         with patch.object(server,'telegram') as send,patch.object(server,'execution_view',return_value='snapshot') as read,patch.object(server,'start_engine') as trade:
-            for cmd in ('assets','shadow','orders','execution','magi3'):
+            for cmd in ('assets','shadow','execution','magi3'):
                 server.handle_command('/'+cmd,'7','7');read.assert_called_with(cmd)
             trade.assert_not_called();self.assertEqual(send.call_args.args[0],'snapshot')
     def test_service_failure_not_fake_balance(self):

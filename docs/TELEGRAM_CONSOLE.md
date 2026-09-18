@@ -85,3 +85,9 @@ VPD 조회는 VPD 모의투자 하위 메뉴에서 오전/저녁 저장본을 �
 5초 고정 대기를 제거하고 Telegram long polling을 사용한다. 25초는 요청을 지연시키는 시간이 아니라 요청이 없는 동안 서버가 대기하는 최대 시간이다. 모니터/점검 기한 전에는 대기를 줄이며 PAPER 작업 중에는 완료/실패를 빠르게 회수한다. Telegram HTTP 연결을 재사용하고 MAGI3 주기 상태 점검은 별도 단일 작업자로 분리한다. 실패 시에만 1초 대기한다. VPD 보고 요청에는 접수 안내를 보낸다.
 
 실제 외부 조회나 보고서 계산 시간은 여전히 필요하고 읽기 명령 자체는 순차 처리한다. command/handler_ms 로그는 서버 처리 시간이며 사용자 체감 종단 지연이나 외부 보고 작업 완료 시간을 뜻하지 않는다.
+
+### Shadow submenu (v9)
+- Main button `🧪 shadows 모의투자` / `/shadows`: current assets and recent three-day history.
+- `자산현황(현재)` keeps the snapshot age and stale warning; querying never starts trading.
+- `최근 3일 매매이력` / `/orders`: rolling 72 hours, KST timestamps, 20 orders per page, stable upper timestamp on subsequent pages. Includes order status and fill amount, fees and realized P&L; unavailable fill values display as unknown, not zero.
+- Private `/orders/recent` reads the persistent MAGI3 ledger with inclusive time bounds; legacy `/orders` API is unchanged. Old Telegram Shadow buttons remain aliases.

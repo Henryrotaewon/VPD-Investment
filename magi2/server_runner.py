@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
-    scan_keyboard, status_keyboard, vpd_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
+    scan_keyboard, status_keyboard, vpd_keyboard, shadow_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
 from magi2.strategy_guide import strategy_keyboard, strategy_text
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
@@ -180,25 +180,25 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v8')
+    log('MAGI Telegram menu registered: Korean v9')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v8','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v9','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
         'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
                '📊 VPD 모의투자: 현황 보고 · VPD 조회 · 리밸런싱 · 종목 리필\n💼 실계좌 자산: 거래소 실제 잔고\n'
-               '🤖 시스템 상태: MAGI1·2·3 선택\nWHALE 독립 조회를 제거했습니다. WAVE 보조지표 검증 데이터로만 보존합니다.\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
+               '🤖 시스템 상태: MAGI1·2·3 선택\n🧪 shadows 모의투자: 현재 자산현황 · 최근 3일 매매이력\n전체 명령어는 /help, 버튼 다시 열기는 /menu입니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v8')
+    log('MAGI reply keyboard refreshed: magi-menu-v9')
 
 
 def start_engine(mode):
@@ -325,7 +325,11 @@ def handle_command(text,chat_id=None,user_id=None):
             running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
             telegram(f'MAGI2 · VPD 모의투자 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초',status_keyboard())
         elif cmd in ('magi3','execution','status3'): telegram(execution_view('magi3' if cmd=='status3' else cmd),status_keyboard())
-        elif cmd in ('shadow','orders','assets'): telegram(execution_view(cmd))
+        elif cmd=='shadows':
+            telegram('🧪 shadows 모의투자\n현재 가상자산·손익과 최근 72시간 매매이력을 확인하세요.\n조회만 수행하며 모의매매를 시작하지 않습니다.',shadow_keyboard())
+        elif cmd=='shadow': telegram(execution_view(cmd),shadow_keyboard())
+        elif cmd=='orders': send_shadow_orders()
+        elif cmd=='assets': telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd=='wave': telegram(strategy_text('wave'),strategy_keyboard(detail=True))
         elif cmd in ('signals','fast'): telegram(signals_text('fast'))
@@ -335,6 +339,12 @@ def handle_command(text,chat_id=None,user_id=None):
         telegram('명령을 처리하지 못했습니다. 잠시 후 다시 시도하세요.')
     finally:
         log(f'telegram_command command={cmd or "unknown"} handler_ms={round((time.monotonic()-started)*1000)}')
+
+
+def send_shadow_orders(until=None,offset=0):
+    from magi2.execution_client import orders_page
+    text,markup=orders_page(until,offset)
+    telegram(text,markup)
 
 
 def handle_callback(callback):
@@ -348,13 +358,18 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('guide:'):
+    if data.startswith('orders:'):
+        try:
+            _,until,offset=data.split(':')
+            send_shadow_orders(int(until),int(offset))
+        except ValueError: telegram('이력 버튼이 만료되었거나 잘못되었습니다. 최근 3일 매매이력을 다시 선택하세요.',shadow_keyboard())
+    elif data.startswith('guide:'):
         name=data[6:]
         if name in ('wave','vpd','fast'):
             telegram(strategy_text(name),strategy_keyboard(detail=True))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow','vpd','morning','refill','strategies'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','strategies'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
