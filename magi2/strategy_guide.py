@@ -1,0 +1,46 @@
+"""Read-only strategy explanations; opening a guide never authorizes execution."""
+import json
+from pathlib import Path
+
+
+def strategy_keyboard(detail=False):
+    rows=[[{'text':name,'callback_data':'guide:'+name.lower()} for name in ('WAVE','VPD','FAST')]]
+    if detail:rows.append([{'text':'↩️ 전략검증','callback_data':'nav:strategies'}])
+    rows.append([{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}])
+    return {'inline_keyboard':rows}
+
+
+def strategy_text(name):
+    if name=='wave':
+        return ('🌐 WAVE · 글로벌 시장 움직임의 시작과 확산\n\n'
+                '간단 설명\n여러 거래소에서 같은 종목의 움직임을 비교해 어디서 먼저 시작됐고 어디로 퍼지는지 살펴봅니다. WHALE은 이를 보조하는 온체인 자료입니다.\n\n'
+                '매매 공략 · 연구 가설\n'
+                '① 한 거래소의 급등만으로 진입하지 않고 다른 거래소의 후속 움직임과 거래 참여 확대를 확인합니다.\n'
+                '② 후행 거래소에서 확산이 이어지고 스프레드·유동성이 허용될 때 진입 후보로 검토합니다. 이미 과도하게 오른 구간은 추격하지 않습니다.\n'
+                '③ 전파 약화·선행 움직임 반전·제한 시간 초과를 청산 조건으로 연구합니다. 진입·청산 수치는 아직 확정하지 않았습니다.\n\n'
+                '검증 포인트\n거래소별 수신 지연을 보정해 가짜 선행성을 걸러내고, 후속 상승 지속률과 비용 차감 손익을 비교합니다.\n\n'
+                '현재 단계\nMAGI1 관측·전파 분석 기반이 있으며 매매 규칙은 연구 단계입니다. 텔레그램의 WHALE 참고는 WAVE 전체 분석 결과가 아닙니다. 자동매매 연결·수익성 검증 완료를 뜻하지 않습니다.')
+    if name=='vpd':
+        cfg=json.loads((Path(__file__).with_name('config.json')).read_text())
+        top=cfg['session']['top_n']; hold=cfg['hold']; exits=cfg['exit']
+        return (f'📊 VPD · 상위 후보 분산 모의투자\n\n'
+                '간단 설명\nVPD 점수와 모멘텀 등 스캐너 분석으로 후보를 선별하고, 보유 신호가 유지되는 동안 운용하는 전략입니다.\n\n'
+                '매매 공략 · 현재 PAPER 규칙\n'
+                f'① 최신 VPD TOP{top}을 기준으로 신규 빈자리에 균등 금액으로 진입합니다.\n'
+                f'② TOP{top} 유지 종목은 보유합니다. 순위 밖이어도 VPD·모멘텀·점수 변화·거래대금 등 생존 조건 {hold["min_alive_signals"]}개 이상이면 유지합니다.\n'
+                f'③ 신호 약화는 아침 점검 {hold["weakening_grace_mornings"]}회 유예 후 연속 약화 시 청산합니다. '\
+                f'신규 포지션 설정은 순수익률 {exits["take_profit_pct"]:+g}% 익절 / {exits["hard_stop_pct"]:+g}% 손절이며, 기존 보유분은 진입 당시 저장된 설정을 따릅니다.\n'
+                '④ 리밸런싱은 보유 종목 재조정, 종목 리필은 기존 보유분을 팔지 않고 빈자리를 채우는 기능입니다.\n\n'
+                '검증 포인트\n수수료·슬리피지 차감 손익, 최대 손실폭, 보유 기간과 순위 교체 효과를 확인합니다. 실제 수익률은 VPD 모의투자 → 현황 보고에서 조회하세요.\n\n'
+                '현재 단계\nPAPER 운영 중입니다. 실제 계좌 자산·MAGI3 Shadow와는 별도이며 실거래 수익을 의미하지 않습니다.')
+    if name=='fast':
+        return ('⚡ FAST · 단기 순위 급등 포착과 짧은 반복 매매\n\n'
+                '간단 설명\n거래소별 10·15·30분 상승률과 순위 급변으로 후보를 찾고, 상위 소수 종목만 잠깐 집중 관찰합니다. 전 종목 호가를 상시 저장하지 않습니다.\n\n'
+                '매매 공략 · 새 연구 로직\n'
+                '① 가벼운 현재가 스냅샷으로 Top Riser·순위 급상승을 탐색합니다. 기본 연구 설정은 15분 탐색·상위 5종목·5분 관찰입니다.\n'
+                '② 후보의 짧은 고점 재돌파를 확인하고 스프레드·잔량 조건이 맞을 때 모의 진입합니다. 순위 상승만으로 바로 매수하지 않습니다.\n'
+                '③ 수수료·슬리피지 차감 후 작은 순익 목표, 손절, 돌파 실패, 시간 초과를 기준으로 빠르게 청산합니다.\n'
+                '④ 청산 후 대기·새 돌파 조건을 충족하면 재진입합니다. 5~6회나 10~15회를 억지로 채우지 않으며 연구 세션 진입은 최대 15회로 제한합니다.\n\n'
+                '검증 포인트\n회전 횟수보다 거래당 순손익·누적 손실·늦은 추격 비율을 봅니다. 몇 틱 이익도 왕복 비용보다 작으면 손실입니다.\n\n'
+                '현재 단계\n순위 계산·반복 PAPER 상태 로직 구현, 실시간 스냅샷 수집·후보 구독·운영 화면 연동은 미완료입니다. FAST 후보 버튼은 아직 기존 v1 관측이며 새 방식의 실적이 아닙니다.')
+    raise ValueError('UNKNOWN_STRATEGY_GUIDE')

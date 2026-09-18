@@ -16,6 +16,7 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
     scan_keyboard, status_keyboard, vpd_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
+from magi2.strategy_guide import strategy_keyboard, strategy_text
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
@@ -321,7 +322,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram(f'MAGI2 · VPD 모의투자 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초',status_keyboard())
         elif cmd in ('magi3','execution','status3'): telegram(execution_view('magi3' if cmd=='status3' else cmd),status_keyboard())
         elif cmd in ('shadow','orders','assets'): telegram(execution_view(cmd))
-        elif cmd=='strategies': telegram(validation_text())
+        elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd in ('signals','fast','wave'): telegram(signals_text(cmd))
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
@@ -340,9 +341,13 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('nav:'):
+    if data.startswith('guide:'):
+        name=data[6:]
+        if name in ('wave','vpd','fast'):
+            telegram(strategy_text(name),strategy_keyboard(detail=True))
+    elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow','vpd','morning','refill'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow','vpd','morning','refill','strategies'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
