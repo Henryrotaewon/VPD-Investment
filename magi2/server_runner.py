@@ -324,7 +324,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram('MAGI1 · 시세·관측 상태\n'+message+'\n개별 거래소 수집기 상태와 전체 데이터 품질은 이 조회만으로 판정하지 않습니다.',status_keyboard())
         elif cmd=='status2':
             running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
-            telegram(f'MAGI2 · VPD 모의투자 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초',status_keyboard())
+            telegram(f'MAGI2 • 전략 • 검증 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초',status_keyboard())
         elif cmd in ('magi3','execution','status3'): telegram(execution_view('magi3' if cmd=='status3' else cmd),status_keyboard())
         elif cmd=='shadows':
             telegram('🧪 shadows 모의투자\n현재 가상자산·손익과 최근 72시간 매매이력을 확인하세요.\n조회만 수행하며 모의매매를 시작하지 않습니다.',shadow_keyboard())
