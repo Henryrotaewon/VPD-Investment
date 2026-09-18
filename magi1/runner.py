@@ -21,6 +21,8 @@ from .archive import Archiver
 from .quality import cleanup_invalid, VERSION, quality_summary
 from .timing_quality import pair_resolution_matrix
 from .event_scan import publish_new_events
+from .intelligence import publish_intelligence
+from .intelligence_http import serve as serve_intelligence
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -50,13 +52,17 @@ class App:
             self.labels.reload_if_changed()
             classified=reclassify_onchain(row,self.labels,'event',row.get('received_ts_ms'))
             self.storage.append('onchain_candidate',classified);self.engine.onchain.append(classified)
-            self.engine.derived.on_onchain(value)
+            self.engine.derived.on_onchain(classified)
         elif kind=='derivatives':self.storage.append('derivatives_context',value);self.engine.derivatives.append(value)
         elif kind=='tick':
             self.engine.tick(value);self.tick_count+=1
             if value-self.last_event_scan_ms>=60000:
                 events=publish_new_events(self.storage,self.last_event_scan_ms,value,int(os.getenv('MAGI1_EVENT_MIN_SCORE','70')))
-                if events: LOG.info('event_reports=%s',json.dumps(events[-10:],separators=(',',':')))
+                if events: LOG.info('event_reports count=%d latest=%s',len(events),json.dumps([{k:x[k] for k in ('event_ts_ms','asset','event_type','direction','score')} for x in events[-10:]]))
+                try:
+                    publish_intelligence(self.storage,value)
+                except Exception:
+                    LOG.exception('intelligence_export_failed')
                 self.last_event_scan_ms=value
             if value-self.last_summary_ms>=900000:
                 try:
@@ -136,6 +142,8 @@ class App:
         self.collector_task=asyncio.create_task(self.collector.run())
         consumer=asyncio.create_task(self.consume())
         tasks=[asyncio.create_task(f()) for f in (self.ticks,self.vpd_loop,self.onchain_loop,self.derivatives_loop,self.universe_loop)]
+        if os.getenv('MAGI1_INTELLIGENCE_HTTP_ENABLED') == '1':
+            tasks.append(asyncio.create_task(serve_intelligence(self.storage.root,LOG)))
         if os.getenv('MAGI1_DRIVE_ARCHIVE_ENABLED') == '1':
             tasks.append(asyncio.create_task(Archiver(self.storage).run()))
         stopper=asyncio.create_task(stop.wait())

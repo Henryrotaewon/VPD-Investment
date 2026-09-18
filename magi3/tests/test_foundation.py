@@ -3,7 +3,8 @@ from unittest.mock import patch
 from magi3.config import Config
 from magi3.models import OrderIntent
 from magi3.risk import RiskSnapshot,check
-from magi3.adapters.upbit import UpbitAdapter\nfrom magi3.shadow import simulate_market
+from magi3.adapters.upbit import UpbitAdapter
+from magi3.shadow import simulate_market
 
 class TestFoundation(unittest.TestCase):
     def test_live_is_off_by_default(self):
