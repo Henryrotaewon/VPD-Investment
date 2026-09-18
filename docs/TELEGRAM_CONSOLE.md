@@ -133,3 +133,14 @@ No validated per-signal continuation probability exists. UI explicitly says pend
 Return = (sum of current holding values / sum of acquisition costs - 1), excluding cash/quote currencies KRW, USD, EUR, USDT, USDC, JPY and GBP. This is current-holdings mark-to-cost return, not realized/lifetime account performance. Cost/value gaps remain 미확인 and incomplete amounts say 확인분. Unconfigured venues say 미연결; other failed venues say 금액 미확인. Totals summarize connected, valued balances with one plain-language scope note. Stale data is labeled 마지막 조회값 without technical timestamps.
 
 Use real account pick_basis only; existing untagged holdings stay 미분류. Joint strategies remain one composite bucket to avoid double counting; no guessed allocations. Strategy investment amounts are costs of current holdings, excluding cash. Missing basis is never replaced with zero or assigned VPD/FAST/WAVE. Rendering is updated in the MAGI2 deployment using its imported formatter; no account collector or trading-runtime changes are required.
+
+## WAVE analysis views and time-shift controls
+
+`전략검증 → WAVE` and `/wave` now show the rolling 24h research summary, with
+신호 강도 / 전파 근거 / 매매 가능성 / 전략 설명 submenus. Four-row pagination
+keeps event and edge details readable. This replaces the earlier guide-only
+WAVE route; WHALE remains research context without a separate main button.
+The MAGI1 read-only background analyzer publishes a private `/wave` snapshot;
+MAGI2 caches it so pressing a button does not wait for a network call.
+See [WAVE_TIMESHIFT.md](WAVE_TIMESHIFT.md) for the prespecified shifts, quote
+coverage exclusions, source-catalog bias and unvalidated trading status.

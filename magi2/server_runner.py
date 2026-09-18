@@ -20,6 +20,7 @@ from magi2.strategy_guide import strategy_keyboard, strategy_text
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
+from magi2.wave_view import WaveClient, render as render_wave
 
 ROOT=Path(__file__).resolve().parents[1]
 REPO_STATE_DIR=ROOT/'magi2'/'state'
@@ -39,6 +40,7 @@ EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
 ENGINE_JOB=None
 ENGINE_MODE=None
 FAST_MONITOR=None
+WAVE_CLIENT=None
 ALLOWED_USER_IDS={x.strip() for x in os.getenv('TELEGRAM_ALLOWED_USER_IDS','').split(',') if x.strip()}
 
 
@@ -332,7 +334,7 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='orders': send_shadow_orders()
         elif cmd=='assets': telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
-        elif cmd=='wave': telegram(strategy_text('wave'),strategy_keyboard(detail=True))
+        elif cmd=='wave': send_wave()
         elif cmd=='fast_compare':
             from magi2.fast_comparison import report
             telegram(report(FAST_MONITOR.audit,time.time_ns()//1000000) if FAST_MONITOR else 'FAST 검증 자료 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
@@ -345,6 +347,10 @@ def handle_command(text,chat_id=None,user_id=None):
         telegram('명령을 처리하지 못했습니다. 잠시 후 다시 시도하세요.')
     finally:
         log(f'telegram_command command={cmd or "unknown"} handler_ms={round((time.monotonic()-started)*1000)}')
+
+
+def send_wave(section='overview',offset=0):
+    telegram(*(WAVE_CLIENT.view(section,offset) if WAVE_CLIENT else render_wave(None,section,offset)))
 
 
 def send_shadow_orders(until=None,offset=0):
@@ -364,7 +370,14 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('captures:'):
+    if data.startswith('wave:'):
+        try:
+            _,section,offset=data.split(':')
+            offset=int(offset)
+        except ValueError:return
+        if section in ('overview','strength','evidence','trading','guide') and 0<=offset<=10000:
+            send_wave(section,offset)
+    elif data.startswith('captures:'):
         try:offset=max(0,int(data.split(':')[1]))
         except ValueError:return
         if FAST_MONITOR:telegram(*FAST_MONITOR.captures(offset))
@@ -375,7 +388,9 @@ def handle_callback(callback):
         except ValueError: telegram('이력 버튼이 만료되었거나 잘못되었습니다. 최근 3일 매매이력을 다시 선택하세요.',shadow_keyboard())
     elif data.startswith('guide:'):
         name=data[6:]
-        if name in ('wave','vpd','fast'):
+        if name=='wave':
+            send_wave()
+        elif name in ('vpd','fast'):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
@@ -445,8 +460,10 @@ def poll_updates(offset,timeout=LONG_POLL_SECONDS):
 
 
 def main():
-    global FAST_MONITOR
+    global FAST_MONITOR,WAVE_CLIENT
     prepare_persistent_state()
+    WAVE_CLIENT=WaveClient(os.getenv('MAGI1_INTELLIGENCE_URL',''),
+                           os.getenv('MAGI_INTELLIGENCE_TOKEN',''),log).start()
     start_shadow_bridge(STATE_DIR,GITHUB_REPO,log)
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
     try: backup_paper_history()

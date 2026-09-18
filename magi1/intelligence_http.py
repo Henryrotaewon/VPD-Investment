@@ -10,14 +10,15 @@ from aiohttp import web
 def make_app(root, token):
     if len(token) < 32:
         raise ValueError('INTELLIGENCE_TOKEN_TOO_SHORT')
-    path=Path(root)/'exports'/'intelligence_latest.json'
+    paths={'/intelligence': Path(root)/'exports'/'intelligence_latest.json',
+           '/wave': Path(root)/'exports'/'wave_latest.json'}
 
     async def get_snapshot(request):
         supplied=request.headers.get('Authorization','')
         if not hmac.compare_digest(supplied.encode(),('Bearer '+token).encode()):
             raise web.HTTPUnauthorized()
         try:
-            payload=await asyncio.to_thread(path.read_text,encoding='utf-8')
+            payload=await asyncio.to_thread(paths[request.path].read_text,encoding='utf-8')
             json.loads(payload)
         except (OSError,ValueError):
             raise web.HTTPServiceUnavailable(text='SNAPSHOT_NOT_READY')
@@ -26,6 +27,7 @@ def make_app(root, token):
 
     app=web.Application()
     app.router.add_get('/intelligence',get_snapshot)
+    app.router.add_get('/wave',get_snapshot)
     return app
 
 

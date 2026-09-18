@@ -18,7 +18,8 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST 포착 조회 · 기존 명령'),
-    ('fast', 'FAST 포착 · 최근 24시간'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'), ('strategies', '전략 검증 기준'),
+    ('fast', 'FAST 포착 · 최근 24시간'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
+    ('wave', 'WAVE 강도·전파·매매 검증'), ('strategies', '전략 검증 기준'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
@@ -128,7 +129,7 @@ def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
-            '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/wave — WAVE 전략·보조지표 검증 안내 (기존 명령)\n/strategies — 전략 검증 기준\n'
+            '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 리밸런싱\n/refill — 빈자리 채우기\n'
@@ -183,11 +184,11 @@ def magi3_status():
 
 
 def validation_text():
-    return ('🧭 전략검증\n전략을 선택하면 간단 설명·매매 공략·검증 포인트·현재 구현 단계를 볼 수 있습니다.\n\n'
+    return ('🧭 전략검증\n전략별 설명·매매 공략과 검증 진행 상황을 확인하세요. WAVE는 실제 관측 및 시간 이동 대조군 분석으로 연결됩니다.\n\n'
             '🌐 WAVE: 거래소 간 움직임의 시작과 확산\n'
             '📊 VPD: 상위 후보 분산 모의투자\n'
             '⚡ FAST: 단기 순위 급등 포착·짧은 반복 매매\n\n'
-            '이 메뉴는 설명 조회입니다. 버튼을 눌러도 매매를 시작하지 않습니다. '
+            '이 메뉴는 분석·설명 조회입니다. 버튼을 눌러도 매매를 시작하지 않습니다. '
             '연구 가설과 현재 운영 규칙을 구분해 표시하며 검증된 수익을 보장하지 않습니다.')
 
 
