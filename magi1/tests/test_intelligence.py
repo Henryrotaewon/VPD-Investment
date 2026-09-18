@@ -32,10 +32,13 @@ class IntelligenceTests(unittest.TestCase):
         self.assertEqual(len(rows), 2)
         self.assertEqual(self.storage.raw_rows, 0)
 
-    def test_gap_duplicate_and_flat_acceleration(self):
+    def test_gap_duplicate_and_sustained_positive_return(self):
         for ts, ret in ((1000,1),(2000,4),(2000,100),(10000,200),(11000,200),(12000,200)):
             self.engine.on_feature(self.feature(ts, ret))
-        self.assertEqual(self.storage.query('derived_signal', 0, 20000), [])
+        rows=self.storage.query('derived_signal',0,20000)
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]['event_ts_ms'],12000)
+        self.assertEqual(rows[0]['direction'],'BUY')
 
     def test_classified_whale_survives_handoff(self):
         row = dict(category='large_transfer', amount=500, source='onchain',
@@ -46,6 +49,8 @@ class IntelligenceTests(unittest.TestCase):
         path = publish_intelligence(self.storage, 4000)
         rows = load_intelligence(path, 4001)
         self.assertEqual(rows[0]['direction'], 'UNKNOWN')
+        self.assertEqual(rows[0]['role'],'WAVE_INPUT')
+        self.assertEqual(rows[0]['parent_strategy'],'WAVE')
         self.assertEqual(rows[0]['evidence']['classification_basis'], 'known_at_event')
         self.assertIsNone(rows[0]['calibrated_probability'])
         self.assertFalse(rows[0]['execution_eligible'])

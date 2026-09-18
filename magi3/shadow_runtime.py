@@ -28,13 +28,13 @@ def validate(signal,now):
     if signal.get('venue') not in ('upbit','bithumb','binance','kraken'):raise ValueError('INVALID_VENUE')
     if not re.fullmatch(r'[A-Z0-9]{1,20}',signal.get('asset','')):raise ValueError('INVALID_ASSET')
     created=int(signal['created_ts_ms']);expires=int(signal['expires_ts_ms'])
-    if created>now+5000 or not created<=now<expires or expires-created>120000:raise ValueError('EXPIRED_OR_INVALID_TIME')
+    if created>now+5000 or now>=expires or expires<=created or expires-created>120000:raise ValueError('EXPIRED_OR_INVALID_TIME')
     for key in ('notional_krw','max_holding_seconds'):
         if isinstance(signal[key],bool) or not math.isfinite(float(signal[key])) or float(signal[key])<=0:
             raise ValueError('INVALID_SIZE_OR_HOLD')
     if float(signal['max_holding_seconds'])>86400:raise ValueError('HOLD_TOO_LONG')
     tags=signal.get('strategy_tags')
-    if not isinstance(tags,list) or not tags or any(x not in ('VPD','FAST','WAVE','WHALE') for x in tags):
+    if not isinstance(tags,list) or not tags or any(x not in ('VPD','FAST','WAVE') for x in tags):
         raise ValueError('INVALID_STRATEGY_TAGS')
 
 

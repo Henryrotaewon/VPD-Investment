@@ -21,7 +21,7 @@ def pull_signals(url,token):
         http.trust_env=False
         response=http.get(url,headers={'Authorization':'Bearer '+token},timeout=5)
         response.raise_for_status();body=response.json()
-    if body.get('schema')!='magi2-shadow-intents-v1' or not 0<=stamp()-int(body['generated_ts_ms'])<=30000:
+    if body.get('schema')!='magi2-shadow-intents-v1' or not -5000<=stamp()-int(body['generated_ts_ms'])<=30000:
         raise ValueError('INVALID_OR_STALE_SIGNAL_FEED')
     if not isinstance(body['signals'],list) or len(body['signals'])>100:raise ValueError('INVALID_FEED_SIZE')
     return body
@@ -76,7 +76,7 @@ async def run():
         except Exception as exc:state.update(loop_status='ERROR',loop_error_type=type(exc).__name__)
         state['heartbeat_ms']=stamp();store.put('status',state)
         log('shadow_cycle',mode=config.mode,feed_status=state['feed_status'],loop_status=state['loop_status'],
-            positions=len(store.positions()),orders=len(store.recent_orders(100)),pending_exits=state.get('pending_exit_count'))
+            feed_error_type=state.get('feed_error_type') if state['feed_status']=='UNAVAILABLE' else None,positions=len(store.positions()),orders=len(store.recent_orders(100)),pending_exits=state.get('pending_exit_count'))
 
     async def execution():
         while True:await asyncio.to_thread(cycle);await asyncio.sleep(10)

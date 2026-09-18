@@ -90,12 +90,18 @@ class RuntimeTests(unittest.TestCase):
         self.engine.ingest(intent());self.market.fail=True
         r=self.engine.report();self.assertIsNone(r['equity_krw']);self.assertIsNone(r['unrealized_pnl_krw'])
     def test_invalid_and_live_fail_closed(self):
-        for change in ({'source':'MAGI1'},{'mode':'LIVE'},{'side':'SELL'},{'notional_krw':-1},{'expires_ts_ms':0}):
+        for change in ({'source':'MAGI1'},{'mode':'LIVE'},{'side':'SELL'},{'notional_krw':-1},{'expires_ts_ms':0},{'strategy_tags':['WHALE']}):
             s=intent();s.update(change);self.assertEqual(self.engine.ingest(s),'INVALID_OR_EXPIRED')
         with self.assertRaises(ValueError):self.engine.ingest({**intent(),'notional_krw':float('nan')})
         with self.assertRaises(ValueError):ShadowEngine(self.store,self.market,replace(self.cfg,mode='LIVE'))
         with self.assertRaises(ValueError):ShadowEngine(self.store,self.market,replace(self.cfg,live_enabled=True))
         self.assertEqual(self.store.recent_orders(),[])
+    def test_small_clock_skew_allowed_large_future_rejected(self):
+        from magi3.shadow_runtime import validate
+        s=intent();now=stamp();s['created_ts_ms']=now+100;s['expires_ts_ms']=now+120000
+        validate(s,now)
+        s['created_ts_ms']=now+6000
+        with self.assertRaises(ValueError):validate(s,now)
     def test_transaction_rollback_and_monotone_nonce(self):
         with self.assertRaises(RuntimeError):
             with self.store.transaction() as db:

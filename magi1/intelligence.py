@@ -12,7 +12,9 @@ def observation(row):
         'observation_id': hashlib.sha256(canonical.encode()).hexdigest(),
         'event_ts_ms': row['event_ts_ms'],
         'asset': row['asset'],
-        'strategy_tag': row['signal_type'],
+        'strategy_tag': row['signal_type'],  # legacy type identifier
+        'role': 'WAVE_INPUT' if row['signal_type']=='WHALE' else ('FAST_CANDIDATE' if row['evidence'].get('fast_rule_version')=='fast-rise-v1' else 'LEGACY_ACCELERATION'),
+        'parent_strategy': 'WAVE' if row['signal_type']=='WHALE' else 'FAST',
         'direction': row['direction'],
         'heuristic_score': row['score'],
         'calibrated_probability': None,
