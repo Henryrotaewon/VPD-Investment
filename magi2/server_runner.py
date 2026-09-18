@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
-    scan_keyboard, status_keyboard, parse_command, magi3_status, validation_text, observation_text)
+    scan_keyboard, status_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
@@ -160,6 +160,16 @@ def setup_telegram_menu():
     global BOT_USERNAME
     me=telegram_api('getMe',{})
     BOT_USERNAME=me.get('username','')
+    # Profile updates are independent of command registration; never log tokens.
+    for language in ('','ko'):
+        for method, field, value in [('setMyName','name',BOT_NAME),
+                                     ('setMyDescription','description',BOT_DESCRIPTION),
+                                     ('setMyShortDescription','short_description',BOT_SHORT_DESCRIPTION)]:
+            try:
+                telegram_api(method,{field:value,'language_code':language})
+                log(f'MAGI profile updated: {method} language={language or "default"}')
+            except Exception as exc:
+                log(f'MAGI profile update failed: {method} {type(exc).__name__}')
     scope={'type':'chat','chat_id':ALLOWED_CHAT_ID}
     commands=[{'command':key,'description':desc} for key,desc in COMMANDS]
     for language in ('','ko'):
@@ -167,7 +177,7 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('Telegram command menu registered: Korean v3')
+    log('MAGI Telegram menu registered: Korean v4')
 
 
 def start_engine(mode):
@@ -254,7 +264,8 @@ def handle_command(text,chat_id=None,user_id=None):
     chat_id=str(chat_id or ALLOWED_CHAT_ID)
     try:
         if cmd in ('help','menu'):
-            telegram(help_text() if cmd=='help' else '📋 메뉴를 선택하세요. 실계좌 조회·PAPER·Shadow를 구분해 표시합니다.',main_keyboard())
+            telegram(help_text() if cmd=='help' else '📋 MAGI 메뉴\n시장 관측 · 전략 검증 · 자산 관리\n실계좌 조회·PAPER·Shadow를 구분해 표시합니다.\n역할별 안내는 🧩 MAGI 역할을 누르세요.',main_keyboard())
+        elif cmd=='about': telegram(role_text(),role_keyboard())
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
         elif cmd=='morning_scan': return_magi1_state('morning')
         elif cmd=='evening_scan': return_magi1_state('evening')
@@ -309,7 +320,7 @@ def handle_callback(callback):
     data=callback.get('data','')
     if data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','status','status1','status2','status3'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','wave','scan','report','assets','shadow'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)

@@ -2,8 +2,16 @@
 import secrets
 import time
 
+BOT_NAME = 'MAGI'
+BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · FAST · WAVE'
+BOT_DESCRIPTION = ('MAGI — 코인 시장 분석과 투자 현황을 한곳에서.\n'
+    'MAGI1: 시장 데이터·FAST·WAVE 관측\n'
+    'MAGI2: VPD 분석·모의투자·전략 검증\n'
+    'MAGI3: 실계좌 조회·Shadow 검증·실행 관리\n'
+    '모의투자와 실제 자산을 구분해 확인하세요. /menu로 시작합니다.')
+
 COMMANDS = [
-    ('help', '도움말 · 전체 명령어'), ('menu', '버튼 메뉴 열기'),
+    ('help', 'MAGI 도움말 · 전체 명령어'), ('about', 'MAGI 소개 · 역할별 메뉴'), ('menu', '버튼 메뉴 열기'),
     ('status', 'MAGI1·2·3 상태 선택'), ('report', 'VPD 모의투자 현황'),
     ('assets', '실계좌 자산 · 거래소별 조회'),
     ('shadow', 'Shadow 모의 자산·손익'), ('orders', 'Shadow 주문·체결 원장'),
@@ -19,13 +27,13 @@ LABELS = {
     '🧪 Shadow 자산': 'shadow', '📒 Shadow 원장': 'orders',
     '⚡ FAST 후보': 'fast', '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🔄 PAPER 리밸런싱': 'morning', '♻️ PAPER 빈자리 채우기': 'refill',
-    '❓ 도움말': 'help', '📋 메뉴': 'menu',
+    '🧩 MAGI 역할': 'about', '❓ 도움말': 'help', '📋 메뉴': 'menu',
 }
 ALIASES = {
     '📊 자산보고': 'report', '💼 통합자산': 'assets', '🤖 상태': 'status',
     '⚙️ 실행 상태': 'status', '실행상태': 'status',
     'VPD 모의투자': 'report', 'vpd 모의투자': 'report', '실계좌 자산': 'assets',
-    'start': 'menu', '도움말': 'help', '메뉴': 'menu', '상태': 'status',
+    '소개': 'about', '역할': 'about', 'magi': 'about', 'start': 'menu', '도움말': 'help', '메뉴': 'menu', '상태': 'status',
     '보고서': 'report', '자산보고': 'report', '통합자산': 'assets',
     '모의자산': 'shadow', '주문원장': 'orders', '실행상태': 'status',
     '신호': 'signals', '전략': 'strategies', '취소': 'cancel',
@@ -56,7 +64,29 @@ def main_keyboard():
     rows = [list(LABELS)[n:n+2] for n in range(0, len(LABELS), 2)]
     return {'keyboard': [[{'text': x} for x in row] for row in rows],
             'resize_keyboard': True, 'is_persistent': True,
-            'input_field_placeholder': '버튼을 누르거나 /help를 입력하세요'}
+            'input_field_placeholder': 'MAGI · 메뉴를 선택하거나 /help를 입력하세요'}
+
+
+def role_text():
+    return ('🧩 MAGI — 시장 관측 · 전략 검증 · 실행 관리\n\n'
+            'MAGI1 · 시장 관측\n시세·체결·호가와 FAST 후보, WAVE 근거를 관측합니다.\n'
+            'WHALE은 WAVE의 기초자료 중 하나입니다.\n\n'
+            'MAGI2 · 전략 검증\nVPD 분석과 PAPER 모의투자를 수행합니다. '
+            'FAST 재생 평가는 연구 도구 단계입니다.\n\n'
+            'MAGI3 · 자산·실행 관리\n실계좌 잔고와 Shadow 모의 체결을 구분합니다. '
+            '실거래 활성화 여부는 시스템 상태에서 확인하세요.\n\n'
+            '아래 조회 메뉴는 매매를 시작하지 않습니다.')
+
+
+def role_keyboard():
+    groups = [
+        [('MAGI1 · FAST 후보','fast'), ('MAGI1 · WAVE 근거','wave')],
+        [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','report')],
+        [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · Shadow','shadow')],
+        [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
+    ]
+    return {'inline_keyboard': [[{'text': label, 'callback_data': 'nav:'+cmd}
+                                for label,cmd in row] for row in groups]}
 
 
 def status_keyboard():
@@ -72,7 +102,7 @@ def scan_keyboard():
 
 
 def help_text():
-    return ('🤖 명령어 안내\n\n[조회 · 거래 없음]\n'
+    return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/signals — FAST 후보·WAVE 기초자료 요약\n/fast — 거래소 내 급등 후보\n/wave — WAVE 검토용 온체인 근거\n/strategies — 전략 검증 기준\n'

@@ -21,3 +21,23 @@
 출처: https://core.telegram.org/bots/api#setmycommands · https://core.telegram.org/bots/api#answercallbackquery · https://core.telegram.org/bots/api#replykeyboardmarkup
 
 관측 연결: MAGI1의 `MAGI1_INTELLIGENCE_HTTP_ENABLED=1`과 충분히 긴 `MAGI_INTELLIGENCE_TOKEN`, MAGI2의 동일 토큰 및 `MAGI1_INTELLIGENCE_URL=http://magi1-flow.railway.internal:8081/intelligence`를 설정한다. 공개 도메인은 필요 없다. 로컬 리플레이에서는 `MAGI1_INTELLIGENCE_PATH`가 우선한다. 파일/HTTP 모두 같은 유효기간·스키마 검증을 거친다.
+
+
+## MAGI 브랜드와 역할별 메뉴
+
+전체 사용자 접점은 MAGI로 통일한다. 시작 시 Telegram의 기본 언어와 한국어에 setMyName, setMyDescription, setMyShortDescription을 적용한다. 사용자명과 봇 토큰은 변경하지 않는다. 프로필 변경 실패는 명령 등록을 중단하지 않으며 비밀값 없이 실패 유형만 기록한다.
+
+/about 또는 🧩 MAGI 역할에서 다음 역할과 조회 버튼을 제공한다.
+- MAGI1: 시장 데이터·FAST 후보·WAVE 근거 관측. WHALE은 WAVE 기초자료다.
+- MAGI2: VPD 분석·PAPER 모의투자·전략 검증. FAST 재생 도구는 아직 연구 단계다.
+- MAGI3: 실계좌 조회·Shadow 검증·실행 관리. 실제 실행 모드는 /status에서 확인한다.
+
+역할 메뉴는 조회만 연결하며 morning/refill 또는 실거래 시작을 연결하지 않는다. /report는 VPD 모의투자, /assets는 실계좌 자산, /shadow는 가상 체결을 구분한다.
+
+### Railway 이름 변경 영향 검토
+
+2026-09-18 확인 기준 프로젝트는 invigorating-charisma, MAGI2 서비스 표시 이름은 VPD-Investment다. 권장 체계는 전체 프로젝트 MAGI, 내부 서비스 MAGI1-Flow / MAGI2 / MAGI3-Execution이다. 이름 변경 영향 질문에 대한 검토이며 이번 코드 배포는 Railway 이름을 변경하지 않는다.
+
+현재 MAGI2 privateNetworkEndpoint는 vpd-investment다. MAGI3 문서의 MAGI2_SHADOW_SIGNALS_URL은 http://vpd-investment.railway.internal:8082/signals다. 서비스 표시 이름을 바꿀 경우 이 엔드포인트를 유지하는지 확인해야 하며, DNS를 바꾸려면 호출측 URL도 함께 바꾸고 인증된 내부 통신을 재검증한다. 프로젝트/서비스 ID, 볼륨, 소스 연결, 토큰, 실행 중단 설정을 보존한다. GitHub 저장소명 VPD-Investment는 별도이며 Pages·백업 경로 등 영향 범위가 있으므로 동시에 변경하지 않는다.
+
+공식 문서: https://core.telegram.org/bots/api#setmydescription , https://docs.railway.com/networking/private-networking
