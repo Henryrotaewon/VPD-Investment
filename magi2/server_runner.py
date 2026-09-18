@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
-    scan_keyboard, parse_command, magi3_status, validation_text, observation_text)
+    scan_keyboard, status_keyboard, parse_command, magi3_status, validation_text, observation_text)
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
@@ -272,9 +272,22 @@ def handle_command(text,chat_id=None,user_id=None):
             CONFIRMATIONS.cancel(chat_id,user_id)
             telegram('대기 중인 실행 확인을 취소했습니다. 이미 진행 중인 작업은 계속됩니다.')
         elif cmd=='status':
+            telegram('🤖 시스템 상태 — 확인할 MAGI를 선택하세요.',status_keyboard())
+        elif cmd=='status1':
+            path=os.getenv('MAGI1_INTELLIGENCE_PATH','').strip()
+            url=os.getenv('MAGI1_INTELLIGENCE_URL','').strip()
+            try:
+                rows=(load_intelligence(path,int(time.time()*1000)) if path else
+                      fetch_intelligence(url,os.getenv('MAGI_INTELLIGENCE_TOKEN',''),int(time.time()*1000)))
+                message=f'최신 관측 인터페이스: 정상\n최근 관측: {len(rows)}건'
+            except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
+                message='최신 관측 인터페이스: 확인 불가 (연결·만료·형식 점검 필요)'
+            telegram('MAGI1 · 시세·관측 상태\n'+message+'\n개별 거래소 수집기 상태와 전체 데이터 품질은 이 조회만으로 판정하지 않습니다.',status_keyboard())
+        elif cmd=='status2':
             running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
-            telegram(f'🤖 봇 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초\nMAGI1·MAGI3 운영 상태: 이 화면에서는 미조회')
-        elif cmd in ('magi3','execution','shadow','orders','assets'): telegram(execution_view(cmd))
+            telegram(f'MAGI2 · VPD 모의투자 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초',status_keyboard())
+        elif cmd in ('magi3','execution','status3'): telegram(execution_view('magi3' if cmd=='status3' else cmd),status_keyboard())
+        elif cmd in ('shadow','orders','assets'): telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text())
         elif cmd in ('signals','fast','wave'): telegram(signals_text(cmd))
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
@@ -296,7 +309,7 @@ def handle_callback(callback):
     data=callback.get('data','')
     if data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help'):
+        if command in ('morning_scan','evening_scan','menu','help','status','status1','status2','status3'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)

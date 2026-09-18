@@ -48,7 +48,7 @@ def price_return(p,px):
     entry=float(p.get('entry_market_price',p.get('entry_price',0)) or 0)
     return (float(px)/entry-1)*100 if entry else 0.0
 
-def portfolio_status(st,prices,title='📊 MAGI2 PAPER 현황'):
+def portfolio_status(st,prices,title='📊 VPD 모의투자 현황 [PAPER]'):
     fee=float(CFG.get('fee_rate',.0005)); cash=float(st.get('cash_krw',0)); value=0; rows=[]
     for coin,p in st.get('positions',{}).items():
         if p.get('status','OPEN')!='OPEN': continue
@@ -65,7 +65,7 @@ def portfolio_status(st,prices,title='📊 MAGI2 PAPER 현황'):
     lines += [f"금일 실현손익 {float(st.get('realized_pnl_krw',0)):+,.0f}원",'수익률=매수가 대비 현재가 · 순손익=슬리피지+매수/매도 수수료 반영 · PAPER ONLY']
     return '\n'.join(lines)
 
-def send_current_status(st,title='📊 MAGI2 PAPER 현황'):
+def send_current_status(st,title='📊 VPD 모의투자 현황 [PAPER]'):
     active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active),title))
 
 def migrate_state(st):
@@ -161,7 +161,7 @@ def close_position(st,coin,p,px,reason,send_status=True):
     st['cash_krw']=float(st.get('cash_krw',0))+proceeds; st['realized_pnl_krw']=float(st.get('realized_pnl_krw',0))+pnl; st['lifetime_realized_pnl_krw']=float(st.get('lifetime_realized_pnl_krw',0))+pnl
     log_event({'ts':now_iso(),'type':'SELL','cohort_id':st.get('cohort_id'),'coin':coin,'market':p['market'],'reason':reason,'market_price':float(px),'sell_fee_krw':round(sell_fee,2),'net_proceeds_krw':round(proceeds,2),'pnl_krw':round(pnl,2),'return_pct':round(ret,4),'entry_at':p.get('entry_at'),'entry_session':p.get('entry_session','AM'),'paper_only':True}); save_state(st)
     telegram(f'🔴 MAGI2 PAPER 청산\n{coin} / {reason}\n매수원금 {float(p["cost_krw"]):,.0f}원\n순수익률 {ret:+.2f}% / 손익 {pnl:+,.0f}원\n목표 +{float(p.get("target_profit_pct",12)):.1f}% / 손절 {float(p.get("stop_loss_pct",-6)):.1f}%\nPAPER ONLY')
-    if send_status: send_current_status(st,'📊 청산 후 MAGI2 PAPER 현황')
+    if send_status: send_current_status(st,'📊 청산 후 VPD 모의투자 현황 [PAPER]')
     return True
 
 def monitor_once(st):
@@ -235,7 +235,7 @@ def morning_rebalance(st):
         if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
     st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
     st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source; save_state(st)
-    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nVPD snapshot {snap.get('asof_kst',asof.isoformat())}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nWEAKENING {len(weakening)}: {', '.join(weakening) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ TOP10 밖은 생존신호 2개 이상 KEEP / 최초 약화 1회 유예 / 연속 약화 시 청산 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 MAGI2 PAPER 현황'); return True
+    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nVPD snapshot {snap.get('asof_kst',asof.isoformat())}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nWEAKENING {len(weakening)}: {', '.join(weakening) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ TOP10 밖은 생존신호 2개 이상 KEEP / 최초 약화 1회 유예 / 연속 약화 시 청산 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 VPD 모의투자 현황 [PAPER]'); return True
 
 def refill(st):
     loaded=load_today_snapshot()
@@ -251,7 +251,7 @@ def refill(st):
         if buy_position(st,row,prices.get(row['market']),slot,'REFILL',sid,today): bought.append(row['coin'])
     if not bought: raise RuntimeError('Refill candidates existed, but no PAPER buy could be executed.')
     st['last_refill_at']=now_iso(); st['last_refill_session_id']=sid; st['source_refill_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); save_state(st)
-    details='\n'.join(f'{i+1}. {c} | 매수금액 {slot:,.0f}원' for i,c in enumerate(bought)); telegram(f'♻️ MAGI2 REFILL 완료\n{sid}\nBUY {len(bought)}\n{details}\n당일 균등매수원가 {slot:,.0f}원\n잔여 예수금 {float(st["cash_krw"]):,.0f}원\n※ 기존 보유 종목 매도 없음 · PAPER ONLY'); send_current_status(st,'📊 REFILL 후 MAGI2 PAPER 현황'); return True
+    details='\n'.join(f'{i+1}. {c} | 매수금액 {slot:,.0f}원' for i,c in enumerate(bought)); telegram(f'♻️ MAGI2 REFILL 완료\n{sid}\nBUY {len(bought)}\n{details}\n당일 균등매수원가 {slot:,.0f}원\n잔여 예수금 {float(st["cash_krw"]):,.0f}원\n※ 기존 보유 종목 매도 없음 · PAPER ONLY'); send_current_status(st,'📊 REFILL 후 VPD 모의투자 현황 [PAPER]'); return True
 
 def report(st):
     active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))

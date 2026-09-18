@@ -8,7 +8,7 @@ class ExecutionViewsTests(unittest.TestCase):
         with patch.object(server,'telegram') as send,patch.object(server,'execution_view',return_value='snapshot') as read,patch.object(server,'start_engine') as trade:
             for cmd in ('assets','shadow','orders','execution','magi3'):
                 server.handle_command('/'+cmd,'7','7');read.assert_called_with(cmd)
-            trade.assert_not_called();send.assert_called_with('snapshot')
+            trade.assert_not_called();self.assertEqual(send.call_args.args[0],'snapshot')
     def test_service_failure_not_fake_balance(self):
         with patch('magi2.execution_client.fetch',side_effect=RuntimeError('secret raw exception')):
             text=view('assets');self.assertNotIn('secret',text);self.assertIn('연결하지 못했거나',text)

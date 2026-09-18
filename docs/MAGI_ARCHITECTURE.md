@@ -26,3 +26,7 @@ MAGI3 treats this as an intent, not an order. Risk and venue checks may reject i
 ## User-defined strategy roles
 
 FAST finds rapidly rising assets within each venue. WAVE examines global cross-venue formation and propagation. WHALE is one of WAVE's raw/context inputs, not an independent strategy or order tag. Legacy WHALE type identifiers remain for observation compatibility. The current FAST candidate detector uses WAVE's common selected assets; a separate venue-wide discovery universe remains to be built.
+
+## FAST research toolkit
+
+See `docs/FAST_DEVELOPMENT.md`. The opt-in `magi1.fast_capture` uses separate per-venue Upbit KRW/Binance USDT universes and writes public observation tapes. `magi2.fast_lab.replay` consumes those tapes offline. This toolkit has no MAGI3 order route and does not resume production Shadow. The existing Telegram `/fast` remains on the limited five-asset production feed until a separately verified integration replaces it.

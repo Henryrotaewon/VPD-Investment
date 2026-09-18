@@ -105,6 +105,20 @@ class RoutingTests(unittest.TestCase):
             server.handle_command(command,'7','7')
         self.start.assert_not_called()
 
+    def test_status_selection_is_read_only_and_routes_all_three(self):
+        server.handle_command('status','7','7')
+        buttons=self.send.call_args.args[1]['inline_keyboard']
+        self.assertEqual(len(buttons),3)
+        with patch.object(server,'fetch_intelligence',return_value=[]), patch.object(server,'execution_view',return_value='MAGI3') as read:
+            for row in buttons:
+                server.handle_callback(self.callback(row[0]['callback_data']))
+            read.assert_called_once_with('magi3')
+        self.start.assert_not_called()
+        labels=[b['text'] for row in main_keyboard()['keyboard'] for b in row]
+        self.assertIn('📊 VPD 모의투자',labels)
+        self.assertIn('💼 실계좌 자산',labels)
+        self.assertNotIn('⚙️ 실행 상태',labels)
+
     def test_group_mutations_need_named_operator(self):
         with patch.object(server,'ALLOWED_CHAT_ID','-100'):
             self.assertFalse(server.may_execute('-100','7'))
