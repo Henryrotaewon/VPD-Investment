@@ -1,0 +1,13 @@
+# MAGI1 derived observations: implementation and deployment status
+
+The `magi3-foundation` branch already contains additive FAST/Whale detection and daily/event reports. This patch fixes FAST warmup suppression, missing-book crashes, cross-venue cooldown collisions and discontinuous feature comparisons. Whale output now retains point-in-time address labels. Raw collection, FeatureEngine and WAVE formation/evaluation schemas are unchanged.
+
+FAST uses existing MICRO return changes, volume acceleration and optional book imbalance. Missing imbalance contributes zero to the heuristic but remains null in evidence. Whale uses retained public BTC large-transfer candidates, including transaction input/output labels. An unknown address remains unknown; neither transfer size nor exchange association establishes buy/sell intent. Scores are uncalibrated research evidence, not success probabilities.
+
+Every minute MAGI1 atomically replaces `exports/intelligence_latest.json` under its data root. It contains a five-minute observation window, stable IDs, evidence, source version and a two-minute snapshot expiry. Empty windows replace old snapshots. MAGI2's `load_intelligence(path, now_ms)` validates freshness, score ranges, observation timestamps and observation-only semantics. It does not create order signals or change execution modes. MAGI3 can carry the observation ID/evidence through its existing StrategySignal metadata after an independently validated strategy decision; expected returns are not invented from scores.
+
+Existing reports: daily report uses the preceding 07:00 KST cutoff; event records/logs are generated for score >=70 by default. These are persisted reports, not newly enabled Telegram notifications.
+
+Deployment inspection on 2026-09-18 found MAGI1-Flow tracking `main` and MAGI3-Execution tracking `magi3-foundation`. All three service deployment statuses were SUCCESS, which alone does not establish feed freshness. MAGI1 and MAGI2 have separate volumes. The Telegram follow-up adds an opt-in authenticated `/intelligence` endpoint and a MAGI2 private-network client. Enable `MAGI1_INTELLIGENCE_HTTP_ENABLED=1` on MAGI1, set the same strong `MAGI_INTELLIGENCE_TOKEN` on both services and set `MAGI1_INTELLIGENCE_URL` on MAGI2. The endpoint reads only the atomic export and never exposes SQLite/raw files. Validate actual deployment and snapshot freshness separately. No live trading is enabled by this patch.
+
+MAGI3's existing four-venue portfolio report and strategy attribution are tested with synthetic portfolios. They are not proof of live balances, realized strategy returns, or fee-adjusted trading profitability.

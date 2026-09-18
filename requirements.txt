@@ -2,3 +2,4 @@ requests>=2.31,<3
 pandas>=2.2,<3
 numpy>=1.26,<3
 aiohttp>=3.10,<4
+PyJWT>=2.8,<3

@@ -7,11 +7,12 @@ from .formation import FormationEngine,VENUES
 from .propagation import PropagationStats
 from .vpd_join import VPDPointInTimeJoin
 from .schema import TradeEvent,BookEvent
+from .derived_signals import DerivedSignalEngine
 from .quality import QuoteCoverage, outcome, record_quality, VERSION, HORIZONS
 
 class ResearchEngine:
     def __init__(self,storage,assets,now):
-        self.storage=storage; self.assets=assets; self.features=FeatureEngine()
+        self.storage=storage; self.assets=assets; self.features=FeatureEngine(); self.derived=DerivedSignalEngine(storage)
         self.formation=FormationEngine(self.emit); self.stats=PropagationStats()
         self.vpd=VPDPointInTimeJoin(storage.query('vpd_snapshot',now-4*86400000,now+1))
         self.quotes=QuoteCoverage(); self.trade_ids=defaultdict(OrderedDict); self.raw_books={}
@@ -50,6 +51,7 @@ class ResearchEngine:
             if e.venue=='upbit': self.vpd_entry(e)
         for f in self.features.ingest(e):
             self.features_latest[(f.venue,f.asset,f.horizon)]=f
+            self.derived.on_feature(f)
             self.formation.ingest(f)
 
     def add_vpd(self,row):

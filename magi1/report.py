@@ -13,12 +13,16 @@ def report_cutoff(now):
 def build_daily(storage,now=None,output_dir=None):
     end=report_cutoff(now or datetime.now(KST)); start=end-timedelta(days=1)
     lo,hi=int(start.timestamp()*1000),int(end.timestamp()*1000)
-    chains=storage.query('shock_chain',lo,hi); states=storage.query('flow_state',lo,hi)
+    chains=storage.query('shock_chain',lo,hi); states=storage.query('flow_state',lo,hi); derived=storage.query('derived_signal',lo,hi)
     evaluations=storage.query('evaluation',lo,hi); prop=storage.query('propagation',lo,hi)
     legacy_count=sum(x.get('evaluation_version')!='quote-v2' for x in evaluations)
     evaluations=[x for x in evaluations if x.get('evaluation_version')=='quote-v2']
     prop=[x for x in prop if x.get('coverage_version')=='quote-v2']
     lines=[f'# MAGI1 Daily Crypto Shock Report — {end:%Y-%m-%d} 07:00 KST','',f'Window: {start.isoformat()} to {end.isoformat()}','Research only. No orders. Origin causality is uncalibrated.','',f'Shocks: {len(chains)}; state events: {len(states)}; matured outcomes: {len(evaluations)}','', 'On-chain → Global → Derivatives → Korea → VPD → Price','']
+    fast=[x for x in derived if x.get('signal_type')=='FAST']; whale=[x for x in derived if x.get('signal_type')=='WHALE']
+    lines += [f'Derived FAST events: {len(fast)}; Whale evidence events: {len(whale)}','', '## Derived intelligence (additive; historical raw/flow semantics unchanged)','', '| Type | Asset | Direction | Score | Evidence |','|---|---|---|---:|---|']
+    for x in derived[-30:]: lines.append(f"| {x['signal_type']} | {x['asset']} | {x['direction']} | {x['score']:.1f} | {json.dumps(x.get('evidence',{}),ensure_ascii=False)[:240]} |")
+    lines += ['']
     for c in chains[-20:]:
         related=[s for s in states if s['shock_id']==c['shock_id']]
         lines += [f"## {c['asset']} {c['direction']} {c['horizon']} / {c['shock_id'][:10]}",f"- On-chain candidates: {len(c['onchain_candidates'])} (association, not proof of origin)",f"- Global origin candidate: {c['origin_venue']}; evidence score: {c['origin_evidence_score']:.2f}; calibrated confidence: unavailable",f"- Derivatives snapshots: {len(c['derivatives_context'])}",f"- Korea / propagation: {' → '.join(s['state'] for s in related)}",f"- VPD as-of: {json.dumps(c['vpd_join'],ensure_ascii=False)}",f"- Price evaluation: {c['entry_status']}",'']

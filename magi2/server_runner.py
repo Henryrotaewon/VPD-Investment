@@ -9,6 +9,14 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
+from concurrent.futures import ThreadPoolExecutor
+
+# Support both `python magi2/server_runner.py` and package imports.
+if __package__ in (None, ''):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
+    scan_keyboard, parse_command, magi3_status, validation_text)
+from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
 
 ROOT=Path(__file__).resolve().parents[1]
 REPO_STATE_DIR=ROOT/'magi2'/'state'
@@ -20,6 +28,12 @@ ALLOWED_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID','').strip()
 GITHUB_REPO=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
 BACKUP_BRANCH=os.getenv('MAGI2_BACKUP_BRANCH','paper-history').strip()
 STATE_DIR=REPO_STATE_DIR
+BOT_USERNAME=''
+CONFIRMATIONS=Confirmations()
+EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
+ENGINE_JOB=None
+ENGINE_MODE=None
+ALLOWED_USER_IDS={x.strip() for x in os.getenv('TELEGRAM_ALLOWED_USER_IDS','').split(',') if x.strip()}
 
 
 def log(msg): print(f'[{datetime.now(KST).isoformat()}] {msg}',flush=True)
@@ -120,16 +134,67 @@ def backup_paper_history():
     log(f'GitHub PAPER backup complete; changed={changed}')
 
 
-def telegram(text):
+def telegram_api(method,payload):
+    response=requests.post(f'https://api.telegram.org/bot{BOT_TOKEN}/{method}',json=payload,timeout=15)
+    response.raise_for_status()
+    data=response.json()
+    if not data.get('ok'): raise RuntimeError('TELEGRAM_API_REJECTED')
+    return data.get('result')
+
+
+def telegram(text,reply_markup=None):
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: return
-    try: requests.post(f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage',json={'chat_id':ALLOWED_CHAT_ID,'text':text},timeout=15).raise_for_status()
-    except Exception as e: log(f'Telegram send error: {e}')
+    # UTF-16 units remain below Telegram's message size even with emoji.
+    chunks=[text[i:i+1800] for i in range(0,len(text),1800)] or [' ']
+    try:
+        for i,chunk in enumerate(chunks):
+            payload={'chat_id':ALLOWED_CHAT_ID,'text':chunk}
+            if reply_markup and i==len(chunks)-1: payload['reply_markup']=reply_markup
+            telegram_api('sendMessage',payload)
+    except Exception as e: log(f'Telegram send error: {type(e).__name__}')
+
+
+def setup_telegram_menu():
+    global BOT_USERNAME
+    me=telegram_api('getMe',{})
+    BOT_USERNAME=me.get('username','')
+    scope={'type':'chat','chat_id':ALLOWED_CHAT_ID}
+    commands=[{'command':key,'description':desc} for key,desc in COMMANDS]
+    for language in ('','ko'):
+        telegram_api('setMyCommands',{'commands':commands,'scope':scope,'language_code':language})
+    # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
+    if not ALLOWED_CHAT_ID.startswith('-'):
+        telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
+    log('Telegram command menu registered: Korean v2')
+
+
+def start_engine(mode):
+    global ENGINE_JOB, ENGINE_MODE
+    if ENGINE_JOB is not None and not ENGINE_JOB.done():
+        return False
+    finish_engine_job()
+    ENGINE_MODE=mode
+    ENGINE_JOB=EXECUTOR.submit(run_engine,mode)
+    return True
+
+
+def finish_engine_job():
+    global ENGINE_JOB, ENGINE_MODE
+    if ENGINE_JOB is None or not ENGINE_JOB.done(): return
+    mode=ENGINE_MODE
+    try:
+        ENGINE_JOB.result()
+        log(f'PAPER job completed: {mode}')
+    except Exception as e:
+        log(f'PAPER job failed [{mode}]: {type(e).__name__}')
+        if mode!='monitor': telegram('작업을 완료하지 못했습니다. /status에서 상태를 확인하세요.')
+    ENGINE_JOB=None; ENGINE_MODE=None
 
 
 def run_engine(mode):
     script='magi2/refill_engine.py' if mode=='refill' else 'magi2/paper_engine.py'
     args=[sys.executable,script] if mode=='refill' else [sys.executable,script,mode]
-    before=state_signature(); p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy())
+    before=state_signature(); p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy(),timeout=300)
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
     if p.returncode!=0:
@@ -153,7 +218,7 @@ def return_magi1_state(session):
     if r.status_code==404:
         telegram(f'ℹ️ MAGI1 {session.upper()} SCAN\n저장된 세션 스캔본이 아직 없습니다.'); return
     r.raise_for_status(); d=r.json(); top=(d.get('top10') or [])[:10]; asof=d.get('asof_kst') or d.get('asof') or '-'
-    title='🌅 MAGI1 MORNING SCAN' if session=='morning' else '🌙 MAGI1 EVENING SCAN'
+    title='🌅 오전 VPD 조회' if session=='morning' else '🌙 저녁 VPD 조회'
     lines=[title,f'저장 스캔: {asof}','', '📊 VPD TOP10']
     for i,x in enumerate(top,1):
         dv=x.get('VPDVelocity'); dvtxt='-' if dv is None else f'{float(dv):+.0f}'
@@ -163,26 +228,98 @@ def return_magi1_state(session):
     telegram('\n'.join(lines))
 
 
-def help_text():
-    return ('🤖 MAGI Command Manual\n\nMAGI1 조회\nmagi1 morning scan\nmagi1 evening scan\n※ 자동 스캔: 07:10 / 17:40 KST\n※ 명령은 직전 저장본 조회만 수행\n\nMAGI2\nmagi2 morning\nmagi2 refill\nmagi2 report\nmagi2 help\n\nMAGI2 Monitor는 Railway에서 자동 실행 · PAPER ONLY')
-
-
-def handle_command(text):
-    cmd=' '.join(text.strip().lower().split())
+def signals_text():
+    path=os.getenv('MAGI1_INTELLIGENCE_PATH','').strip()
+    url=os.getenv('MAGI1_INTELLIGENCE_URL','').strip()
+    if not path and not url:
+        return '⚡ FAST · Whale 신호\n관측 파일 전달 경로가 아직 연결되지 않았습니다. 신호가 없다는 뜻은 아닙니다.'
     try:
-        if cmd=='magi1 morning scan': return_magi1_state('morning')
-        elif cmd=='magi1 evening scan': return_magi1_state('evening')
-        elif cmd=='magi2 morning': run_engine('morning')
-        elif cmd=='magi2 refill': run_engine('refill')
-        elif cmd=='magi2 report': run_engine('report')
-        elif cmd=='magi2 help': telegram(help_text())
-        elif cmd.startswith('magi1') or cmd.startswith('magi2'): telegram('❓ 알 수 없는 MAGI 명령입니다.\nmagi2 help 로 명령어를 확인하세요.')
+        rows=(load_intelligence(path,int(time.time()*1000)) if path else
+              fetch_intelligence(url,os.getenv('MAGI_INTELLIGENCE_TOKEN',''),int(time.time()*1000)))
+    except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
+        return '⚡ FAST · Whale 신호\n최신 관측을 확인할 수 없습니다. 파일 누락·만료·형식을 점검해야 합니다.'
+    lines=['⚡ FAST · Whale 최근 5분 관측 (매매 지시 아님)']
+    for row in rows[-15:]:
+        venue=row.get('evidence',{}).get('venue','onchain')
+        lines.append(f"{row['asset']} | {row['strategy_tag']} | {venue} | {row['direction']} | 점수 {row['heuristic_score']:.1f}")
+    if not rows: lines.append('이 관측 구간에 신호가 없습니다.')
+    return '\n'.join(lines)
+
+
+def may_execute(chat_id,user_id):
+    if str(chat_id)!=ALLOWED_CHAT_ID: return False
+    if ALLOWED_USER_IDS: return str(user_id) in ALLOWED_USER_IDS
+    return str(user_id)==str(chat_id) and not str(chat_id).startswith('-')
+
+
+def handle_command(text,chat_id=None,user_id=None):
+    cmd=parse_command(text,BOT_USERNAME)
+    chat_id=str(chat_id or ALLOWED_CHAT_ID)
+    try:
+        if cmd in ('help','menu'):
+            telegram(help_text() if cmd=='help' else '📋 메뉴를 선택하세요. 자산보고와 실행 기능은 PAPER 기준입니다.',main_keyboard())
+        elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
+        elif cmd=='morning_scan': return_magi1_state('morning')
+        elif cmd=='evening_scan': return_magi1_state('evening')
+        elif cmd=='report':
+            if not start_engine('report'): telegram('다른 PAPER 작업이 진행 중입니다. 잠시 후 다시 조회하세요.')
+        elif cmd in ('morning','refill'):
+            if not may_execute(chat_id,user_id):
+                telegram('실행 권한이 없는 사용자입니다. 조회 메뉴는 이용할 수 있습니다.'); return
+            if ENGINE_JOB is not None and not ENGINE_JOB.done():
+                telegram('PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.'); return
+            label='리밸런싱 (기존 보유 종목의 모의 매도·매수 가능)' if cmd=='morning' else '빈자리 채우기 (모의 신규 매수)'
+            telegram(f'PAPER {label}을 실행할까요?\n60초 안에 확인하세요. 실제 주문은 발생하지 않습니다.',
+                     CONFIRMATIONS.issue(cmd,chat_id,user_id))
+        elif cmd=='cancel':
+            CONFIRMATIONS.cancel(chat_id,user_id)
+            telegram('대기 중인 실행 확인을 취소했습니다. 이미 진행 중인 작업은 계속됩니다.')
+        elif cmd=='status':
+            running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
+            telegram(f'🤖 봇 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초\nMAGI1·MAGI3 운영 상태: 이 화면에서는 미조회')
+        elif cmd=='magi3': telegram(magi3_status())
+        elif cmd=='strategies': telegram(validation_text())
+        elif cmd=='signals': telegram(signals_text())
+        elif cmd=='assets':
+            telegram('💼 MAGI3 통합자산\n실계좌 통합 수집은 아직 연결되지 않았습니다. 샘플 자산을 실제 잔고로 표시하지 않습니다.\nPAPER 자산은 /report, 구현 수준은 /magi3에서 확인하세요.')
+        elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
     except Exception as e:
-        log(f'Command failed [{cmd}]: {e}'); telegram(f'🚨 MAGI 명령 실패\n{cmd}\n{e}')
+        log(f'Command failed [{cmd}]: {type(e).__name__}')
+        telegram('명령을 처리하지 못했습니다. 잠시 후 다시 시도하세요.')
+
+
+def handle_callback(callback):
+    msg=callback.get('message') or {}
+    chat_id=str((msg.get('chat') or {}).get('id',''))
+    user_id=str((callback.get('from') or {}).get('id',''))
+    authorized=chat_id==ALLOWED_CHAT_ID
+    try:
+        telegram_api('answerCallbackQuery',{'callback_query_id':callback['id'],
+                     'text':'처리 중' if authorized else '접근할 수 없습니다.'})
+    except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
+    if not authorized: return
+    data=callback.get('data','')
+    if data.startswith('nav:'):
+        command=data[4:]
+        if command in ('morning_scan','evening_scan','menu','help'):
+            handle_command(command,chat_id,user_id)
+    elif data.startswith(('confirm:','cancel:')):
+        prefix,token=data.split(':',1)
+        if not may_execute(chat_id,user_id): return
+        action=CONFIRMATIONS.consume(token,chat_id,user_id)
+        if action is None:
+            telegram('확인이 만료되었거나 이미 처리되었습니다. 메뉴에서 다시 선택하세요.'); return
+        try:
+            telegram_api('editMessageReplyMarkup',{'chat_id':chat_id,'message_id':msg['message_id'],
+                                                   'reply_markup':{'inline_keyboard':[]}})
+        except Exception as e: log(f'Keyboard cleanup failed: {type(e).__name__}')
+        if prefix=='cancel': telegram('실행을 취소했습니다.'); return
+        if start_engine(action): telegram('PAPER 작업을 시작했습니다. 결과는 완료 후 안내합니다.')
+        else: telegram('다른 PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.')
 
 
 def get_updates(offset):
-    r=requests.get(f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',params={'offset':offset,'timeout':0,'allowed_updates':json.dumps(['message'])},timeout=10); r.raise_for_status(); return r.json().get('result',[])
+    r=requests.get(f'https://api.telegram.org/bot{BOT_TOKEN}/getUpdates',params={'offset':offset,'timeout':0,'allowed_updates':json.dumps(['message','callback_query'])},timeout=10); r.raise_for_status(); return r.json().get('result',[])
 
 
 def discard_pending_updates():
@@ -191,17 +328,23 @@ def discard_pending_updates():
         updates=get_updates(0)
         if updates:
             offset=max(int(x['update_id']) for x in updates)+1; get_updates(offset); log(f'Discarded {len(updates)} pending Telegram update(s) on startup')
-    except Exception as e: log(f'Telegram startup flush error: {e}')
+    except Exception as e: log(f'Telegram startup flush error: {type(e).__name__}')
     return offset
 
 
 def poll_updates(offset):
     try:
         for update in get_updates(offset):
-            offset=max(offset,int(update['update_id'])+1); msg=update.get('message') or {}; chat_id=str((msg.get('chat') or {}).get('id','')); text=msg.get('text') or ''
-            if chat_id!=ALLOWED_CHAT_ID: log(f'Ignored Telegram command from unauthorized chat {chat_id}'); continue
-            handle_command(text)
-    except Exception as e: log(f'Telegram polling error: {e}')
+            ident=int(update['update_id'])
+            if ident<offset: continue
+            offset=ident+1
+            if 'callback_query' in update:
+                handle_callback(update['callback_query']); continue
+            msg=update.get('message') or {}
+            chat_id=str((msg.get('chat') or {}).get('id',''))
+            if chat_id!=ALLOWED_CHAT_ID: continue
+            handle_command(msg.get('text') or '',chat_id,str((msg.get('from') or {}).get('id','')))
+    except Exception as e: log(f'Telegram polling error: {type(e).__name__}')
     return offset
 
 
@@ -210,14 +353,17 @@ def main():
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
     try: backup_paper_history()
     except Exception as e: log(f'Initial GitHub PAPER backup error (engine unaffected): {e}')
+    try: setup_telegram_menu()
+    except Exception as e: log(f'Telegram menu registration failed: {type(e).__name__}')
+    if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
+        log('intelligence_probe: '+signals_text().replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     next_monitor=time.monotonic()+INTERVAL
     while True:
+        finish_engine_job()
         offset=poll_updates(offset)
         if time.monotonic()>=next_monitor:
-            try: run_engine('monitor')
-            except Exception as e: log(f'Monitor error: {e}')
-            next_monitor=time.monotonic()+INTERVAL
+            if start_engine('monitor'): next_monitor=time.monotonic()+INTERVAL
         time.sleep(POLL_SECONDS)
 
 if __name__=='__main__': main()
