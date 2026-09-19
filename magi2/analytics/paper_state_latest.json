@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 795369.5147725104,
+  "cash_krw": 1124648.494385031,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -2311,7 +2311,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 84.2,
+      "last_price": 84.1,
       "peak_price": 88.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4396,7 +4396,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 203.0,
+      "last_price": 205.0,
       "peak_price": 206.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4501,7 +4501,7 @@
     },
     "META2": {
       "market": "KRW-META2",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-19T14:34:00.339668+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-19-REFILL-1434",
@@ -4520,10 +4520,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 8145.0,
+      "last_price": 8055.0,
       "peak_price": 8710.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-09-19T15:28:15.258206+09:00",
+      "exit_price": 8055.0,
+      "sell_fee_krw": 164.72185073162612,
+      "net_proceeds_krw": 329278.9796125206,
+      "pnl_krw": -24211.425588333514,
+      "return_pct": -6.849245476571431,
+      "exit_reason": "HARD_STOP"
     },
     "SAND": {
       "market": "KRW-SAND",
@@ -4637,8 +4644,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 244177.61054299894,
-  "lifetime_realized_pnl_krw": 623292.7563793436,
+  "realized_pnl_krw": 219966.18495466543,
+  "lifetime_realized_pnl_krw": 599081.33079101,
   "paper_only": true,
   "cohort_id": "VPD-FULL-8ce5d6a6003bf7277e1b",
   "cohort_date": "2026-09-19",
@@ -4647,7 +4654,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "EXPLICIT_FULL_REBUILD",
   "capital_model": "ROLLING_EQUITY_EQUAL_WEIGHT",
-  "updated_at": "2026-09-19T15:23:14.923375+09:00",
+  "updated_at": "2026-09-19T15:28:15.258599+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
