@@ -7,11 +7,7 @@
   "slippage_rate": 0.001,
   "paper_strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "session": {
-    "entry_after_kst": "07:20",
-    "entry_window_end_kst": "08:30",
-    "max_snapshot_age_minutes": 45,
-    "closed_day_enabled": true,
-    "closed_day_entry_end_kst": "23:59",
+    "rebalance_basis": "POINT_IN_TIME",
     "top_n": 10,
     "daily_reset_principal": false
   },

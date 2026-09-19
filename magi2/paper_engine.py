@@ -1,14 +1,12 @@
-import argparse, csv, io, json, os, re
+import argparse, csv, io, json, os, sys
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
-try:
-    from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
-    from magi2.closed_day_scan import read_snapshot, cutoff_for, SCHEMA as CLOSED_SCHEMA
-except ModuleNotFoundError:
-    from hold_policy import POLICY, assess_hold, decision_text, protection
-    from closed_day_scan import read_snapshot, cutoff_for, SCHEMA as CLOSED_SCHEMA
+if __package__ in (None, ''):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
+from magi2.point_in_time_scan import read_snapshot, build_snapshot, cutoff_for, SCHEMA, MAX_AGE_SECONDS
 
 ROOT=Path(__file__).resolve().parents[1]
 CFG=json.loads((ROOT/'magi2'/'config.json').read_text(encoding='utf-8'))
@@ -112,26 +110,9 @@ def load_today_snapshot():
     snap,asof=loaded
     return (snap,asof) if asof.date()==now_dt().date() else None
 
-def load_morning_snapshot():
-    if now_dt().strftime('%H:%M')>='09:00':
-        snap=read_snapshot(STATE_PATH.resolve().with_name('vpd_closed_day.json'),now_dt())
-        return (snap,parse_snapshot_asof(snap['asof'])) if snap else None
-    # Both ranking files must come from one immutable publication.
-    repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
-    token=os.getenv('GITHUB_TOKEN','').strip()
-    headers={'Accept':'application/vnd.github+json'}
-    if token: headers['Authorization']=f'Bearer {token}'
-    try:
-        response=requests.get(f'https://api.github.com/repos/{repo}/commits/main',headers=headers,timeout=20)
-        response.raise_for_status(); revision=response.json().get('sha','')
-        if not re.fullmatch(r'[0-9a-f]{40}',revision): return None
-        response=requests.get(f'https://raw.githubusercontent.com/{repo}/{revision}/data/vpd_latest.json',timeout=20)
-        response.raise_for_status(); snap=response.json()
-        asof=parse_snapshot_asof(snap.get('asof') or snap.get('asof_kst'))
-        snap['_source_revision']=revision
-        return (snap,asof) if asof else None
-    except (requests.RequestException,ValueError,TypeError):
-        print('Morning VPD publication unavailable'); return None
+def load_morning_snapshot(expected_asof=None):
+    snap=read_snapshot(STATE_PATH.resolve().with_name('vpd_rebalance.json'),now_dt(),expected_asof)
+    return (snap,parse_snapshot_asof(snap['asof'])) if snap else None
 
 def load_all_ranked_rows(revision=None):
     repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
@@ -217,33 +198,21 @@ def derive_daily_equal_buy(st,today):
     return slot
 
 def snapshot_issue(asof, now, snapshot=None):
-    session=CFG.get('session',{})
-    if now.strftime('%H:%M')>='09:00':
-        if not session.get('closed_day_enabled',False): return '전일 확정 재점검이 아직 활성화되지 않았습니다.'
-        if now.strftime('%H:%M')>session.get('closed_day_entry_end_kst','23:59'):
-            return '전일 확정 재점검은 09:00~'+session.get('closed_day_entry_end_kst','23:59')+' KST에 실행합니다.'
-        snap=snapshot or {}
-        generated=parse_snapshot_asof(snap.get('generated_at'))
-        if snap.get('schema')!=CLOSED_SCHEMA or asof!=cutoff_for(now) or not generated or not asof<=generated<=now:
-            return '09시에 종료된 전일 일봉의 확정 스캔을 기다리고 있습니다.'
-        return None
-    age=(now-asof).total_seconds()/60
-    if asof.date()!=now.date(): return '당일 VPD가 아직 준비되지 않았습니다.'
-    if age<0 or age>float(session.get('max_snapshot_age_minutes',45)):
+    snap=snapshot or {}
+    generated=parse_snapshot_asof(snap.get('generated_at'))
+    if (snap.get('schema')!=SCHEMA or snap.get('basis')!='POINT_IN_TIME' or
+            not generated or asof!=cutoff_for(asof) or not asof<=generated<=now):
+        return '요청 시점에 맞춘 VPD 스캔을 기다리고 있습니다.'
+    if not 0<=(now-asof).total_seconds()<=MAX_AGE_SECONDS:
         return 'VPD 자료가 오래됐거나 시각 확인이 필요합니다.'
-    start=session.get('entry_after_kst','07:20'); end=session.get('entry_window_end_kst','08:30')
-    if not start<=now.strftime('%H:%M')<=end:
-        return f'아침 리밸런싱 실행 시간은 {start}~{end} KST입니다.'
-    if not '07:00'<=asof.strftime('%H:%M')<=end:
-        return '당일 아침 VPD 스캔을 기다리고 있습니다.'
     return None
 
 
-def morning_rebalance(st):
-    loaded=load_morning_snapshot()
+def morning_rebalance(st,expected_asof=None):
+    loaded=load_morning_snapshot(expected_asof)
     if not loaded:
-        telegram('⏳ VPD 리밸런싱 자료 대기\n사용할 새 스캔이 아직 준비되지 않았습니다. 09시 이후에는 전일 확정 스캔 생성이 필요합니다.\n보유 판단·매매 없음'); return False
-    snap,asof=loaded; today=asof.date().isoformat(); snapshot_raw=snap.get('asof') or snap.get('asof_kst') or asof.isoformat()
+        telegram('⏳ VPD 리밸런싱 자료 대기\n요청 시점에 맞춘 새 스캔이 아직 준비되지 않았습니다. 리밸런싱 버튼으로 다시 요청하세요.\n보유 판단·매매 없음'); return False
+    snap,asof=loaded; today=now_dt().date().isoformat(); snapshot_raw=snap.get('asof') or snap.get('asof_kst') or asof.isoformat()
     issue=snapshot_issue(asof,now_dt(),snap)
     if issue:
         telegram(f'⏳ VPD 리밸런싱 대기\n{issue}\n마지막 스캔: {snap.get("asof_kst",snapshot_raw)}\n보유 판단·매매 없음'); return False
@@ -253,7 +222,7 @@ def morning_rebalance(st):
         telegram(f'ℹ️ VPD 리밸런싱 · 이미 평가한 자료\n자료 기준: {snap.get("asof_kst",snapshot_raw)}\n보유 판단과 매매를 반복하지 않았습니다.\n※ 이 메시지는 새 홀딩 판정이 아닙니다.'); return False
     top_n=int(CFG.get('session',{}).get('top_n',10)); candidates=snap.get('top10',[])[:top_n]
     if not candidates: raise RuntimeError('Latest VPD TOP10 is empty.')
-    top={r['coin']:r for r in candidates}; all_rows=snap.get('all_rows') if snap.get('schema')==CLOSED_SCHEMA else load_all_ranked_rows(snap.get('_source_revision')); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; weakening=[]; exited=[]; bought=[]; waiting=[]; decisions=[]; stage='CLOSE' if snap.get('schema')==CLOSED_SCHEMA else 'AM'; sid=f'{today}-{stage}-001'
+    top={r['coin']:r for r in candidates}; all_rows=snap.get('all_rows') or {}; active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; weakening=[]; exited=[]; bought=[]; waiting=[]; decisions=[]; stage='REQUEST'; sid=f'{asof:%Y-%m-%d}-VPD-{asof:%H%M}'
     assessments={coin:assess_hold(all_rows.get(coin) or top.get(coin,{}),p,prices.get(p['market']),CFG) for coin,p in active.items()}
     incomplete=[coin for coin,result in assessments.items() if result['kind']=='DATA_WAIT']
     if incomplete:
@@ -311,15 +280,21 @@ def morning_rebalance(st):
         if row['coin'] in open_after or row['coin'] in exited: continue
         old=st.get('positions',{}).get(row['coin'],{})
         old_exit=parse_snapshot_asof(old.get('exit_at'))
-        if stage=='CLOSE' and old.get('status')=='CLOSED' and old_exit and old_exit.date()==asof.date():
-            decisions.append(f'{row["coin"]} · 재진입 유예\n  오늘 청산한 종목은 전일 확정 재점검에서 다시 매수하지 않습니다.')
+        if old.get('status')=='CLOSED' and old_exit and old_exit.date().isoformat()==today:
+            decisions.append(f'{row["coin"]} · 재진입 유예\n  오늘 청산한 종목은 당일 리밸런싱에서 다시 매수하지 않습니다.')
             continue
         if buy_position(st,row,prices.get(row['market']),morning_slot,stage,sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
-    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
+    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
     st['source_snapshot_revision']=snap.get('_source_revision')
     st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source
+    result={'asof':asof.isoformat(),'kept':kept,'weakening':weakening,'sold':exited,'bought':bought,
+            'cash_krw':round(st['cash_krw'],2),'paper_only':True}
+    st['last_rebalance_result']=result
     st['last_rebalance_decisions']=decisions; st['hold_policy']=POLICY; save_state(st)
-    phase='전일 확정 재점검' if stage=='CLOSE' else '오전 사전 점검'
+    log_event(dict(result,ts=now_iso(),type='REBALANCE_FINISHED',session_id=sid))
+    print('VPD_REBALANCE_RESULT '+json.dumps(result,ensure_ascii=False),flush=True)
+    for decision in decisions: print('VPD_DECISION '+decision.replace('\n',' | '),flush=True)
+    phase='요청 시점 재점검'
     summary=(f"🔄 VPD 모의투자 · {phase}\n기준 {snap.get('asof_kst',asof.isoformat())}\n"
              f"추세·수익 보호 보유 {len(kept)} / 약화 유예 {len(weakening)} / 자료 대기 {len(waiting)}\n"
              f"매도 {len(exited)}: {', '.join(exited) or '-'} / 매수 {len(bought)}: {', '.join(bought) or '-'}")
@@ -347,9 +322,14 @@ def report(st):
     active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','refill','report']); mode=ap.parse_args().mode; st=load_state(); migrate_state(st)
+    ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','refill','report'])
+    ap.add_argument('--snapshot-asof'); args=ap.parse_args(); mode=args.mode
+    if mode=='morning' and not args.snapshot_asof:
+        snapshot=build_snapshot(STATE_PATH.resolve().with_name('vpd_rebalance.json'),now_dt())
+        args.snapshot_asof=snapshot['asof']
+    st=load_state(); migrate_state(st)
     if mode=='monitor': monitor_once(st)
-    elif mode=='morning': morning_rebalance(st)
+    elif mode=='morning': morning_rebalance(st,args.snapshot_asof)
     elif mode=='refill': refill(st)
     else: report(st)
 

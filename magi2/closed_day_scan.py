@@ -57,6 +57,13 @@ def analyse(market, daily, hourly, cutoff):
         return None, 'SHORT_HISTORY'
     if days[-1][0] + timedelta(days=1) != cutoff:
         return None, 'NO_CLOSED_DAY'
+    return score_rows(market, days, hourly, cutoff)
+
+
+def score_rows(market, days, hourly, cutoff):
+    """Score already time-validated daily rows and completed hourly candles."""
+    if len(days) < 20:
+        return None, 'SHORT_HISTORY'
     df = pd.DataFrame([c for _, c in days])
     for name in ('trade_price', 'high_price', 'low_price', 'candle_acc_trade_volume', 'candle_acc_trade_price'):
         df[name] = pd.to_numeric(df[name], errors='raise')
