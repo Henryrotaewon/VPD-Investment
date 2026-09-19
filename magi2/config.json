@@ -8,7 +8,10 @@
   "paper_strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "session": {
     "entry_after_kst": "07:20",
-    "entry_window_end_kst": "08:00",
+    "entry_window_end_kst": "08:30",
+    "max_snapshot_age_minutes": 45,
+    "closed_day_enabled": true,
+    "closed_day_entry_end_kst": "23:59",
     "top_n": 10,
     "daily_reset_principal": false
   },
@@ -16,15 +19,17 @@
     "take_profit_pct": 12.0,
     "hard_stop_pct": -6.0,
     "warning_profit_pct": 10.0,
-    "warning_distance_pct_point": 2.0
+    "warning_distance_pct_point": 2.0,
+    "profit_protection_enabled": true,
+    "profit_protection_activation_pct": 6.0,
+    "profit_protection_giveback_pct_point": 3.0
   },
   "hold": {
-    "min_alive_signals": 2,
-    "weakening_grace_mornings": 1,
-    "min_vpd": 60.0,
+    "policy": "TREND_PROFIT_V2",
+    "weakening_grace_hours": 24,
+    "weakening_confirmations": 2,
     "min_intra_accel": 1.0,
-    "min_today_value_ratio": 1.0,
-    "max_giveback_pct_point": 10.0
+    "min_today_value_ratio": 1.0
   },
   "monitor": {
     "interval_minutes": 5

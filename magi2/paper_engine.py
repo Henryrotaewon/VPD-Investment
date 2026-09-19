@@ -1,8 +1,14 @@
-import argparse, csv, io, json, os
+import argparse, csv, io, json, os, re
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
+try:
+    from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
+    from magi2.closed_day_scan import read_snapshot, cutoff_for, SCHEMA as CLOSED_SCHEMA
+except ModuleNotFoundError:
+    from hold_policy import POLICY, assess_hold, decision_text, protection
+    from closed_day_scan import read_snapshot, cutoff_for, SCHEMA as CLOSED_SCHEMA
 
 ROOT=Path(__file__).resolve().parents[1]
 CFG=json.loads((ROOT/'magi2'/'config.json').read_text(encoding='utf-8'))
@@ -107,11 +113,30 @@ def load_today_snapshot():
     return (snap,asof) if asof.date()==now_dt().date() else None
 
 def load_morning_snapshot():
-    return load_latest_snapshot()
-
-def load_all_ranked_rows():
+    if now_dt().strftime('%H:%M')>='09:00':
+        snap=read_snapshot(STATE_PATH.resolve().with_name('vpd_closed_day.json'),now_dt())
+        return (snap,parse_snapshot_asof(snap['asof'])) if snap else None
+    # Both ranking files must come from one immutable publication.
     repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
-    url=f'https://raw.githubusercontent.com/{repo}/main/data/vpd_all_latest.csv?t={int(now_dt().timestamp())}'
+    token=os.getenv('GITHUB_TOKEN','').strip()
+    headers={'Accept':'application/vnd.github+json'}
+    if token: headers['Authorization']=f'Bearer {token}'
+    try:
+        response=requests.get(f'https://api.github.com/repos/{repo}/commits/main',headers=headers,timeout=20)
+        response.raise_for_status(); revision=response.json().get('sha','')
+        if not re.fullmatch(r'[0-9a-f]{40}',revision): return None
+        response=requests.get(f'https://raw.githubusercontent.com/{repo}/{revision}/data/vpd_latest.json',timeout=20)
+        response.raise_for_status(); snap=response.json()
+        asof=parse_snapshot_asof(snap.get('asof') or snap.get('asof_kst'))
+        snap['_source_revision']=revision
+        return (snap,asof) if asof else None
+    except (requests.RequestException,ValueError,TypeError):
+        print('Morning VPD publication unavailable'); return None
+
+def load_all_ranked_rows(revision=None):
+    repo=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
+    ref=revision or 'main'
+    url=f'https://raw.githubusercontent.com/{repo}/{ref}/data/vpd_all_latest.csv?t={int(now_dt().timestamp())}'
     try:
         r=requests.get(url,timeout=20); r.raise_for_status(); rows={}
         for raw in csv.DictReader(io.StringIO(r.text.lstrip('\ufeff'))):
@@ -169,9 +194,13 @@ def monitor_once(st):
     for coin,p in list(active.items()):
         px=prices.get(p['market'])
         if px is None: continue
-        p['last_price']=float(px); p['peak_price']=max(float(p.get('peak_price',px)),float(px)); ret=position_return(p,px); tp=float(p.get('target_profit_pct',12)); sl=float(p.get('stop_loss_pct',-6))
-        if ret>=tp: close_position(st,coin,p,px,'TAKE_PROFIT'); continue
-        if ret<=sl: close_position(st,coin,p,px,'HARD_STOP'); continue
+        risk=protection(p,px,CFG)
+        if risk['kind']=='DATA_WAIT': continue
+        peak=risk['observed_peak_price']
+        if p.get('peak_price')!=peak: dirty=True
+        p['last_price']=float(px); p['peak_price']=peak; ret=risk['net_return_pct']; tp=float(p.get('target_profit_pct',12)); sl=float(p.get('stop_loss_pct',-6))
+        if risk['kind']:
+            close_position(st,coin,p,px,risk['kind']); continue
         if ret>=tp-distance and not p.get('tp_warning_sent',False): telegram(f'⚠️ MAGI2 TP 접근\n{coin} | 원금 {float(p["cost_krw"]):,.0f}원 | 현재 {ret:+.2f}% | TP +{tp:.1f}%\nPAPER ONLY'); p['tp_warning_sent']=True; dirty=True
         elif ret<tp-distance-1 and p.get('tp_warning_sent',False): p['tp_warning_sent']=False; dirty=True
         if ret<=sl+distance and not p.get('sl_warning_sent',False): telegram(f'⚠️ MAGI2 SL 접근\n{coin} | 원금 {float(p["cost_krw"]):,.0f}원 | 현재 {ret:+.2f}% | SL {sl:.1f}%\nPAPER ONLY'); p['sl_warning_sent']=True; dirty=True
@@ -187,38 +216,86 @@ def derive_daily_equal_buy(st,today):
     st['daily_equal_buy_krw']=slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']='OPEN_POSITION_AVG_FALLBACK'; save_state(st)
     return slot
 
+def snapshot_issue(asof, now, snapshot=None):
+    session=CFG.get('session',{})
+    if now.strftime('%H:%M')>='09:00':
+        if not session.get('closed_day_enabled',False): return '전일 확정 재점검이 아직 활성화되지 않았습니다.'
+        if now.strftime('%H:%M')>session.get('closed_day_entry_end_kst','23:59'):
+            return '전일 확정 재점검은 09:00~'+session.get('closed_day_entry_end_kst','23:59')+' KST에 실행합니다.'
+        snap=snapshot or {}
+        generated=parse_snapshot_asof(snap.get('generated_at'))
+        if snap.get('schema')!=CLOSED_SCHEMA or asof!=cutoff_for(now) or not generated or not asof<=generated<=now:
+            return '09시에 종료된 전일 일봉의 확정 스캔을 기다리고 있습니다.'
+        return None
+    age=(now-asof).total_seconds()/60
+    if asof.date()!=now.date(): return '당일 VPD가 아직 준비되지 않았습니다.'
+    if age<0 or age>float(session.get('max_snapshot_age_minutes',45)):
+        return 'VPD 자료가 오래됐거나 시각 확인이 필요합니다.'
+    start=session.get('entry_after_kst','07:20'); end=session.get('entry_window_end_kst','08:30')
+    if not start<=now.strftime('%H:%M')<=end:
+        return f'아침 리밸런싱 실행 시간은 {start}~{end} KST입니다.'
+    if not '07:00'<=asof.strftime('%H:%M')<=end:
+        return '당일 아침 VPD 스캔을 기다리고 있습니다.'
+    return None
+
+
 def morning_rebalance(st):
     loaded=load_morning_snapshot()
-    if not loaded: raise RuntimeError('Latest VPD snapshot is unavailable.')
+    if not loaded:
+        telegram('⏳ VPD 리밸런싱 자료 대기\n사용할 새 스캔이 아직 준비되지 않았습니다. 09시 이후에는 전일 확정 스캔 생성이 필요합니다.\n보유 판단·매매 없음'); return False
     snap,asof=loaded; today=asof.date().isoformat(); snapshot_raw=snap.get('asof') or snap.get('asof_kst') or asof.isoformat()
+    issue=snapshot_issue(asof,now_dt(),snap)
+    if issue:
+        telegram(f'⏳ VPD 리밸런싱 대기\n{issue}\n마지막 스캔: {snap.get("asof_kst",snapshot_raw)}\n보유 판단·매매 없음'); return False
     last_raw=st.get('last_rebalance_vpd_asof') or st.get('source_snapshot_asof_kst')
     last_asof=parse_snapshot_asof(last_raw)
     if last_asof and asof<=last_asof:
-        telegram(f'ℹ️ MAGI2 MORNING\n새 VPD snapshot이 없습니다.\n최신 VPD: {snap.get("asof_kst",snapshot_raw)}\n마지막 사용 VPD: {last_raw}\n거래 없음 · PAPER ONLY'); return False
-    st['realized_pnl_krw']=0.0
+        telegram(f'ℹ️ VPD 리밸런싱 · 이미 평가한 자료\n자료 기준: {snap.get("asof_kst",snapshot_raw)}\n보유 판단과 매매를 반복하지 않았습니다.\n※ 이 메시지는 새 홀딩 판정이 아닙니다.'); return False
     top_n=int(CFG.get('session',{}).get('top_n',10)); candidates=snap.get('top10',[])[:top_n]
     if not candidates: raise RuntimeError('Latest VPD TOP10 is empty.')
-    top={r['coin']:r for r in candidates}; all_rows=load_all_ranked_rows(); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; weakening=[]; exited=[]; bought=[]; sid=f'{today}-AM-001'
+    top={r['coin']:r for r in candidates}; all_rows=snap.get('all_rows') if snap.get('schema')==CLOSED_SCHEMA else load_all_ranked_rows(snap.get('_source_revision')); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; prices=get_prices(list({p['market'] for p in active.values()}|{r['market'] for r in candidates})); kept=[]; weakening=[]; exited=[]; bought=[]; waiting=[]; decisions=[]; stage='CLOSE' if snap.get('schema')==CLOSED_SCHEMA else 'AM'; sid=f'{today}-{stage}-001'
+    assessments={coin:assess_hold(all_rows.get(coin) or top.get(coin,{}),p,prices.get(p['market']),CFG) for coin,p in active.items()}
+    incomplete=[coin for coin,result in assessments.items() if result['kind']=='DATA_WAIT']
+    if incomplete:
+        # Do not consume this snapshot: the same request can be retried once
+        # data recovers, without repeating another position's grace count.
+        telegram(f'⏳ VPD 리밸런싱 자료 대기 {len(incomplete)}\n'+', '.join(incomplete)+'\n가격·보유 추세 자료를 확인한 뒤 다시 실행하세요.\n보유 판단·매매·약화 횟수 변경 없음'); return False
+    if st.get('last_rebalance_date')!=today: st['realized_pnl_krw']=0.0
     for coin,p in list(active.items()):
-        if coin in top:
-            p['last_selected_date']=today; p['consecutive_top10_days']=int(p.get('consecutive_top10_days',1))+1; p['signal_rank']=top[coin].get('Rank'); p['signal_vpd']=top[coin].get('VPD'); p['hold_state']='ACTIVE'; p['weakening_count']=0; p.pop('weakening_since',None); kept.append(coin)
-            log_event({'ts':now_iso(),'type':'KEEP','cohort_id':sid,'coin':coin,'market':p['market'],'signal_rank':p.get('signal_rank'),'signal_vpd':p.get('signal_vpd'),'consecutive_top10_days':p['consecutive_top10_days'],'entry_at':p.get('entry_at'),'entry_session':p.get('entry_session','AM'),'paper_only':True})
+        row=all_rows.get(coin) or top.get(coin,{})
+        px=prices.get(p['market']); assessment=assessments[coin]; kind=assessment['kind']; suffix=''
+        p['hold_assessment']=dict(assessment,asof=asof.isoformat())
+        if 'net_return_pct' in assessment:
+            p['last_price']=float(px); p['peak_price']=assessment['observed_peak_price']
+        p['signal_rank']=_number(row,'Rank'); p['signal_vpd']=_number(row,'VPD')
+        p['hold_signal_reasons']=assessment['reasons']; p['hold_signal_checked_at']=now_iso()
+        if kind=='DATA_WAIT':
+            waiting.append(coin); suffix='기존 보유 유지 · 판단 유예'
+        elif kind in {'HARD_STOP','TAKE_PROFIT','PROFIT_PROTECTION'}:
+            if close_position(st,coin,p,px,kind,False): exited.append(coin)
+        elif kind in {'TREND','PROFIT'}:
+            p['hold_state']=kind; p['weakening_count']=0
+            p.pop('weakening_since',None); p['weakening_policy']=POLICY
+            if coin in top:
+                if p.get('last_selected_date')!=today: p['consecutive_top10_days']=int(p.get('consecutive_top10_days',0))+1
+                p['last_selected_date']=today
+            kept.append(coin)
         else:
-            row=all_rows.get(coin,{})
-            alive,passed,_=hold_signal(row) if row else (False,[],{})
-            p['signal_rank']=_number(row,'Rank'); p['signal_vpd']=_number(row,'VPD'); p['hold_signal_reasons']=passed; p['hold_signal_checked_at']=now_iso()
-            if alive:
-                p['hold_state']='ACTIVE'; p['weakening_count']=0; p.pop('weakening_since',None); kept.append(coin)
-                log_event({'ts':now_iso(),'type':'KEEP_SIGNAL_ALIVE','cohort_id':sid,'coin':coin,'market':p['market'],'signal_rank':p.get('signal_rank'),'signal_vpd':p.get('signal_vpd'),'passed_signals':passed,'paper_only':True})
-                continue
-            weak_count=int(p.get('weakening_count',0))+1; grace=int(CFG.get('hold',{}).get('weakening_grace_mornings',1))
-            p['weakening_count']=weak_count
-            if weak_count<=grace:
-                p['hold_state']='WEAKENING'; p.setdefault('weakening_since',now_iso()); weakening.append(coin)
-                log_event({'ts':now_iso(),'type':'WEAKENING','cohort_id':sid,'coin':coin,'market':p['market'],'signal_rank':p.get('signal_rank'),'signal_vpd':p.get('signal_vpd'),'weakening_count':weak_count,'passed_signals':passed,'paper_only':True})
+            # Old policy counts cannot cause immediate liquidation on adoption.
+            if p.get('weakening_policy')!=POLICY:
+                p['weakening_count']=0; p.pop('weakening_since',None)
+            since=parse_snapshot_asof(p.get('weakening_since')) or asof
+            elapsed=max(0.,(asof-since).total_seconds()/3600)
+            count=int(p.get('weakening_count',0))+1
+            p.update(hold_state='WEAKENING',weakening_count=count,weakening_since=since.isoformat(),weakening_policy=POLICY)
+            hold=CFG.get('hold',{}); grace=float(hold.get('weakening_grace_hours',24))
+            if count>=int(hold.get('weakening_confirmations',2)) and elapsed>=grace:
+                if close_position(st,coin,p,px,'VPD_SIGNAL_DECAY',False): exited.append(coin)
+                suffix=f'약화 {count}회 · {elapsed:.1f}시간 지속 → 청산'
             else:
-                px=prices.get(p['market'])
-                if px is not None and close_position(st,coin,p,px,'VPD_SIGNAL_DECAY',False): exited.append(coin)
+                weakening.append(coin); suffix=f'약화 {count}회 · {elapsed:.1f}/{grace:g}시간 · 매도 유예'
+        decisions.append(decision_text(coin,row,assessment,suffix))
+        log_event({'ts':now_iso(),'type':'HOLD_ASSESSMENT','cohort_id':sid,'coin':coin,'market':p['market'],'snapshot_asof':asof.isoformat(),'assessment':assessment,'weakening_count':p.get('weakening_count',0),'decision_note':suffix,'paper_only':True})
     open_after={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}
     remaining_slots=max(0,top_n-len(open_after))
     available_cash=float(st.get('cash_krw',0))
@@ -231,11 +308,24 @@ def morning_rebalance(st):
         daily_source='MORNING_ALL_KEEP_OPEN_AVG'
     for row in candidates:
         if len(open_after)>=top_n: break
-        if row['coin'] in open_after: continue
-        if buy_position(st,row,prices.get(row['market']),morning_slot,'AM',sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
-    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_HOLD_WEAKENING_EXIT_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
-    st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source; save_state(st)
-    telegram(f"🔄 MAGI2 MORNING 리밸런싱 완료\n{sid}\nVPD snapshot {snap.get('asof_kst',asof.isoformat())}\nKEEP {len(kept)}: {', '.join(kept) or '-'}\nWEAKENING {len(weakening)}: {', '.join(weakening) or '-'}\nSELL {len(exited)}: {', '.join(exited) or '-'}\nBUY {len(bought)}: {', '.join(bought) or '-'}\n신규 슬롯 균등매수원가 {morning_slot:,.0f}원\n※ TOP10 밖은 생존신호 2개 이상 KEEP / 최초 약화 1회 유예 / 연속 약화 시 청산 · PAPER ONLY"); send_current_status(st,'📊 AM 리밸런싱 후 VPD 모의투자 현황 [PAPER]'); return True
+        if row['coin'] in open_after or row['coin'] in exited: continue
+        old=st.get('positions',{}).get(row['coin'],{})
+        old_exit=parse_snapshot_asof(old.get('exit_at'))
+        if stage=='CLOSE' and old.get('status')=='CLOSED' and old_exit and old_exit.date()==asof.date():
+            decisions.append(f'{row["coin"]} · 재진입 유예\n  오늘 청산한 종목은 전일 확정 재점검에서 다시 매수하지 않습니다.')
+            continue
+        if buy_position(st,row,prices.get(row['market']),morning_slot,stage,sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
+    st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='AM_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
+    st['source_snapshot_revision']=snap.get('_source_revision')
+    st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source
+    st['last_rebalance_decisions']=decisions; st['hold_policy']=POLICY; save_state(st)
+    phase='전일 확정 재점검' if stage=='CLOSE' else '오전 사전 점검'
+    summary=(f"🔄 VPD 모의투자 · {phase}\n기준 {snap.get('asof_kst',asof.isoformat())}\n"
+             f"추세·수익 보호 보유 {len(kept)} / 약화 유예 {len(weakening)} / 자료 대기 {len(waiting)}\n"
+             f"매도 {len(exited)}: {', '.join(exited) or '-'} / 매수 {len(bought)}: {', '.join(bought) or '-'}")
+    if not remaining_slots: summary+='\n신규 편입 없음: 보유 슬롯이 모두 차 있습니다.'
+    telegram(summary+'\n\n'+'\n'.join(decisions)+'\n\n모의투자 · 순수익은 모형 비용 반영')
+    send_current_status(st,'📊 리밸런싱 후 VPD 모의투자 현황'); return True
 
 def refill(st):
     loaded=load_today_snapshot()
