@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 65641.95040279411,
+  "cash_krw": 393826.4009484982,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -459,7 +459,7 @@
     },
     "F": {
       "market": "KRW-F",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-19T10:42:50.898423+09:00",
       "entry_session": "FULL_REBUILD",
       "entry_session_id": "VPD-FULL-8ce5d6a6003bf7277e1b",
@@ -478,10 +478,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 5.97,
+      "last_price": 5.87,
       "peak_price": 6.31,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-09-19T14:58:11.502886+09:00",
+      "exit_price": 5.87,
+      "sell_fee_krw": 164.17431242906662,
+      "net_proceeds_krw": 328184.4505457041,
+      "pnl_krw": -25305.95465515001,
+      "return_pct": -7.1588802080133185,
+      "exit_reason": "HARD_STOP"
     },
     "SOMI": {
       "market": "KRW-SOMI",
@@ -2304,7 +2311,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 83.2,
+      "last_price": 85.5,
       "peak_price": 88.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4382,8 +4389,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 202.0,
-      "peak_price": 202.0,
+      "last_price": 203.0,
+      "peak_price": 203.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -4506,7 +4513,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 8600.0,
+      "last_price": 8520.0,
       "peak_price": 8710.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4623,8 +4630,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 221430.85657499096,
-  "lifetime_realized_pnl_krw": 600546.0024113355,
+  "realized_pnl_krw": 196124.90191984095,
+  "lifetime_realized_pnl_krw": 575240.0477561855,
   "paper_only": true,
   "cohort_id": "VPD-FULL-8ce5d6a6003bf7277e1b",
   "cohort_date": "2026-09-19",
@@ -4633,7 +4640,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "EXPLICIT_FULL_REBUILD",
   "capital_model": "ROLLING_EQUITY_EQUAL_WEIGHT",
-  "updated_at": "2026-09-19T14:53:11.370481+09:00",
+  "updated_at": "2026-09-19T14:58:12.731481+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
