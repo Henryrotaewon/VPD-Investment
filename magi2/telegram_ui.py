@@ -22,6 +22,7 @@ COMMANDS = [
     ('fast', 'FAST 포착 · 최근 24시간'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
     ('wave', 'WAVE 강도·전파·매매 검증'), ('strategies', '전략 검증 기준'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
+    ('rebuild', 'PAPER 전량 교체 · 최신 VPD로 재구성'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
 LABELS = {
@@ -38,6 +39,7 @@ ALIASES = {
     '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals',
     '🔄 paper 리밸런싱': 'morning', '♻️ paper 빈자리 채우기': 'refill',
     '리밸런싱': 'morning', '리벨런싱': 'morning', '종목리필': 'refill', '종목 리필': 'refill',
+    '전량 교체': 'rebuild', '전량교체': 'rebuild', '🔁 전량 교체': 'rebuild', '전체 리밸런싱': 'rebuild',
     '📊 자산보고': 'report', '💼 통합자산': 'assets', '🤖 상태': 'status',
     '⚙️ 실행 상태': 'status', '실행상태': 'status',
     'VPD 모의투자': 'vpd', 'vpd 모의투자': 'vpd', '실계좌 자산': 'assets',
@@ -109,6 +111,7 @@ def vpd_keyboard():
          {'text': '🔎 VPD 조회', 'callback_data': 'nav:scan'}],
         [{'text': '🔄 리밸런싱', 'callback_data': 'nav:morning'},
          {'text': '♻️ 종목 리필', 'callback_data': 'nav:refill'}],
+        [{'text': '🔁 전량 교체', 'callback_data': 'nav:rebuild'}],
         [{'text': '↩️ 메인 메뉴', 'callback_data': 'nav:menu'}],
     ]}
 
@@ -128,12 +131,12 @@ def scan_keyboard():
 
 def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
-            '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
+            '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
-            '[PAPER 실행 · 확인 버튼 필요]\n/morning — 리밸런싱\n/refill — 빈자리 채우기\n'
+            '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'
             '/cancel — 대기 중 확인 취소 (진행 중 작업 중단 아님)\n\n'
             '[화면]\n/menu — 버튼 메뉴\n/help — 이 안내\n\n'
             'magi 접두어 없이 report, help 또는 한글 버튼을 사용하세요. 기존 명령도 지원합니다.\n'
@@ -204,7 +207,8 @@ class Confirmations:
         self.pending = {k:v for k,v in self.pending.items() if now < v[3]}
         token = secrets.token_hex(8)
         self.pending[token] = (action, str(chat_id), str(user_id), now+60)
-        return {'inline_keyboard': [[{'text': '✅ PAPER 실행', 'callback_data': 'confirm:'+token},
+        label = '🔴 전량 매도 후 재매수' if action=='rebuild' else '✅ PAPER 실행'
+        return {'inline_keyboard': [[{'text': label, 'callback_data': 'confirm:'+token},
                                     {'text': '취소', 'callback_data': 'cancel:'+token}]]}
 
     def consume(self, token, chat_id, user_id):
