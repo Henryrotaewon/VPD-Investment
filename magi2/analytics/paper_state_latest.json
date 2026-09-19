@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 402652.18233766156,
+  "cash_krw": 27769.350875984528,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -4850,6 +4850,32 @@
       "peak_price": 210.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
+    },
+    "ENSO": {
+      "market": "KRW-ENSO",
+      "status": "OPEN",
+      "entry_at": "2026-09-19T17:51:55.854404+09:00",
+      "entry_session": "REFILL",
+      "entry_session_id": "2026-09-19-REFILL-1751",
+      "first_selected_date": "2026-09-19",
+      "last_selected_date": "2026-09-19",
+      "consecutive_top10_days": 1,
+      "signal_rank": 4,
+      "signal_vpd": 85.0,
+      "signal_price": 1323.0,
+      "entry_market_price": 1296.0,
+      "entry_price": 1297.2959999999998,
+      "buy_notional_krw": 374695.48371981713,
+      "buy_fee_krw": 187.34774185990682,
+      "qty": 288.8280575287499,
+      "cost_krw": 374882.83146167704,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 1296.0,
+      "peak_price": 1296.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
     }
   },
   "realized_pnl_krw": 269127.962091473,
@@ -4862,15 +4888,15 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-19T17:48:42.662483+09:00",
+  "updated_at": "2026-09-19T17:51:55.854669+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
   "daily_equal_buy_krw": 374882.83146167704,
   "daily_equal_buy_date": "2026-09-19",
   "daily_equal_buy_source": "MORNING_AVAILABLE_CASH_PER_NEW_SLOT",
-  "last_refill_at": "2026-09-19T14:48:54.282879+09:00",
-  "last_refill_session_id": "2026-09-19-REFILL-1448",
+  "last_refill_at": "2026-09-19T17:51:55.854650+09:00",
+  "last_refill_session_id": "2026-09-19-REFILL-1751",
   "source_refill_snapshot_asof_kst": "2026-09-19 07:22:08 KST",
   "closed_positions": [
     {
