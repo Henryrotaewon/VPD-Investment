@@ -180,6 +180,16 @@ class BackgroundTests(unittest.TestCase):
         server.finish_scan_job();server.finish_scan_job()
         self.worker.submit.assert_called_once_with(server.run_engine,'morning',ASOF.isoformat())
 
+    def test_full_rebuild_resumes_its_own_mode_and_blocks_other_rebalances(self):
+        self.worker.submit.return_value=Future()
+        server.start_engine('rebuild')
+        self.assertFalse(server.start_engine('morning'))
+        self.assertFalse(server.start_engine('rebuild'))
+        self.future.set_result(bundle())
+        server.finish_scan_job();server.finish_scan_job()
+        self.worker.submit.assert_called_once_with(server.run_engine,'rebuild',ASOF.isoformat())
+        self.assertFalse(server.start_engine('morning'))
+
     def test_scan_can_start_during_monitor_but_order_worker_waits(self):
         server.ENGINE_JOB=Future();server.ENGINE_MODE='monitor'
         self.assertTrue(server.start_engine('morning'))

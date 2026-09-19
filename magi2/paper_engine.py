@@ -7,6 +7,7 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
 from magi2.point_in_time_scan import read_snapshot, build_snapshot, cutoff_for, SCHEMA, MAX_AGE_SECONDS
+from magi2.full_rebalance import plan_rebuild, commit_rebuild, recover_rebuild
 
 ROOT=Path(__file__).resolve().parents[1]
 CFG=json.loads((ROOT/'magi2'/'config.json').read_text(encoding='utf-8'))
@@ -30,6 +31,7 @@ def save_state(st):
 def load_state():
     if not STATE_PATH.exists(): raise RuntimeError('MAGI2 paper_state.json is missing. Refusing automatic reset.')
     if CFG.get('mode')!='PAPER': raise RuntimeError('MAGI2 paper_engine.py may run only in PAPER mode.')
+    if recover_rebuild(STATE_PATH,EVENTS_PATH): print('PAPER full-rebuild journal recovered',flush=True)
     return json.loads(STATE_PATH.read_text(encoding='utf-8'))
 
 def log_event(e):
@@ -302,6 +304,41 @@ def morning_rebalance(st,expected_asof=None):
     telegram(summary+'\n\n'+'\n'.join(decisions)+'\n\n모의투자 · 순수익은 모형 비용 반영')
     send_current_status(st,'📊 리밸런싱 후 VPD 모의투자 현황'); return True
 
+def full_rebalance(st,expected_asof=None):
+    loaded=load_morning_snapshot(expected_asof)
+    if not loaded:
+        telegram('⏳ VPD 전량 교체 대기\n요청 시점의 새 스캔이 준비되지 않았습니다.\n이번 요청으로 매매하지 않았습니다.'); return False
+    snap,asof=loaded
+    issue=snapshot_issue(asof,now_dt(),snap)
+    if issue:
+        telegram('⏳ VPD 전량 교체 대기\n'+issue+'\n이번 요청으로 매매하지 않았습니다.'); return False
+    last_full=parse_snapshot_asof(st.get('last_full_rebuild_vpd_asof'))
+    last_any=parse_snapshot_asof(st.get('last_rebalance_vpd_asof'))
+    if (last_full and asof<=last_full) or (last_any and asof<last_any):
+        telegram('ℹ️ VPD 전량 교체 · 중복 또는 이전 자료\n같은 자료로 전량 매도·재매수를 반복하지 않았습니다.'); return False
+    candidates=snap.get('top10',[])[:int(CFG['session']['top_n'])]
+    markets=[p.get('market') for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']
+    prices=get_prices(markets+[r.get('market') for r in candidates])
+    try:
+        if snapshot_issue(asof,now_dt(),snap): raise ValueError('가격 조회 중 VPD 자료가 만료됐습니다.')
+        after,events,result=plan_rebuild(st,snap,prices,CFG,now_dt())
+    except (ValueError,TypeError,KeyError,OverflowError) as exc:
+        detail=str(exc) if isinstance(exc,ValueError) else '후보·보유·가격 자료 형식을 확인하세요.'
+        telegram('⏳ VPD 전량 교체 보류\n'+detail+'\n포트폴리오와 매매이력을 변경하지 않았습니다.'); return False
+    commit_rebuild(STATE_PATH,EVENTS_PATH,st,after,events)
+    st.clear(); st.update(after)
+    print('VPD_FULL_REBUILD_RESULT '+json.dumps(result,ensure_ascii=False),flush=True)
+    summary=(f'🔁 VPD 전량 교체 완료 · 모의투자\n기준 {snap.get("asof_kst",asof.isoformat())}\n'
+             f'전량 매도 {len(result["sold"])}종목: {", ".join(result["sold"]) or "-"}\n'
+             f'신규 구성 {len(result["bought"])}종목: {", ".join(result["bought"])}\n'
+             f'종목당 매수원가 {result["equal_buy_krw"]:,.0f}원\n'
+             f'이번 청산 실현손익 {result["sell_pnl_krw"]:+,.0f}원\n'
+             f'매도·매수 수수료 합계 {result["sell_fee_krw"]+result["buy_fee_krw"]:,.0f}원\n'
+             '매수 슬리피지 반영 · 최초 원금·누적 성과·원장 보존')
+    telegram(summary)
+    send_current_status(st,'📊 전량 교체 후 VPD 모의투자 현황'); return True
+
+
 def refill(st):
     loaded=load_today_snapshot()
     if not loaded: raise RuntimeError("Today's VPD snapshot is unavailable. Refill aborted.")
@@ -322,14 +359,15 @@ def report(st):
     active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','refill','report'])
+    ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','rebuild','refill','report'])
     ap.add_argument('--snapshot-asof'); args=ap.parse_args(); mode=args.mode
-    if mode=='morning' and not args.snapshot_asof:
+    if mode in ('morning','rebuild') and not args.snapshot_asof:
         snapshot=build_snapshot(STATE_PATH.resolve().with_name('vpd_rebalance.json'),now_dt())
         args.snapshot_asof=snapshot['asof']
     st=load_state(); migrate_state(st)
     if mode=='monitor': monitor_once(st)
     elif mode=='morning': morning_rebalance(st,args.snapshot_asof)
+    elif mode=='rebuild': full_rebalance(st,args.snapshot_asof)
     elif mode=='refill': refill(st)
     else: report(st)
 
