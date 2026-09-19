@@ -478,7 +478,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 6.05,
+      "last_price": 6.04,
       "peak_price": 6.31,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -1979,8 +1979,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 108.0,
-      "peak_price": 108.0,
+      "last_price": 109.0,
+      "peak_price": 109.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -4206,7 +4206,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 128.0,
+      "last_price": 129.0,
       "peak_price": 129.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4414,7 +4414,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 200.0,
+      "last_price": 199.0,
       "peak_price": 202.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4571,7 +4571,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 54.3,
+      "last_price": 54.4,
       "peak_price": 55.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4623,7 +4623,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3789.0,
+      "last_price": 3780.0,
       "peak_price": 3811.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4665,7 +4665,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "EXPLICIT_FULL_REBUILD",
   "capital_model": "ROLLING_EQUITY_EQUAL_WEIGHT",
-  "updated_at": "2026-09-19T14:18:03.453864+09:00",
+  "updated_at": "2026-09-19T14:23:04.291897+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
