@@ -478,7 +478,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 6.14,
+      "last_price": 6.16,
       "peak_price": 6.31,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -1979,7 +1979,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 100.0,
+      "last_price": 101.0,
       "peak_price": 101.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -2304,7 +2304,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 88.6,
+      "last_price": 87.7,
       "peak_price": 88.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4206,7 +4206,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 126.0,
+      "last_price": 124.0,
       "peak_price": 126.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4414,8 +4414,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 197.0,
-      "peak_price": 198.0,
+      "last_price": 199.0,
+      "peak_price": 199.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -4538,7 +4538,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 9415.0,
+      "last_price": 9130.0,
       "peak_price": 9510.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4564,7 +4564,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 54.0,
+      "last_price": 54.1,
       "peak_price": 54.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4616,8 +4616,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3661.0,
-      "peak_price": 3661.0,
+      "last_price": 3674.0,
+      "peak_price": 3674.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -4642,7 +4642,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 111.0,
+      "last_price": 110.0,
       "peak_price": 111.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4658,7 +4658,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "EXPLICIT_FULL_REBUILD",
   "capital_model": "ROLLING_EQUITY_EQUAL_WEIGHT",
-  "updated_at": "2026-09-19T11:07:30.523330+09:00",
+  "updated_at": "2026-09-19T11:12:32.211368+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
