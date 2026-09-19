@@ -21,6 +21,7 @@ from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
 from magi2.wave_view import WaveClient, render as render_wave
+from magi2.closed_day_scan import build_snapshot as build_closed_day, read_snapshot as read_closed_day
 
 ROOT=Path(__file__).resolve().parents[1]
 REPO_STATE_DIR=ROOT/'magi2'/'state'
@@ -37,6 +38,8 @@ STATE_DIR=REPO_STATE_DIR
 BOT_USERNAME=''
 CONFIRMATIONS=Confirmations()
 EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
+CLOSED_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='vpd-closed-scan')
+CLOSED_JOB=None
 ENGINE_JOB=None
 ENGINE_MODE=None
 FAST_MONITOR=None
@@ -205,13 +208,42 @@ def refresh_telegram_keyboard():
 
 
 def start_engine(mode):
-    global ENGINE_JOB, ENGINE_MODE
+    global ENGINE_JOB, ENGINE_MODE, CLOSED_JOB
     if ENGINE_JOB is not None and not ENGINE_JOB.done():
         return False
     finish_engine_job()
+    if mode=='morning':
+        now=datetime.now(KST)
+        session=load_json(ROOT/'magi2/config.json')['session']
+        if session.get('closed_day_enabled') and '09:00'<=now.strftime('%H:%M')<=session.get('closed_day_entry_end_kst','23:59'):
+            if CLOSED_JOB is not None: return False
+            path=STATE_DIR/'vpd_closed_day.json'
+            if read_closed_day(path,now) is None:
+                CLOSED_JOB=CLOSED_EXECUTOR.submit(build_closed_day,path,now)
+                telegram('🔎 09시 전일 확정 자료를 생성하고 있습니다.\n완료되면 요청한 리밸런싱을 이어서 실행합니다. 기존 보유분 자동 모니터는 계속 작동합니다.')
+                return True
     ENGINE_MODE=mode
     ENGINE_JOB=EXECUTOR.submit(run_engine,mode)
     return True
+
+
+def finish_closed_day_job():
+    global CLOSED_JOB
+    if CLOSED_JOB is None or not CLOSED_JOB.done(): return
+    try:
+        CLOSED_JOB.result()
+    except Exception as e:
+        log(f'Closed-day scan failed: {type(e).__name__}')
+        CLOSED_JOB=None
+        telegram('전일 확정 자료를 완성하지 못해 리밸런싱을 보류했습니다.\n잠시 후 리밸런싱을 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
+        return
+    if ENGINE_JOB is not None and not ENGINE_JOB.done(): return
+    now=datetime.now(KST)
+    end=load_json(ROOT/'magi2/config.json')['session'].get('closed_day_entry_end_kst','23:59')
+    CLOSED_JOB=None
+    if now.strftime('%H:%M')>end or read_closed_day(STATE_DIR/'vpd_closed_day.json',now) is None:
+        telegram('전일 확정 자료는 준비됐지만 실행 시간을 지나 리밸런싱을 보류했습니다.'); return
+    start_engine('morning')
 
 
 def finish_engine_job():
@@ -488,6 +520,7 @@ def main():
             next_execution_probe=time.monotonic()+300
         for event in FAST_MONITOR.drain(): telegram(event['text'])
         finish_engine_job()
+        finish_closed_day_job()
         if time.monotonic()>=next_monitor:
             next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
         timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)
