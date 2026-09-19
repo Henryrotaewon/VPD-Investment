@@ -81,7 +81,8 @@ class RebalanceTests(unittest.TestCase):
 
     def run_at(self,asof,now=None):
         self.clock.return_value=now or asof+timedelta(minutes=8)
-        snap={'asof':asof.isoformat(),'top10':[row()]}
+        snap={'schema':engine.SCHEMA,'basis':'POINT_IN_TIME','asof':asof.isoformat(),
+              'generated_at':asof.isoformat(),'top10':[row()],'all_rows':self.rows.return_value}
         with patch.object(engine,'load_morning_snapshot',return_value=(snap,asof)):
             return engine.morning_rebalance(self.st)
 
@@ -126,16 +127,17 @@ class RebalanceTests(unittest.TestCase):
         self.assertTrue(self.run_at(ASOF))
         self.assertEqual(self.st['positions']['X']['weakening_count'],1)
 
-    def test_stale_future_evening_inputs_do_not_mutate_or_trade(self):
+    def test_stale_and_future_inputs_do_not_mutate_or_trade(self):
         for asof,now in [(ASOF-timedelta(days=1),NOW),(ASOF,NOW+timedelta(hours=1)),
-                         (ASOF+timedelta(minutes=20),NOW),(ASOF.replace(hour=18),NOW.replace(hour=18,minute=30))]:
+                         (ASOF+timedelta(minutes=20),NOW)]:
             before=copy.deepcopy(self.st)
             self.assertFalse(self.run_at(asof,now))
             self.assertEqual(self.st,before)
         self.prices.assert_not_called()
 
-    def test_delayed_morning_scan_is_accepted_when_fresh(self):
-        self.assertTrue(self.run_at(ASOF.replace(hour=8,minute=2)))
+    def test_fresh_scan_is_accepted_at_every_hour(self):
+        for hour in range(24):
+            self.assertTrue(self.run_at(ASOF.replace(hour=hour)))
 
     def test_monitor_saves_new_peak_even_without_warning(self):
         self.prices.return_value={'KRW-X':104}
@@ -159,25 +161,5 @@ class RebalanceTests(unittest.TestCase):
         self.assertIn('추세 유지',self.send.call_args.args[0])
 
 
-class PublicationTests(unittest.TestCase):
-    def test_ranking_files_are_pinned_to_one_revision(self):
-        sha='a'*40
-        revision=Mock();revision.json.return_value={'sha':sha}
-        latest=Mock();latest.json.return_value={'asof':ASOF.isoformat()}
-        csv=Mock();csv.text='coin,VPD\nX,92\n'
-        with patch.object(engine,'now_dt',return_value=NOW), patch.object(engine.requests,'get',side_effect=[revision,latest,csv]) as get:
-            snapshot,_=engine.load_morning_snapshot()
-            rows=engine.load_all_ranked_rows(snapshot['_source_revision'])
-        self.assertEqual(rows['X']['VPD'],'92')
-        self.assertIn('/'+sha+'/data/vpd_latest.json',get.call_args_list[1].args[0])
-        self.assertIn('/'+sha+'/data/vpd_all_latest.csv',get.call_args_list[2].args[0])
 
-    def test_bad_revision_does_not_fall_back_to_unversioned_data(self):
-        response=Mock();response.json.return_value={'sha':'main'}
-        with patch.object(engine,'now_dt',return_value=NOW), patch.object(engine.requests,'get',return_value=response) as get:
-            self.assertIsNone(engine.load_morning_snapshot())
-        self.assertEqual(get.call_count,1)
-
-
-if __name__=='__main__':
-    unittest.main()
+if __name__=='__main__':unittest.main()

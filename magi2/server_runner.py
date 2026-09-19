@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -21,7 +22,7 @@ from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
 from magi2.wave_view import WaveClient, render as render_wave
-from magi2.closed_day_scan import build_snapshot as build_closed_day, read_snapshot as read_closed_day
+from magi2.point_in_time_scan import build_snapshot as build_vpd, read_snapshot as read_vpd, cutoff_for
 
 ROOT=Path(__file__).resolve().parents[1]
 REPO_STATE_DIR=ROOT/'magi2'/'state'
@@ -38,10 +39,12 @@ STATE_DIR=REPO_STATE_DIR
 BOT_USERNAME=''
 CONFIRMATIONS=Confirmations()
 EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
-CLOSED_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='vpd-closed-scan')
-CLOSED_JOB=None
+SCAN_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='vpd-request-scan')
+SCAN_JOB=None
+SCAN_CONTEXT=None
 ENGINE_JOB=None
 ENGINE_MODE=None
+ENGINE_REQUEST_ID=None
 FAST_MONITOR=None
 WAVE_CLIENT=None
 ALLOWED_USER_IDS={x.strip() for x in os.getenv('TELEGRAM_ALLOWED_USER_IDS','').split(',') if x.strip()}
@@ -207,61 +210,80 @@ def refresh_telegram_keyboard():
     log('MAGI reply keyboard refreshed: magi-menu-v11')
 
 
-def start_engine(mode):
-    global ENGINE_JOB, ENGINE_MODE, CLOSED_JOB
-    if ENGINE_JOB is not None and not ENGINE_JOB.done():
-        return False
-    finish_engine_job()
+def start_engine(mode,request_id=None):
+    global ENGINE_JOB, ENGINE_MODE, SCAN_JOB, SCAN_CONTEXT
+    if ENGINE_JOB is None or ENGINE_JOB.done(): finish_engine_job()
     if mode=='morning':
+        if SCAN_JOB is not None or (ENGINE_JOB is not None and ENGINE_MODE=='morning'): return False
         now=datetime.now(KST)
-        session=load_json(ROOT/'magi2/config.json')['session']
-        if session.get('closed_day_enabled') and '09:00'<=now.strftime('%H:%M')<=session.get('closed_day_entry_end_kst','23:59'):
-            if CLOSED_JOB is not None: return False
-            path=STATE_DIR/'vpd_closed_day.json'
-            if read_closed_day(path,now) is None:
-                CLOSED_JOB=CLOSED_EXECUTOR.submit(build_closed_day,path,now)
-                telegram('🔎 09시 전일 확정 자료를 생성하고 있습니다.\n완료되면 요청한 리밸런싱을 이어서 실행합니다. 기존 보유분 자동 모니터는 계속 작동합니다.')
-                return True
+        SCAN_CONTEXT={'asof':cutoff_for(now).isoformat(),'request_id':request_id}
+        SCAN_JOB=SCAN_EXECUTOR.submit(build_vpd,STATE_DIR/'vpd_rebalance.json',now)
+        log(f'VPD scan started: asof={SCAN_CONTEXT["asof"]} request={request_id or "telegram"}')
+        telegram('🔎 VPD 리밸런싱 자료를 새로 조회하고 있습니다.\n'
+                 f'기준: {cutoff_for(now):%m/%d %H:%M} KST까지 완료된 분봉\n'
+                 '전 종목을 같은 시각 기준으로 분석한 뒤 요청한 모의 리밸런싱을 실행합니다. 수 분 걸릴 수 있으며 기존 보유분 모니터는 계속 작동합니다.')
+        return True
+    if ENGINE_JOB is not None and not ENGINE_JOB.done(): return False
+    if mode=='refill' and SCAN_JOB is not None: return False
     ENGINE_MODE=mode
     ENGINE_JOB=EXECUTOR.submit(run_engine,mode)
     return True
 
 
-def finish_closed_day_job():
-    global CLOSED_JOB
-    if CLOSED_JOB is None or not CLOSED_JOB.done(): return
+def record_request(request_id,status,**fields):
+    if not request_id: return
+    path=STATE_DIR/'rebalance_requests.json'
+    data=load_json(path) if path.exists() else {}
+    data[request_id]=dict(data.get(request_id,{}),status=status,updated_at=datetime.now(KST).isoformat(),**fields)
+    # Keep consumed IDs: a restart must never re-run an old deployment request.
+    temporary=path.with_suffix('.tmp')
+    temporary.write_text(json.dumps(data,ensure_ascii=False),encoding='utf-8'); temporary.replace(path)
+    log(f'VPD one-shot request={request_id} status={status}')
+
+
+def finish_scan_job():
+    global SCAN_JOB, SCAN_CONTEXT, ENGINE_JOB, ENGINE_MODE, ENGINE_REQUEST_ID
+    if SCAN_JOB is None or not SCAN_JOB.done(): return
     try:
-        CLOSED_JOB.result()
+        snapshot=SCAN_JOB.result()
     except Exception as e:
-        log(f'Closed-day scan failed: {type(e).__name__}')
-        CLOSED_JOB=None
-        telegram('전일 확정 자료를 완성하지 못해 리밸런싱을 보류했습니다.\n잠시 후 리밸런싱을 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
+        log(f'VPD scan failed: {type(e).__name__}')
+        record_request(SCAN_CONTEXT.get('request_id'),'scan_failed',error=type(e).__name__)
+        SCAN_JOB=None; SCAN_CONTEXT=None
+        telegram('VPD 자료를 완성하지 못해 리밸런싱을 보류했습니다.\n잠시 후 리밸런싱을 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
         return
     if ENGINE_JOB is not None and not ENGINE_JOB.done(): return
-    now=datetime.now(KST)
-    end=load_json(ROOT/'magi2/config.json')['session'].get('closed_day_entry_end_kst','23:59')
-    CLOSED_JOB=None
-    if now.strftime('%H:%M')>end or read_closed_day(STATE_DIR/'vpd_closed_day.json',now) is None:
-        telegram('전일 확정 자료는 준비됐지만 실행 시간을 지나 리밸런싱을 보류했습니다.'); return
-    start_engine('morning')
+    finish_engine_job()
+    context=SCAN_CONTEXT; SCAN_JOB=None; SCAN_CONTEXT=None
+    if (snapshot.get('asof')!=context['asof'] or
+            read_vpd(STATE_DIR/'vpd_rebalance.json',datetime.now(KST),context['asof']) is None):
+        record_request(context.get('request_id'),'scan_expired')
+        telegram('스캔 기준 시각이 오래됐거나 달라져 리밸런싱을 보류했습니다. 다시 요청하면 새 자료를 생성합니다.'); return
+    log(f'VPD scan ready: asof={snapshot["asof"]} markets={snapshot.get("market_count")} analysed={snapshot.get("analysed_count")}')
+    ENGINE_MODE='morning'; ENGINE_REQUEST_ID=context.get('request_id')
+    record_request(ENGINE_REQUEST_ID,'executing',asof=snapshot['asof'])
+    ENGINE_JOB=EXECUTOR.submit(run_engine,'morning',snapshot['asof'])
 
 
 def finish_engine_job():
-    global ENGINE_JOB, ENGINE_MODE
+    global ENGINE_JOB, ENGINE_MODE, ENGINE_REQUEST_ID
     if ENGINE_JOB is None or not ENGINE_JOB.done(): return
     mode=ENGINE_MODE
     try:
         ENGINE_JOB.result()
         log(f'PAPER job completed: {mode}')
+        record_request(ENGINE_REQUEST_ID,'completed')
     except Exception as e:
         log(f'PAPER job failed [{mode}]: {type(e).__name__}')
+        record_request(ENGINE_REQUEST_ID,'execution_failed',error=type(e).__name__)
         if mode!='monitor': telegram('작업을 완료하지 못했습니다. /status에서 상태를 확인하세요.')
-    ENGINE_JOB=None; ENGINE_MODE=None
+    ENGINE_JOB=None; ENGINE_MODE=None; ENGINE_REQUEST_ID=None
 
 
-def run_engine(mode):
+def run_engine(mode,snapshot_asof=None):
     script='magi2/refill_engine.py' if mode=='refill' else 'magi2/paper_engine.py'
     args=[sys.executable,script] if mode=='refill' else [sys.executable,script,mode]
+    if mode=='morning' and snapshot_asof: args+=['--snapshot-asof',snapshot_asof]
     before=state_signature(); p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy(),timeout=300)
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
@@ -272,6 +294,30 @@ def run_engine(mode):
     if state_signature()!=before:
         try: backup_paper_history()
         except Exception as e: log(f'GitHub PAPER backup error (engine unaffected): {e}')
+
+
+def consume_startup_rebalance():
+    """Operator-authorized PAPER request, unique ID and expiry, at most once.
+
+    The environment variable is set only for an explicitly requested run.
+    Claim before starting; a restart never automatically retries a claimed run.
+    """
+    raw=os.getenv('MAGI2_REBALANCE_ONCE','').strip()
+    if not raw: return
+    try:
+        request=json.loads(raw); ident=request['id']
+        expires=datetime.fromisoformat(request['expires_at'])
+        if not isinstance(ident,str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',ident): raise ValueError('Invalid request ID')
+        if expires.tzinfo is None or not 0<(expires-datetime.now(KST)).total_seconds()<=86400:
+            log('VPD one-shot ignored: expired or invalid deadline'); return
+        if load_json(ROOT/'magi2/config.json').get('mode')!='PAPER': raise ValueError('PAPER required')
+        marker=STATE_DIR/'rebalance_requests.json'
+        if marker.exists() and ident in load_json(marker):
+            log(f'VPD one-shot already consumed: {ident}'); return
+        record_request(ident,'claimed',expires_at=expires.isoformat())
+        if not start_engine('morning',request_id=ident): record_request(ident,'not_started_busy')
+    except (OSError,ValueError,KeyError,TypeError) as e:
+        log(f'VPD one-shot rejected: {type(e).__name__}')
 
 
 def num(v,d=0):
@@ -324,7 +370,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram(help_text() if cmd=='help' else '📋 MAGI 메뉴\n시장 관측 · 전략 검증 · 자산 관리\n실계좌 조회·PAPER·Shadow를 구분해 표시합니다.\n역할별 안내는 🧩 MAGI 역할을 누르세요.',main_keyboard())
         elif cmd=='vpd':
             telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n'
-                     '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\n리밸런싱: 보유 종목 재조정\n종목 리필: 빈자리 채우기\n'
+                     '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\n리밸런싱: 요청 시점 새 스캔 후 보유 종목 재조정\n종목 리필: 빈자리 채우기\n'
                      '실행 버튼을 누르면 먼저 확인 화면이 열립니다.',vpd_keyboard())
         elif cmd=='about': telegram(role_text(),role_keyboard())
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
@@ -358,6 +404,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram('MAGI1 · 시세·관측 상태\n'+message+'\n개별 거래소 수집기 상태와 전체 데이터 품질은 이 조회만으로 판정하지 않습니다.',status_keyboard())
         elif cmd=='status2':
             running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
+            if SCAN_JOB is not None: running=f'VPD 스캔 중 ({SCAN_CONTEXT["asof"]}) / '+str(running)
             telegram(f'MAGI2 • 전략 • 검증 상태\n텔레그램: 응답 중\n실행 계정: PAPER\nPAPER 작업: {running}\n자동 모니터 간격: {INTERVAL}초',status_keyboard())
         elif cmd in ('magi3','execution','status3'): telegram(execution_view('magi3' if cmd=='status3' else cmd),status_keyboard())
         elif cmd=='shadows':
@@ -509,6 +556,7 @@ def main():
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     from magi2.fast_monitor import FastMonitor
     FAST_MONITOR=FastMonitor(STATE_DIR,log);FAST_MONITOR.start()
+    consume_startup_rebalance()
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
     probe_job=None
@@ -520,7 +568,7 @@ def main():
             next_execution_probe=time.monotonic()+300
         for event in FAST_MONITOR.drain(): telegram(event['text'])
         finish_engine_job()
-        finish_closed_day_job()
+        finish_scan_job()
         if time.monotonic()>=next_monitor:
             next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
         timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)
