@@ -478,10 +478,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 6.07,
+      "last_price": 6.06,
       "peak_price": 6.31,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "SOMI": {
       "market": "KRW-SOMI",
@@ -1979,8 +1979,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 100.0,
-      "peak_price": 101.0,
+      "last_price": 102.0,
+      "peak_price": 102.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -2304,7 +2304,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 85.8,
+      "last_price": 85.2,
       "peak_price": 88.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4538,7 +4538,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 9450.0,
+      "last_price": 9055.0,
       "peak_price": 9510.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4564,7 +4564,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 54.3,
+      "last_price": 54.4,
       "peak_price": 54.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4590,7 +4590,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 256.0,
+      "last_price": 257.0,
       "peak_price": 259.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4616,7 +4616,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3730.0,
+      "last_price": 3727.0,
       "peak_price": 3749.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4658,7 +4658,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "EXPLICIT_FULL_REBUILD",
   "capital_model": "ROLLING_EQUITY_EQUAL_WEIGHT",
-  "updated_at": "2026-09-19T11:27:37.009696+09:00",
+  "updated_at": "2026-09-19T11:32:38.490958+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
