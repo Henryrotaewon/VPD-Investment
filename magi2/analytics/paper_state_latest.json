@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 54259.61516961118,
+  "cash_krw": 437518.8367059823,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -1484,7 +1484,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 29650.0,
+      "last_price": 29210.0,
       "peak_price": 30110.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -2179,7 +2179,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 16.2,
+      "last_price": 15.7,
       "peak_price": 16.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -2613,7 +2613,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 91.1,
+      "last_price": 90.1,
       "peak_price": 97.5,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -4708,7 +4708,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 266.0,
+      "last_price": 263.0,
       "peak_price": 269.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -4788,7 +4788,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 114.0,
+      "last_price": 111.0,
       "peak_price": 116.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -4870,7 +4870,7 @@
     },
     "COW": {
       "market": "KRW-COW",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-19T16:53:10.111031+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-09-19-VPD-1650",
@@ -4889,7 +4889,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 218.0,
+      "last_price": 210.0,
       "peak_price": 218.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -4913,7 +4913,14 @@
       "hold_signal_checked_at": "2026-09-20T08:00:26.539414+09:00",
       "hold_state": "TREND",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-09-20T11:47:17.580208+09:00",
+      "exit_price": 210.0,
+      "sell_fee_krw": 191.725473504938,
+      "net_proceeds_krw": 383259.2215363711,
+      "pnl_krw": 8376.390074694064,
+      "return_pct": 2.234402157611304,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "ENSO": {
       "market": "KRW-ENSO",
@@ -4989,8 +4996,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 22211.779041462112,
-  "lifetime_realized_pnl_krw": 670454.8869692797,
+  "realized_pnl_krw": 30588.169116156176,
+  "lifetime_realized_pnl_krw": 678831.2770439738,
   "paper_only": true,
   "cohort_id": "2026-09-20-VPD-0758",
   "cohort_date": "2026-09-20",
@@ -4999,7 +5006,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-20T11:17:14.601230+09:00",
+  "updated_at": "2026-09-20T11:47:17.580630+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
