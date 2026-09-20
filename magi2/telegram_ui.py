@@ -19,7 +19,7 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST 포착 조회 · 기존 명령'),
-    ('fast', 'FAST 포착 · 최근 24시간'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
+    ('fast', 'FAST 포착 · 최근 24시간'), ('fast_report', 'FAST 모의검증 결과'), ('fast_orders', 'FAST 모의 거래내역'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
     ('wave', 'WAVE 강도·전파·매매 검증'), ('strategies', '전략 검증 기준'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('rebuild', 'PAPER 전량 교체 · 최신 VPD로 재구성'),
@@ -28,10 +28,12 @@ COMMANDS = [
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
     '🧪 shadows 모의투자': 'shadows', '⚡ FAST 포착': 'fast',
-    '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
+    '📊 FAST 모의결과': 'fast_report', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    'fast 모의결과': 'fast_report', 'fast 보고서': 'fast_report', 'fast report': 'fast_report',
+    'fast 거래내역': 'fast_orders', 'fast orders': 'fast_orders',
     '⚡ fast 후보': 'fast', '⚡ fast 포착': 'fast', 'fast 포착': 'fast',
     '🧪 shadow 자산': 'shadow', '📒 shadow 원장': 'orders', 'shadows 모의투자': 'shadows',
     '🐋 whale 참고': 'wave',
@@ -133,7 +135,7 @@ def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
-            '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
+            '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — FAST 모의검증 결과 (완료된 재생 실험)\n/fast_orders — FAST 모의 거래내역\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'

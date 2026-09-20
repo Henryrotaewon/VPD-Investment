@@ -166,3 +166,24 @@ Strategy validation and WAVE views also provide `크로스마켓 연구`, a read
 literature-based expansion guide. It describes cross-venue spot/derivative paths
 and the additional data needed; it does not render new live opportunities.
 See [cross-market research](CROSS_MARKET_RESEARCH.md).
+
+## FAST 모의검증 결과 조회
+
+`/fast_report` (한글 `FAST 모의결과`)와 `/fast_orders` (`FAST 거래내역`)는
+완료된 업비트 KRW FAST 재생 실험을 조회한다. 메인 메뉴와 FAST 포착 목록에도
+`📊 FAST 모의결과` 버튼이 있다. 조회는 수집·모의매매·Shadow·실주문을 시작하지 않는다.
+
+- 입력: `FAST_PAPER_REPORT_DIR/<run-id>/result.json`과 `upbit-report.json`.
+  기본 디렉터리는 운영 상태 디렉터리 아래 `fast`이며, 통상 `/data/magi2/fast`이다.
+- 생산자는 기존 `python -m magi2.fast_lab.live_job --output-dir /data/magi2/fast ...`이다.
+  최종 `result.json`이 저장된 실험만 대상으로 하며, 완료 시각이 가장 최근인
+  업비트 실험 하나를 표시한다. 별도 서비스의 볼륨은 자동으로 공유되지 않으므로
+  해당 자료를 MAGI2가 읽을 수 있는 영구 저장 경로에 제공해야 한다.
+- 비용과 지연을 적용한 `policy_exit.status=COMPLETE` 거래만 손익·양수 비율에 포함한다.
+  미완료·호가 부족·관측 종료는 제외 사유와 건수로 표시한다. 손익은 각 거래의
+  `entry.cost_quote * net_return_bps / 10000`으로 계산한다.
+- 여러 실험과 통화를 합치지 않는다. 조회 시각과 실험 완료 시각은 다를 수 있으며
+  완료 시각을 KST로 표시한다. 파일 누락·형식 오류는 0원 손익으로 대체하지 않는다.
+- 재생 실험은 자본 제약 포트폴리오가 아니다. 계좌 잔고·자산수익률·최대낙폭·
+  실시간 보유종목·A/B/C 매도전략 비교는 이 조회가 산출하지 않는다.
+- 기존 `/fast_compare`는 비용 미차감 5분 호가 변화 평가이며 모의매매 실적과 분리한다.
