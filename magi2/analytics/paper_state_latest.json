@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 481255.69412051263,
+  "cash_krw": 833571.9465212207,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -188,7 +188,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 112.0,
+      "last_price": 111.0,
       "peak_price": 112.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -472,7 +472,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 5.02,
+      "last_price": 4.97,
       "peak_price": 5.02,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -1471,7 +1471,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 28490.0,
+      "last_price": 28400.0,
       "peak_price": 30110.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -2581,7 +2581,7 @@
     },
     "BLEND": {
       "market": "KRW-BLEND",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-19T16:53:10.111004+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-09-19-VPD-1650",
@@ -2600,7 +2600,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 87.9,
+      "last_price": 87.2,
       "peak_price": 97.5,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -2624,7 +2624,14 @@
       "hold_signal_checked_at": "2026-09-20T08:00:26.539175+09:00",
       "hold_state": "TREND",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-09-20T22:24:14.227727+09:00",
+      "exit_price": 87.2,
+      "sell_fee_krw": 176.24624932501658,
+      "net_proceeds_krw": 352316.25240070815,
+      "pnl_krw": -22566.579060968885,
+      "return_pct": -6.019635247893662,
+      "exit_reason": "HARD_STOP"
     },
     "YGG": {
       "market": "KRW-YGG",
@@ -4997,8 +5004,8 @@
       "exit_reason": "HARD_STOP"
     }
   },
-  "realized_pnl_krw": 70046.54127852194,
-  "lifetime_realized_pnl_krw": 718289.6492063396,
+  "realized_pnl_krw": 47479.96221755305,
+  "lifetime_realized_pnl_krw": 695723.0701453707,
   "paper_only": true,
   "cohort_id": "2026-09-20-VPD-0758",
   "cohort_date": "2026-09-20",
@@ -5007,7 +5014,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-20T21:14:01.702408+09:00",
+  "updated_at": "2026-09-20T22:24:14.228169+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
