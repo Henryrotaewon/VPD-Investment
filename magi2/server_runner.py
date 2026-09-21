@@ -193,26 +193,26 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v18; FAST tick-cycle paper available')
+    log('MAGI Telegram menu registered: Korean v19; FAST target-stop paper available')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v18','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v19','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'⚡ FAST 매도가 하한을 보정하고 기록·가상잔고를 초기화했습니다.\n'
-               '현재가 매수 → 매수 평균가보다 높은 지정가 매도를 10분 동안 반복합니다.\n'
-               '10분 종료 시 미체결 취소·잔량 시장가 청산 · 기한 연장 없음 · 실제 주문 없음\n'
-               '📊 FAST 모의검증 결과에서 v4 결과를 확인하세요.',
+        'text':'⚡ FAST +12% 익절 / −6% 손절 모의투자를 시작합니다.\n'
+               '5분 +5% 포착 → 시장가 모의매수 → 매수가 대비 +12% 지정가 매도 대기\n'
+               '−6% 도달 시 시장가 손절 · 시간제한 없음 · 매도 당일 재매수 금지(KST)\n'
+               'FAST 정리 버튼으로 전 종목 시장가 청산 · 거래소별 새 모의자금 100만원',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v18')
+    log('MAGI reply keyboard refreshed: magi-menu-v19')
 
 
 def start_regime_job():
@@ -454,6 +454,14 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd=='regime': start_regime_job()
         elif cmd=='wave': send_wave()
+        elif cmd=='fast_clear':
+            if not may_execute(chat_id,user_id):
+                telegram('실행 권한이 없는 사용자입니다.'); return
+            from magi2.fast_paper_report import keyboard
+            if FAST_PAPER:
+                result=FAST_PAPER.clear()
+                telegram(f'🧹 FAST 모의투자 정리 접수\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의검증 결과에서 확인하세요. 시세·잔량 부족은 청산 대기로 표시합니다.',keyboard())
+            else: telegram('FAST 모의원장 준비 중입니다.')
         elif cmd in ('fast_report','fast_orders','fast_daily','fast_balance'):
             from magi2.fast_paper_report import view
             telegram(*view(FAST_PAPER.ledger if FAST_PAPER else None,time.time_ns()//1000000,cmd))
@@ -520,7 +528,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -604,7 +612,7 @@ def main():
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     from magi2.fast_price_monitor import FastPriceMonitor as FastMonitor
-    from magi2.fast_tick_service import TickPaperService as PaperService
+    from magi2.fast_target_service import TargetPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log).start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()

@@ -4,11 +4,11 @@ from magi2.fast_paper import KST
 
 NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='크라켄')
 REASONS = {'HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
-           'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결',None:'보유 중'}
+           'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
 
 
 def tick(t):
-    return t.get('execution_version') in ('fast-tick-cycle-v3','fast-current-cycle-v4')
+    return t.get('execution_version') in ('fast-tick-cycle-v3','fast-current-cycle-v4','fast-target-v5')
 
 
 def sessions(ledger,now_ms):
@@ -36,6 +36,7 @@ def keyboard():
          {'text':'📅 전일 결과','callback_data':'nav:fast_daily'}],
         [{'text':'💰 거래소별 잔고','callback_data':'nav:fast_balance'},
          {'text':'📒 거래 상세','callback_data':'nav:fast_orders'}],
+        [{'text':'🧹 FAST 정리','callback_data':'nav:fast_clear'}],
         [{'text':'⚡ 포착 목록','callback_data':'nav:fast'}],
         [{'text':'🧪 과거 재생검증','callback_data':'nav:fast_replay'},
          {'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}]]}
@@ -45,7 +46,7 @@ def summary(data, daily=False):
     title = '📅 FAST 일일 모의투자 결과' if daily else '📊 FAST 모의투자'
     rows = [title, f'집계 {data["date"]} KST · '+('전일 청산 실현손익' if daily else '오늘 청산 실현손익'),
             '각 거래소 최초 100만원 · 종목당 20만원 · 최대 5종목',
-            '현재가 매수 · 매수 평균가 초과 지정가 매도 · 10분 잔량 시장가',
+            '시장가 모의매수 · +12% 지정가 익절 · −6% 시장가 손절 · 시간제한 없음',
             f'현재 잔고·평가 기준 {clock(data["now_ms"])} KST','']
     for a in data['accounts']:
         rows.append(f'{NAMES[a["venue"]]} · {a["quote"]}')
@@ -57,14 +58,14 @@ def summary(data, daily=False):
                 rows.append(f'원금 대비 누적 {(a["equity_krw"]/a["initial_krw"]-1)*100:+.2f}%')
             rows.append(f'집계일 실현 {money(a["pnl_krw"],True)} · 수수료 {money(a["fees_krw"])}')
         rows.append(f'매수 체결 {a["bought"]} · 세션 완료 {a["closed"]} · 양수 {a["wins"]} · 제외/미체결 {a["skipped"]}')
-        rows.append(f'현재 진행 {len(a["active"])} · 10분 초과 미청산 {a["overdue"]} · 집계일 지연 청산 {a["late_closed"]}')
+        rows.append(f'현재 보유/대기 {len(a["active"])} · 매도 당일 재매수 금지(KST)')
         for version,c in a.get('cohorts',{}).items():
-            label=('v4 현재가 반복' if version=='fast-current-cycle-v4' else 'v3 1틱 반복' if version=='fast-tick-cycle-v3' else
+            label=('v5 +12%/−6%' if version=='fast-target-v5' else 'v4 현재가 반복' if version=='fast-current-cycle-v4' else 'v3 1틱 반복' if version=='fast-tick-cycle-v3' else
                    'v2 거래량·가속/5분 보유' if version=='fast-volume-accel-v2' else 'v1 매수세/5분 보유')
             rows.append(f'{label} · 완료 {c["closed"]}건 전체 순손익 {money(c["closed_trade_pnl_krw"],True)}')
-            if version in ('fast-tick-cycle-v3','fast-current-cycle-v4'):
-                rows.append(f'지정가 왕복 {c["cycles"]}회 · 비용 전 {money(c["gross_krw"],True)} · 수수료 {money(c["fees_krw"])}')
-                rows.append(f'추가 슬리피지 {money(c["slippage_krw"])} · 강제청산 순손익 {money(c["forced_pnl_krw"],True)} (전체에 포함)')
+            if version in ('fast-tick-cycle-v3','fast-current-cycle-v4','fast-target-v5'):
+                rows.append(f'지정가 매도 완료 {c["cycles"]}회 · 비용 전 {money(c["gross_krw"],True)} · 수수료 {money(c["fees_krw"])}')
+                rows.append(f'추가 슬리피지 {money(c["slippage_krw"])} · 시장가 청산 순손익 {money(c["forced_pnl_krw"],True)} (전체에 포함)')
         if a['unknown_marks']:
             rows.append(f'호가 미확인 {a["unknown_marks"]}건 · 전체 자산평가 보류')
         if a['error']:
@@ -73,8 +74,8 @@ def summary(data, daily=False):
             rows.append('모의 감시 응답 확인 필요')
         rows.append('')
     rows += ['해외 자금은 최초 공개시세로 환산 후 환산율 고정(환율손익 제외).',
-             'v4 메이커/테이커 수수료 가정: 업비트 0.05/0.05%, 빗썸 0.04/0.04%, 바이낸스 0.1/0.1%, 크라켄 0.4/0.8%.',
-             '지정가: 대기 물량·실제 체결량 모형. 강제청산: bid 깊이+추가 슬리피지 0.05%.',
+             '메이커/테이커 수수료 가정: 업비트 0.05/0.05%, 빗썸 0.04/0.04%, 바이낸스 0.1/0.1%, 크라켄 0.4/0.8%.',
+             '지정가: 대기 물량·실제 체결량 모형. 시장가: 호가 깊이+슬리피지 0.05%.',
              '구버전 비용 유지. 자료 단절·잔량/최소주문 미달은 청산 지연 표시.',
              '모의투자 · 실제 주문 없음 · 매일 09:00 KST 전일 보고']
     return '\n'.join(rows)
@@ -82,9 +83,15 @@ def summary(data, daily=False):
 
 def recent(ledger, now_ms):
     rows = ['📊 FAST 모의검증 결과 · 최근 10건',
-            'v4 현재가 반복 · 포착→종료 KST · 순수익률은 배정 20만원 기준', '']
+            'v5 +12%/−6% · 포착→종료 KST · 순수익률은 배정 20만원 기준', '']
     trades = sessions(ledger,now_ms)
     for t in trades:
+        if t.get('execution_version')=='fast-target-v5':
+            timing=clock(t['signal_ms'])+'→'+(clock(t['close_ms']) if t.get('close_ms') else '진행')
+            result=(f'{return_pct(t):+.2f}% · '+REASONS.get(t['reason'],t['reason'] or '') if t['status']=='CLOSED' else
+                    '시장가 청산 대기' if t['status']=='EXIT_PENDING' else '익절/손절 대기' if t.get('entry_ms') else '매수 대기')
+            rows.append(f'{NAMES[t["venue"]]} {t["symbol"]} v5 | {timing} | {result}')
+            continue
         if tick(t):
             version='v4' if t['execution_version']=='fast-current-cycle-v4' else 'v3'
             timing=clock(t['signal_ms'])+'→'+(clock(t['close_ms']) if t.get('close_ms') else '진행')
@@ -120,6 +127,13 @@ def history(ledger, now_ms):
     rows = ['📒 FAST 모의 거래내역 · 최근 10건 · KST']
     for t in sessions(ledger,now_ms):
         fx = ledger.account(t['venue'])['fx_krw_per_quote']
+        if t.get('execution_version')=='fast-target-v5':
+            rows += [f'\n{NAMES[t["venue"]]} {t["symbol"]} v5 · {t["status"]}',
+                     f'포착 {clock(t["signal_ms"])} · 종료 '+(clock(t['close_ms']) if t.get('close_ms') else '대기'),
+                     f'매수 평균 {t.get("buy_average",0):g} · 익절 주문 {t.get("take_profit_price",0):g} · 손절 기준 {t.get("stop_price",0):g}',
+                     f'실현 {money(t["realized_quote"]*fx,True)} ({return_pct(t):+.2f}%/배정금) · '+REASONS.get(t['reason'],t['reason'] or '보유 중')]
+            if t.get('last_error'): rows.append('대기 사유: '+t['last_error'])
+            continue
         if tick(t):
             version='v4' if t['execution_version']=='fast-current-cycle-v4' else 'v3'
             rows += [f'\n{NAMES[t["venue"]]} {t["symbol"]} {version} · {t["status"]}',

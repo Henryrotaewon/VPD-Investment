@@ -252,7 +252,7 @@ class TickTests(unittest.TestCase):
         c=snapshot['accounts'][0]['cohorts'][VERSION]
         self.assertAlmostEqual(c['gross_krw']-c['fees_krw']-c['slippage_krw'],c['closed_trade_pnl_krw'])
         body=summary(snapshot)
-        for label in ['v3 1틱 반복','강제청산 순손익','0.4/0.8%']:self.assertIn(label,body)
+        for label in ['v3 1틱 반복','시장가 청산 순손익','0.4/0.8%']:self.assertIn(label,body)
         self.assertLess(len(body),3500)
         self.assertIn('첫 매수',history(self.l,START+DEADLINE_MS+300))
 

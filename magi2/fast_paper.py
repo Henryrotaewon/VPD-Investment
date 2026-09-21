@@ -337,7 +337,7 @@ class PaperLedger:
                                    fees_krw=fees*fx if fx else None, bought=buys, closed=len(closed),
                                    wins=sum(t['realized_quote']>0 for t in closed), skipped=skipped,
                                    late_closed=sum(t.get('deadline_delay_ms',0)>0 for t in closed),
-                                   overdue=sum(now_ms>t['deadline_ms'] for t in held)))
+                                   overdue=sum(t.get('deadline_ms') is not None and now_ms>t['deadline_ms'] for t in held)))
             return dict(date=date, now_ms=now_ms, started_ms=self.started_ms, accounts=output)
 
     def history(self, now_ms, limit=10):
