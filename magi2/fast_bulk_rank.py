@@ -2,6 +2,7 @@
 import json
 import math
 import time
+import requests
 from magi2.fast_monitor import PublicMarket
 from magi2.fast_rank_monitor import FastRankMonitor
 from magi2.fast_rank_paper import INTERVAL, rank_day, rank_slot
@@ -11,6 +12,15 @@ LABEL = '1D 당일시가 대비 TOP 5'
 
 
 class BulkRankMarket(PublicMarket):
+    def get(self,path,params=None):
+        try:return super().get(path,params)
+        except requests.HTTPError as exc:
+            try:
+                error=exc.response.json()
+                detail=f"{error.get('code')} {error.get('msg', error.get('message',''))}"
+            except (ValueError,AttributeError):detail=f'HTTP {exc.response.status_code}'
+            raise ValueError(f'PUBLIC_TICKER_REJECTED {detail[:180]}') from exc
+
     def day_tickers(self):
         """Each price and its opening reference come from the same response."""
         out={};calls=0
@@ -31,7 +41,7 @@ class BulkRankMarket(PublicMarket):
             symbols=list(self.symbols)
             for i in range(0,len(symbols),100):
                 rows=self.get('/api/v3/ticker/tradingDay',dict(
-                    symbols=json.dumps(symbols[i:i+100],separators=(',',':')),timeZone='0',type='FULL'))
+                    symbols=json.dumps(symbols[i:i+100],separators=(',',':'),ensure_ascii=False),timeZone='0',type='FULL'))
                 calls+=1
                 for x in rows:add(x['symbol'],x['lastPrice'],x['openPrice'])
                 if i+100<len(symbols):time.sleep(.12)

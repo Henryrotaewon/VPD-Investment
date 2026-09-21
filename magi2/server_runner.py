@@ -643,11 +643,10 @@ def main():
     from magi2.fast_bulk_rank import FastBulkRankMonitor as FastMonitor
     from magi2.fast_rank_monitor import RankPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
-    # Explicit user request: fresh TOP5 trial at 2026-09-21 23:46 KST, once.
-    from datetime import datetime, timezone
-    launch_ms=int(datetime(2026,9,21,14,46,tzinfo=timezone.utc).timestamp()*1000)
+    # Explicit user request: reset the bulk-1D trial and resume once after reset.
+    launch_ms=time.time_ns()//1000000
     if FAST_PAPER.ledger.configure_launch(launch_ms,time.time_ns()//1000000):
-        log('fast_rank_launch_scheduled at=2026-09-21T23:46:00+09:00 prewarm_only=true')
+        log('fast_rank_launch_scheduled mode=immediate_after_reset at_ms='+str(launch_ms))
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()

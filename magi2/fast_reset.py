@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import time
 
-RESET_ID='fast-top5-fresh-20260921-2346'
+RESET_ID='fast-bulk-1d-fresh-20260922-v1'
 
 
 def reset_once(root,log):
