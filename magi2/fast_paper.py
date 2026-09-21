@@ -313,20 +313,25 @@ class PaperLedger:
             output = []
             for venue in VENUES:
                 a = self._account(venue); fx = a['fx_krw_per_quote']; active = self._active(venue)
-                held = [t for t in active if t['status'] != 'ENTRY_PENDING']
+                held = [t for t in active if t['remaining_qty'] > 0]
                 unknown = [t for t in held if t['mark_ms'] is None or now_ms - t['mark_ms'] > 15_000]
                 value = sum(t['remaining_qty'] * t['last_bid'] * (1-t['slippage_bps']/10000) * (1-t['fee_bps']/10000)
                             for t in held if t['last_bid'] is not None)
                 equity = (a['cash_quote'] + value) * fx if fx and not unknown else None
                 pnl, fees = self.db.execute('SELECT COALESCE(SUM(pnl_quote),0),COALESCE(SUM(fee_quote),0) FROM paper_fills WHERE venue=? AND ts_ms>=? AND ts_ms<?', (venue,start,end)).fetchone()
-                closed = [json.loads(r[0]) for r in self.db.execute('SELECT payload FROM paper_trades WHERE venue=? AND close_ms>=? AND close_ms<?', (venue,start,end))]
+                closed = [json.loads(r[0]) for r in self.db.execute("SELECT payload FROM paper_trades WHERE venue=? AND status='CLOSED' AND close_ms>=? AND close_ms<?", (venue,start,end))]
                 buys = self.db.execute("SELECT COUNT(*) FROM paper_fills WHERE venue=? AND side='BUY' AND ts_ms>=? AND ts_ms<?",(venue,start,end)).fetchone()[0]
                 skipped = self.db.execute("SELECT COUNT(*) FROM paper_trades WHERE venue=? AND status='SKIPPED' AND signal_ms>=? AND signal_ms<?",(venue,start,end)).fetchone()[0]
                 cohorts={}
                 for t in closed:
-                    version=t.get('strategy_version','fast-buy-flow-v1')
-                    c=cohorts.setdefault(version,{'closed':0,'closed_trade_pnl_krw':0.})
+                    version=t.get('execution_version') or t.get('strategy_version','fast-buy-flow-v1')
+                    c=cohorts.setdefault(version,{'closed':0,'closed_trade_pnl_krw':0.,'cycles':0,
+                        'gross_krw':0.,'fees_krw':0.,'slippage_krw':0.,'forced_pnl_krw':0.})
                     c['closed']+=1;c['closed_trade_pnl_krw']+=t['realized_quote']*(fx or 0)
+                    c['cycles']+=t.get('cycles_completed',0)
+                    for target,source in [('gross_krw','gross_pnl'),('fees_krw','fees_paid'),
+                                          ('slippage_krw','slippage_paid'),('forced_pnl_krw','forced_exit_pnl')]:
+                        c[target]+=t.get(source,0)*(fx or 0)
                 output.append(dict(a, cash_krw=a['cash_quote']*fx if fx else None, equity_krw=equity,cohorts=cohorts,
                                    active=active, unknown_marks=len(unknown), pnl_krw=pnl*fx if fx else None,
                                    fees_krw=fees*fx if fx else None, bought=buys, closed=len(closed),

@@ -193,25 +193,26 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v15; on-demand market regime available')
+    log('MAGI Telegram menu registered: Korean v16; FAST tick-cycle paper available')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v15','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v16','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'🧭 시장 국면 버튼을 추가했습니다.\n'
-               '누르면 BTC·ETH의 최신 완료 일봉으로 현재 국면과 사유를 간단히 알려드립니다.\n'
-               '투자 참고용 조회 · /regime',
+        'text':'⚡ FAST 모의매매를 1틱 반복 방식으로 적용했습니다.\n'
+               '현재가−1틱 매수 → 체결 후 현재가+1틱 매도를 포착 후 10분 동안 반복합니다.\n'
+               '10분 종료 시 잔량은 시장가 청산 · 기존 이력 유지 · 실제 주문 없음\n'
+               '📊 FAST 모의검증 결과에서 v3 결과를 확인하세요.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v15')
+    log('MAGI reply keyboard refreshed: magi-menu-v16')
 
 
 def start_regime_job():
@@ -601,7 +602,7 @@ def main():
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     from magi2.fast_volume_monitor import FastVolumeMonitor as FastMonitor
-    from magi2.fast_paper_service import PaperService
+    from magi2.fast_tick_service import TickPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log).start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
