@@ -93,7 +93,7 @@ class FastVolumeMonitor(FastMonitor):
                 message=(f'⚡ FAST 포착 · 5분 +5% 이상\n{stamp} KST · {venue.upper()} {symbol}\n'
                          f'최근 5분 {evidence["return_5m_bps"]/100:+.2f}% · 시장가 모의매수\n'
                          '+12% 익절 / −6% 손절 · 시간제한 없음 · 모의 결과 /fast_report · 실주문 OFF')
-            try:self.events.put_nowait({'id':ident,'text':message})
+            try:self.events.put_nowait({'id':ident,'text':message,'ts_ms':ts})
             except Full:self.audit.record('NOTIFICATION_DROPPED',ident,venue,symbol,'ALERT_ONLY',reason='QUEUE_FULL')
         if self.rule_version=='fast-price-rise-v4':
             self.log(f'fast_price_signal venue={venue} symbol={symbol} rise_bps={evidence["return_5m_bps"]:.1f}')
@@ -141,6 +141,12 @@ class FastVolumeMonitor(FastMonitor):
     def observe(self,venue):
         market=PublicMarket(venue)
         while not self.stop.is_set():
+            if self.rule_version=='fast-price-rise-v4' and not self.control()['enabled']:
+                with self.lock:
+                    self.observations={k:v for k,v in self.observations.items() if v['venue']!=venue}
+                    self.tracking={}
+                self.stop.wait(1)
+                continue
             started=now()
             with self.lock:active={k:v for k,v in self.observations.items() if v['venue']==venue}
             for ident,w in active.items():

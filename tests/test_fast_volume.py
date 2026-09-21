@@ -101,7 +101,7 @@ class VolumeTests(unittest.TestCase):
             self.assertFalse(m.emit('upbit','KRW-ZETA','ZETA',ev,56.5,56.6,ASOF+1,ASOF,1))
             self.assertTrue(m.events.empty())
             text,_=captures(m.audit,ASOF)
-            self.assertIn('v2 · 거래대금 3.00배',text)
+            self.assertNotIn('v2 · 거래대금',text)  # Current menu excludes retired detector cohorts.
             self.assertNotIn('강도 None',text)
             m.audit.db.close()
 
@@ -121,3 +121,4 @@ class VolumeTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+

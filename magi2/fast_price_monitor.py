@@ -3,6 +3,8 @@ from collections import deque
 from threading import Thread
 import math
 import time
+from contextlib import nullcontext
+from magi2.fast_session import day
 from magi2.fast_volume_monitor import FastVolumeMonitor
 from magi2.fast_monitor import PublicMarket, now, VENUES
 
@@ -31,6 +33,25 @@ class FastPriceMonitor(FastVolumeMonitor):
     rule_version=VERSION
     rule_policy=POLICY
 
+    def control(self):
+        return self.paper.ledger.control() if self.paper else dict(enabled=True, resumed_ms=0, generation=0)
+
+    def emit(self, venue, symbol, asset, evidence, bid, ask, ts, scan_ts, rank):
+        # A scan begun before stop/start cannot leak a capture or buy afterwards.
+        with self.paper.ledger.lock if self.paper else nullcontext():
+            state = self.control()
+            if not state['enabled'] or scan_ts < state['resumed_ms']: return False
+            previous = self.recent_signals.get((venue, symbol))
+            if previous is not None and day(previous) != day(ts):
+                self.recent_signals.pop((venue, symbol), None)
+            return super().emit(venue, symbol, asset, evidence, bid, ask, ts, scan_ts, rank)
+
+    def drain(self):
+        events = super().drain()
+        state = self.control()
+        if not state['enabled']: return []
+        return [e for e in events if e.get('ts_ms',0)>=state['resumed_ms']]
+
     def start(self):
         for venue in VENUES:
             for fn,prefix in ((self.worker,'fast-price-'),(self.observe,'fast-observe-')):
@@ -48,8 +69,15 @@ class FastPriceMonitor(FastVolumeMonitor):
         return '\n'.join(lines)
 
     def worker(self,venue):
-        market=PublicMarket(venue);history={}
+        market=PublicMarket(venue);history={};generation=None
         while not self.stop.is_set():
+            control=self.control()
+            if generation != control['generation']:
+                history={};generation=control['generation']
+            if not control['enabled']:
+                self.update(venue,status='PAUSED')
+                self.stop.wait(1)
+                continue
             started=time.monotonic()
             try:
                 prices=market.prices();ts=now();eligible=[];ready=0
@@ -83,4 +111,7 @@ class FastPriceMonitor(FastVolumeMonitor):
             except Exception as exc:
                 self.update(venue,status='UNAVAILABLE',error=type(exc).__name__)
                 self.log(f'fast_price_error venue={venue} type={type(exc).__name__}')
-            self.stop.wait(max(1,60-(time.monotonic()-started)))
+            until=started+60
+            while not self.stop.is_set() and time.monotonic()<until:
+                if self.control()['generation']!=generation: break
+                self.stop.wait(min(1,max(0,until-time.monotonic())))

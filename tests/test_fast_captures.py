@@ -43,10 +43,11 @@ class CapturesTests(unittest.TestCase):
             obs={'asset':'BTC','ask':100,'returns_bps':{'5':150},'spread_bps':5,
                  'strength':{'version':FILTER_VERSION,'strong':True,'score':80,'flow':{'buyer_share_pct':80,'sample_trades':25}}}
             for ident,t in [('old',now-86400001),('earlier',now-200000),('new',now-100000)]:
-                a.record('SIGNAL_DETECTED',ident,'upbit','KRW-BTC','ALERT_ONLY',ts_ms=t,observed=obs)
+                a.record('SIGNAL_DETECTED',ident,'upbit','KRW-BTC','ALERT_ONLY',ts_ms=t,rule_version='fast-price-rise-v4',observed=obs)
             text,markup=captures(a,now)
-            self.assertIn('종목 1개',text);self.assertEqual(text.count('UPBIT BTC'),1)
-            self.assertIn('산출 대기',text);self.assertIn('강도 80.0/100',text)
-            self.assertIn('평가 대기',text);a.db.close()
-        self.assertIn('⚡ FAST 포착',str(main_keyboard()))
-        self.assertEqual(parse_command('FAST 포착'),'fast')
+            self.assertIn('1종목',text);self.assertEqual(text.count('업비트 · BTC'),1)
+            self.assertNotIn('강도',text);self.assertNotIn('수익률',text)
+            self.assertIn('07:30',text);a.db.close()
+        self.assertIn('FAST 모의투자',str(main_keyboard()));self.assertNotIn('FAST 포착',str(main_keyboard()))
+        self.assertEqual(parse_command('FAST 포착'),'fast_captures')
+

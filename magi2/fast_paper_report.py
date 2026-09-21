@@ -36,60 +36,73 @@ def unit_price(value, quote):
 
 
 def position_lines(t, account, now_ms):
-    lines = [f'{NAMES[t["venue"]]} · {t["symbol"]}', f'포착시간 {clock(t["signal_ms"])} KST']
+    lines=[f'{NAMES[t["venue"]]} · {t["symbol"]}', f'포착일시 {clock(t["signal_ms"])} KST']
     if t['status']=='ENTRY_PENDING' and not t.get('entry_ms'):
         return lines+['상태: 매수 체결 대기 중']
-    cost = t['entry_cost']
-    average = t.get('buy_average') or (cost/t['entry_qty'] if t.get('entry_qty') else 0)
-    fx = account.get('fx_krw_per_quote')
-    lines += [f'매수금액 {money(cost*fx if fx else None)} · 단가 {unit_price(average,account["quote"])}']
-    if t['status']=='CLOSED':
-        net = t['realized_quote']/cost*100 if cost else 0
-        lines += [f'매도 완료 {clock(t["close_ms"])} · 최종 순수익률 {net:+.2f}%',
-                  '상태: '+REASONS.get(t['reason'], t['reason'] or '매도 완료')]
-        return lines
-    bid, stamp = t.get('last_bid'), t.get('mark_ms')
-    if bid and average and stamp is not None and 0<=now_ms-stamp<=15000:
-        lines += [f'현재가 {unit_price(bid,account["quote"])} · 현재 수익률 {(bid/average-1)*100:+.2f}%']
-    else:
-        lines += ['현재가·수익률 확인 대기 (최신 시세 없음)']
-    lines += ['상태: '+('시장가 청산 대기 중' if t['status']=='EXIT_PENDING' else '보유 중')]
+    average=t.get('buy_average') or (t['entry_cost']/t['entry_qty'] if t.get('entry_qty') else 0)
+    lines.append('매수가 '+unit_price(average,account['quote']))
+    bid,stamp=t.get('last_bid'),t.get('mark_ms');fx=account.get('fx_krw_per_quote')
+    if bid and average and fx and stamp is not None and 0<=now_ms-stamp<=15000:
+        value=t['remaining_qty']*bid*(1-t['fee_bps']/10000)*(1-t['slippage_bps']/10000)
+        pnl=value-t['remaining_cost'];pct=pnl/t['remaining_cost']*100 if t['remaining_cost'] else 0
+        lines += ['현재가 '+unit_price(bid,account['quote']),f'현재 순손익 {money(pnl*fx,True)} ({pct:+.2f}%)']
+    else: lines += ['현재가·현재 순손익 확인 대기 (최신 시세 없음)']
+    if t['status']=='EXIT_PENDING':lines.append('상태: 시장가 청산 대기 중')
     return lines
 
 
+def portfolio_header(ledger, now_ms):
+    data=ledger.snapshot(now_ms)
+    accounts=data['accounts']
+    invested=sum(t['remaining_cost']*(a['fx_krw_per_quote'] or 0) for a in accounts for t in a['active'])
+    funded=all(a['funded_ms'] is not None for a in accounts)
+    cash=sum(a['cash_krw'] for a in accounts) if funded else None
+    equity=sum(a['equity_krw'] for a in accounts) if all(a['equity_krw'] is not None for a in accounts) else None
+    lines=['📊 FAST 모의투자 현황',f'조회 {clock(now_ms)} KST · 당일 기준 07:30',
+           '최초원금 4,000,000원',f'매수원금 합계 {money(invested)} / 예수금 {money(cash)}']
+    if equity is None:lines.append('평가금액·누적 수익률 확인 대기')
+    else:lines.append(f'평가 {equity:,.0f}원 / 누적 {(equity/4000000-1)*100:+.2f}% ({equity-4000000:+,.0f}원)')
+    state=ledger.control() if hasattr(ledger,'control') else {'enabled':True}
+    lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
+    return lines,accounts
+
+
 def positions_page(ledger, now_ms, offset=0):
-    trades = ledger.result_rows(now_ms)
-    size = 10
-    offset = min(max(0, offset)//size*size, max(0, (len(trades)-1)//size*size))
-    active = sum(t['status']!='CLOSED' for t in trades)
-    rows = ['📊 FAST 모의투자 결과 · 보유 현황',
-            f'보유·매수대기 {active}건 · 최근 매도 {len(trades)-active}건 · KST',
-            f'조회 {clock(now_ms)} · {offset//size+1}/{max(1,(len(trades)+size-1)//size)}페이지', '']
-    for t in trades[offset:offset+size]:
-        rows += position_lines(t, ledger.account(t['venue']), now_ms)+['']
-    if not trades: rows += ['아직 매수 체결 또는 매수 대기 종목이 없습니다.', '']
-    rows += ['현재 수익률: 매수단가 대비 최신 매수호가 · 수수료 제외.',
-             '매수금액: 매수 수수료 포함 · 해외는 최초 고정환율로 원화 환산.',
-             '매도 완료 수익률: 실제 매수금액 대비 비용 반영 순손익. 모의투자.']
-    markup = keyboard()
-    nav = []
-    if offset: nav.append({'text':'◀ 이전','callback_data':f'fast_results:{offset-size}'})
-    nav.append({'text':'🔄 새로고침','callback_data':f'fast_results:{offset}'})
-    if offset+size<len(trades): nav.append({'text':'다음 ▶','callback_data':f'fast_results:{offset+size}'})
+    # One ledger lock gives totals and positions the same accounting instant.
+    with ledger.lock:
+        lines,accounts=portfolio_header(ledger,now_ms)
+        trades=sorted([t for a in accounts for t in a['active']],key=lambda t:(t['signal_ms'],t['id']),reverse=True)
+        by_venue={a['venue']:a for a in accounts};size=10
+        offset=min(max(0,offset)//size*size,max(0,(len(trades)-1)//size*size))
+        lines += [f'보유·매수대기 {len(trades)}건 · {offset//size+1}/{max(1,(len(trades)+size-1)//size)}페이지','']
+        for t in trades[offset:offset+size]:lines+=position_lines(t,by_venue[t['venue']],now_ms)+['']
+        if not trades:lines.append('현재 보유·매수대기 종목이 없습니다.')
+    lines += ['','거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원.',
+              '평가·순손익은 매수 비용과 예상 매도 수수료·슬리피지를 반영한 호가 기준.',
+              '해외 금액은 최초 고정환율로 원화 환산 · 모의투자.']
+    markup=keyboard();nav=[]
+    if offset:nav.append({'text':'◀ 이전','callback_data':f'fast_results:{offset-size}'})
+    nav.append({'text':'새로고침','callback_data':f'fast_results:{offset}'})
+    if offset+size<len(trades):nav.append({'text':'다음 ▶','callback_data':f'fast_results:{offset+size}'})
     markup['inline_keyboard'].insert(0,nav)
-    return '\n'.join(rows), markup
+    return '\n'.join(lines),markup
 
 
 def keyboard():
     return {'inline_keyboard':[
-        [{'text':'📊 FAST 모의검증 결과','callback_data':'nav:fast_report'},
-         {'text':'📅 전일 결과','callback_data':'nav:fast_daily'}],
-        [{'text':'💰 거래소별 잔고','callback_data':'nav:fast_balance'},
-         {'text':'📒 거래 상세','callback_data':'nav:fast_orders'}],
-        [{'text':'🧹 FAST 정리','callback_data':'nav:fast_clear'}],
-        [{'text':'⚡ 포착 목록','callback_data':'nav:fast'}],
-        [{'text':'🧪 과거 재생검증','callback_data':'nav:fast_replay'},
-         {'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}]]}
+        [{'text':'포착 리스트','callback_data':'nav:fast_captures'},
+         {'text':'모의투자 결과','callback_data':'nav:fast_report'}],
+        [{'text':'일괄정리 및 포착정지','callback_data':'nav:fast_clear'}],
+        [{'text':'포착 및 매매 시작','callback_data':'nav:fast_start'}]]}
+
+
+def menu(ledger):
+    state=ledger.control() if ledger else None
+    status='준비 중' if state is None else '진행 중' if state['enabled'] else '정지'
+    return ('FAST 모의투자\n상태: '+status+'\n'
+            '거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
+            '당일 기준: 매일 07:30 KST · 자산과 누적 손익은 이어집니다.\n'
+            '+12% 익절 · −6% 손절 · 매매 기능은 재확인 후 실행합니다.',keyboard())
 
 
 def summary(data, daily=False):
@@ -108,7 +121,7 @@ def summary(data, daily=False):
                 rows.append(f'원금 대비 누적 {(a["equity_krw"]/a["initial_krw"]-1)*100:+.2f}%')
             rows.append(f'집계일 실현 {money(a["pnl_krw"],True)} · 수수료 {money(a["fees_krw"])}')
         rows.append(f'매수 체결 {a["bought"]} · 세션 완료 {a["closed"]} · 양수 {a["wins"]} · 제외/미체결 {a["skipped"]}')
-        rows.append(f'현재 보유/대기 {len(a["active"])} · 매도 당일 재매수 금지(KST)')
+        rows.append(f'현재 보유/대기 {len(a["active"])} · 매도 당일 재매수 금지(07:30 기준)')
         for version,c in a.get('cohorts',{}).items():
             label=('v5 +12%/−6%' if version=='fast-target-v5' else 'v4 현재가 반복' if version=='fast-current-cycle-v4' else 'v3 1틱 반복' if version=='fast-tick-cycle-v3' else
                    'v2 거래량·가속/5분 보유' if version=='fast-volume-accel-v2' else 'v1 매수세/5분 보유')
@@ -127,7 +140,7 @@ def summary(data, daily=False):
              '메이커/테이커 수수료 가정: 업비트 0.05/0.05%, 빗썸 0.04/0.04%, 바이낸스 0.1/0.1%, 크라켄 0.4/0.8%.',
              '지정가: 대기 물량·실제 체결량 모형. 시장가: 호가 깊이+슬리피지 0.05%.',
              '구버전 비용 유지. 자료 단절·잔량/최소주문 미달은 청산 지연 표시.',
-             '모의투자 · 실제 주문 없음 · 매일 09:00 KST 전일 보고']
+             '모의투자 · 실제 주문 없음 · 매일 07:30 KST 전일 보고']
     return '\n'.join(rows)
 
 
@@ -221,7 +234,7 @@ def history(ledger, now_ms):
 def view(ledger, now_ms, kind='fast_report'):
     if ledger is None:
         return 'FAST 모의원장 준비 중입니다.', keyboard()
-    if kind=='fast_report':
+    if kind in ('fast_report','fast_balance'):
         if hasattr(ledger, 'result_rows'):
             return positions_page(ledger,now_ms)
         return recent(ledger,now_ms), keyboard()
@@ -230,7 +243,8 @@ def view(ledger, now_ms, kind='fast_report'):
     date = None
     if kind=='fast_daily':
         from datetime import timedelta
-        date = (datetime.fromtimestamp(now_ms/1000,KST).date()-timedelta(days=1)).isoformat()
-        if date < datetime.fromtimestamp(ledger.started_ms/1000,KST).date().isoformat():
-            return '📅 FAST 전일 결과\n모의투자 시작 전 날짜입니다. 첫 일일 보고는 시작일 다음 날 09:00 KST입니다.', keyboard()
+        date = (datetime.fromisoformat(ledger.report_day(now_ms)).date()-timedelta(days=1)).isoformat()
+        if date < ledger.report_day(ledger.started_ms):
+            return '📅 FAST 전일 결과\n모의투자 시작 전 날짜입니다. 첫 일일 보고는 시작일 다음 날 07:30 KST입니다.', keyboard()
     return summary(ledger.snapshot(now_ms,date),daily=kind=='fast_daily'), keyboard()
+

@@ -193,26 +193,26 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v19; FAST target-stop paper available')
+    log('MAGI Telegram menu registered: Korean v20; FAST menu/session0730/pause-start available')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v19','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v20','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'⚡ FAST +12% 익절 / −6% 손절 모의투자를 시작합니다.\n'
-               '5분 +5% 포착 → 시장가 모의매수 → 매수가 대비 +12% 지정가 매도 대기\n'
-               '−6% 도달 시 시장가 손절 · 시간제한 없음 · 매도 당일 재매수 금지(KST)\n'
-               'FAST 정리 버튼으로 전 종목 시장가 청산 · 거래소별 새 모의자금 100만원',
+        'text':'FAST 모의투자 메뉴를 새로 적용했습니다.\n'
+               '포착 리스트 · 모의투자 결과 · 일괄정리 및 포착정지 · 포착 및 매매 시작\n'
+               '당일 기준 07:30 KST · 거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
+               '정지·시작은 재확인 후 실행합니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v19')
+    log('MAGI reply keyboard refreshed: magi-menu-v20')
 
 
 def start_regime_job():
@@ -454,14 +454,21 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd=='regime': start_regime_job()
         elif cmd=='wave': send_wave()
-        elif cmd=='fast_clear':
+        elif cmd=='fast':
+            from magi2.fast_paper_report import menu
+            telegram(*menu(FAST_PAPER.ledger if FAST_PAPER else None))
+        elif cmd in ('fast_clear','fast_start'):
             if not may_execute(chat_id,user_id):
                 telegram('실행 권한이 없는 사용자입니다.'); return
             if FAST_PAPER:
-                telegram('FAST 정리 하시겠습니까?\n'
-                         '확인하면 모든 거래소의 FAST 모의 보유분을 시장가로 매도하고 매수 대기를 취소합니다.\n'
-                         '60초 안에 확인 또는 취소를 선택하세요.',
-                         CONFIRMATIONS.issue('fast_clear',chat_id,user_id))
+                prompt=('일괄정리 및 포착정지를 실행하시겠습니까?\n'
+                        '신규 포착·매수를 중지하고, 매수 대기를 취소한 뒤 보유분을 시장가로 모의매도합니다.'
+                        if cmd=='fast_clear' else
+                        '포착 및 매매를 시작하시겠습니까?\n'
+                        '거래소별 신규 포착을 시작하고, 가용 예수금으로 최대 5슬롯·슬롯당 최대 20만원을 투자합니다.\n'
+                        '기존 자산·손익을 이어가며 과거 포착을 소급 매수하지 않습니다.')
+                telegram(prompt+'\n60초 안에 확인 또는 취소를 선택하세요.',
+                         CONFIRMATIONS.issue(cmd,chat_id,user_id))
             else: telegram('FAST 모의원장 준비 중입니다.')
         elif cmd in ('fast_report','fast_orders','fast_daily','fast_balance'):
             from magi2.fast_paper_report import view
@@ -473,7 +480,7 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='fast_compare':
             from magi2.fast_comparison import report
             telegram(report(FAST_MONITOR.audit,time.time_ns()//1000000) if FAST_MONITOR else 'FAST 검증 자료 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
-        elif cmd in ('signals','fast'):
+        elif cmd in ('signals','fast_captures'):
             if FAST_MONITOR: telegram(*FAST_MONITOR.captures())
             else: telegram('FAST 포착 자료 준비 중입니다.')
         elif text.strip(): telegram('명령을 찾지 못했습니다. /help 또는 아래 버튼을 이용하세요.',main_keyboard())
@@ -535,7 +542,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -552,8 +559,16 @@ def handle_callback(callback):
             from magi2.fast_paper_report import keyboard
             if FAST_PAPER:
                 result=FAST_PAPER.clear()
-                telegram(f'🧹 FAST 모의투자 정리 접수\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의검증 결과에서 확인하세요. 시세·잔량 부족은 청산 대기로 표시합니다.',keyboard())
+                telegram(f'🧹 FAST 일괄정리 및 포착정지 접수\n신규 포착·매수: 정지\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의투자 결과에서 확인하세요. 시세·잔량 부족은 청산 대기로 표시합니다.',keyboard())
             else: telegram('FAST 모의원장 준비 중입니다.')
+            return
+        if action=='fast_start':
+            from magi2.fast_paper_report import keyboard
+            if not FAST_PAPER: telegram('FAST 모의원장 준비 중입니다.')
+            elif FAST_PAPER.resume():
+                telegram('FAST 포착 및 매매를 시작했습니다.\n신규 포착부터 가용 예수금으로 투자합니다.\n5분 비교 자료를 준비한 뒤 포착을 시작합니다.',keyboard())
+            else:
+                telegram('일괄정리 청산이 아직 남아 있어 시작하지 않았습니다.\n모의투자 결과에서 청산 상태를 확인한 뒤 다시 시작하세요.',keyboard())
             return
         if start_engine(action): telegram('PAPER 작업을 시작했습니다. 결과는 완료 후 안내합니다.')
         else: telegram('다른 PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.')
@@ -651,3 +666,4 @@ def main():
         offset=poll_updates(offset,timeout=min(timeout,1))
 
 if __name__=='__main__': main()
+

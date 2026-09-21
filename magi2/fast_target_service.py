@@ -14,6 +14,10 @@ class TargetPaperService(PaperService):
         self.stop=Event(); self.threads=[]; self.wake={v:Event() for v in VENUES}
 
     def start(self):
+        with self.ledger.lock:
+            count=self.ledger.db.execute('SELECT COUNT(*) FROM paper_trades').fetchone()[0]
+        self.log(f'fast_session_ready boundary=0730_KST trades={count} enabled={self.ledger.control()["enabled"]} '
+                 'initial_krw_total=4000000 slots_each=5 max_slot_krw=200000')
         for venue in VENUES:
             thread=Thread(target=self.worker, args=(venue,), daemon=True, name='fast-target-'+venue)
             thread.start(); self.threads.append(thread)
@@ -22,14 +26,23 @@ class TargetPaperService(PaperService):
         return self
 
     def clear(self):
-        result=self.ledger.liquidate_all(self.clock())
+        result=self.ledger.pause_and_clear(self.clock())
         for wake in self.wake.values(): wake.set()
+        self.log('fast_control paused=true liquidation_requested=true')
         return result
+
+    def resume(self):
+        accepted=self.ledger.resume(self.clock())
+        if accepted:
+            for wake in self.wake.values(): wake.set()
+        self.log(f'fast_control resume_accepted={accepted}')
+        return accepted
 
     def step(self, venue, market):
         self.ledger.advance(venue, self.clock())
         if self.ledger.account(venue)['funded_ms'] is None:
             fx, source=market.fx(); self.ledger.fund(venue, fx, source, self.clock())
+            self.log(f'fast_paper_funded venue={venue} seed_krw=1000000')
         errors=[]
         positions=sorted(self.ledger.active(venue), key=lambda t: {'EXIT_PENDING':0,'OPEN':1,'ENTRY_PENDING':2}[t['status']])
         for snapshot in positions:

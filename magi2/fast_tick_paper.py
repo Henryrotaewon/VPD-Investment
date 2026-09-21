@@ -57,19 +57,21 @@ class TickLedger(PaperLedger):
         self.db.execute('INSERT INTO tick_order_events(trade_id,ts_ms,event,payload) VALUES(?,?,?,?)',
                         (t['id'],ts,event,self._json(payload)))
 
-    def offer(self, ident, venue, symbol, signal_ms, now_ms, *, strategy_version='fast-volume-accel-v2'):
+    def offer(self, ident, venue, symbol, signal_ms, now_ms, *, strategy_version='fast-volume-accel-v2', allow_partial_budget=False):
         with self.lock, self.db:
             if self._trade(ident): return False
             a = self._account(venue); active = self._active(venue)
             reserved = sum(t.get('session_cash',0) if is_tick(t) else
                            t['budget_quote'] if t['status']=='ENTRY_PENDING' else 0 for t in active)
             budget = SLOT_KRW/a['fx_krw_per_quote'] if a['funded_ms'] is not None else 0
+            if allow_partial_budget and a['funded_ms'] is not None:
+                budget = max(0., min(budget, a['cash_quote'] - reserved))
             reason = ('STALE_SIGNAL' if not self.started_ms <= signal_ms <= now_ms <= signal_ms+ENTRY_TTL_MS else
                       'FX_NOT_READY' if a['funded_ms'] is None else
                       'SYMBOL_ALREADY_OPEN' if any(t['symbol']==symbol for t in active) else
                       'OVERDUE_EXIT' if any(t['remaining_qty']>0 and t.get('deadline_ms') is not None and now_ms>=t['deadline_ms'] for t in active) else
                       'ALL_SLOTS_USED' if len(active)>=MAX_POSITIONS else
-                      'INSUFFICIENT_CASH' if a['cash_quote']-reserved < budget-1e-8 else None)
+                      'INSUFFICIENT_CASH' if budget <= 0 or a['cash_quote']-reserved < budget-1e-8 else None)
             t = dict(id=ident, venue=venue, symbol=symbol, strategy_version=strategy_version,
                 execution_version=self.execution_version, policy=self.execution_version, signal_ms=signal_ms,
                 status='SKIPPED' if reason else 'ENTRY_PENDING',reason=reason,

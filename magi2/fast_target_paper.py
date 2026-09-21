@@ -1,7 +1,8 @@
 """FAST paper v5: one entry, fixed +12% limit, -6% market stop; no time exit."""
 from decimal import ROUND_CEILING
 import json
-from magi2.fast_paper import VENUES, day, bounds, checked_book, market_buy, ENTRY_TTL_MS
+from magi2.fast_paper import VENUES, checked_book, market_buy, ENTRY_TTL_MS
+from magi2.fast_session import day, bounds
 from magi2.fast_tick_paper import TickLedger
 from magi2.fast_tick_rules import dec, tick_at, floor_qty, valid_size
 
@@ -25,6 +26,41 @@ def target_price(average, rules):
 class TargetLedger(TickLedger):
     execution_version = VERSION
 
+    report_day = staticmethod(day)
+    report_bounds = staticmethod(bounds)
+    report_hour = 7
+    report_minute = 30
+
+    def __init__(self, path, now_ms):
+        super().__init__(path, now_ms)
+        with self.lock, self.db:
+            self.db.execute('INSERT OR IGNORE INTO paper_meta VALUES(?,?)',
+                            ('fast_control', self._json(dict(enabled=True, resumed_ms=0, generation=0))))
+
+    def control(self):
+        with self.lock:
+            return json.loads(self.db.execute("SELECT value FROM paper_meta WHERE key='fast_control'").fetchone()[0])
+
+    def _control(self, enabled, now_ms):
+        state = self.control()
+        state.update(enabled=enabled, generation=state['generation']+1)
+        if enabled: state['resumed_ms'] = now_ms
+        self.db.execute("UPDATE paper_meta SET value=? WHERE key='fast_control'", (self._json(state),))
+        return state
+
+    def pause_and_clear(self, now_ms):
+        # One lock/transaction excludes in-flight offers and market entries first.
+        with self.lock, self.db:
+            self._control(False, now_ms)
+            return self.liquidate_all(now_ms)
+
+    def resume(self, now_ms):
+        with self.lock, self.db:
+            if any(t['status']=='EXIT_PENDING' for v in VENUES for t in self._active(v)):
+                return False
+            if not self.control()['enabled']: self._control(True, now_ms)
+            return True
+
     def result_rows(self, now_ms):
         """Keep every current position ahead of the ten most recent completed buys."""
         with self.lock:
@@ -38,8 +74,10 @@ class TargetLedger(TickLedger):
 
     def offer(self, ident, venue, symbol, signal_ms, now_ms, **kwargs):
         with self.lock, self.db:
+            control = self.control()
+            if not control['enabled'] or signal_ms < control['resumed_ms']: return False
             if self._trade(ident): return False
-            accepted = super().offer(ident, venue, symbol, signal_ms, now_ms, **kwargs)
+            accepted = super().offer(ident, venue, symbol, signal_ms, now_ms, allow_partial_budget=True, **kwargs)
             t = self._trade(ident)
             start, end = bounds(day(now_ms))
             sold = self.db.execute('SELECT 1 FROM paper_fills f JOIN paper_trades t ON t.id=f.trade_id '
@@ -65,6 +103,7 @@ class TargetLedger(TickLedger):
 
     def enter_market(self, ident, book, rules, now_ms):
         with self.lock, self.db:
+            if not self.control()['enabled']: return False
             t = self._trade(ident)
             if not t or t['status']!='ENTRY_PENDING': return False
             if now_ms>t['signal_ms']+ENTRY_TTL_MS:
