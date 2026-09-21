@@ -1,5 +1,6 @@
 """Public-data paper target/stop workers, isolated per venue."""
 from pathlib import Path
+import json
 from threading import Event, Thread
 from magi2.fast_paper import VENUES
 from magi2.fast_paper_service import PaperService, now
@@ -18,12 +19,41 @@ class TargetPaperService(PaperService):
             count=self.ledger.db.execute('SELECT COUNT(*) FROM paper_trades').fetchone()[0]
         self.log(f'fast_session_ready boundary=0730_KST trades={count} enabled={self.ledger.control()["enabled"]} '
                  'initial_krw_total=4000000 slots_each=5 max_slot_krw=200000')
+        self.log_restored_state()
         for venue in VENUES:
             thread=Thread(target=self.worker, args=(venue,), daemon=True, name='fast-target-'+venue)
             thread.start(); self.threads.append(thread)
         self.log(f'fast_paper_started policy={VERSION} take_profit_pct=12 stop_loss_pct=-6 '
                  'deadline=none reentry=sold_day_kst live_orders=false')
         return self
+
+    def log_trade(self, ident, phase):
+        """Bounded accounting diagnostics, without dumping raw ledger payloads."""
+        with self.ledger.lock:
+            t=self.ledger.get(ident)
+            if not t:return
+            account=self.ledger.account(t['venue']);fx=account['fx_krw_per_quote']
+            data={key:t.get(key) for key in ('id','venue','symbol','status','signal_ms','entry_ms','close_ms',
+                  'reason','buy_average','entry_bid','entry_ask','stop_price','last_bid','remaining_qty')}
+            data.update(phase=phase,quote=account['quote'],error=(t.get('last_error') or '')[:80])
+            for key in ('entry_cost','exit_proceeds','realized_quote','fees_paid'):
+                data[key+'_krw']=t.get(key,0)*fx if fx else None
+            data['net_pct']=t['realized_quote']/t['entry_cost']*100 if t['entry_cost'] and t['status']=='CLOSED' else None
+            gross,qty=self.ledger.db.execute("SELECT COALESCE(SUM(json_extract(payload,'$.gross_quote')),0), "
+                "COALESCE(SUM(json_extract(payload,'$.quantity')),0) FROM paper_fills WHERE trade_id=? AND side='SELL'",
+                (ident,)).fetchone()
+            data['sell_average']=gross/qty if qty else None
+        self.log('fast_paper_state '+json.dumps(data,ensure_ascii=False,separators=(',',':')))
+
+    def log_restored_state(self):
+        with self.ledger.lock:
+            ids=[r[0] for r in self.ledger.db.execute(
+                'SELECT id FROM paper_trades ORDER BY signal_ms DESC,id DESC LIMIT 10')]
+            for venue in VENUES:
+                a=self.ledger.account(venue);fx=a['fx_krw_per_quote']
+                cash=a['cash_quote']*fx if fx else None
+                self.log(f'fast_paper_account venue={venue} cash_krw={cash}')
+            for ident in ids:self.log_trade(ident,'restored')
 
     def clear(self):
         result=self.ledger.pause_and_clear(self.clock())
@@ -39,7 +69,7 @@ class TargetPaperService(PaperService):
         return accepted
 
     def step(self, venue, market):
-        self.ledger.advance(venue, self.clock())
+        for ident in self.ledger.advance(venue, self.clock()):self.log_trade(ident,'entry_expired')
         if self.ledger.account(venue)['funded_ms'] is None:
             fx, source=market.fx(); self.ledger.fund(venue, fx, source, self.clock())
             self.log(f'fast_paper_funded venue={venue} seed_krw=1000000')
@@ -70,6 +100,10 @@ class TargetPaperService(PaperService):
                 reason=str(exc) if isinstance(exc, ValueError) else type(exc).__name__
                 self.ledger.fail(ident, reason); errors.append(reason)
                 self.log(f'fast_target_error venue={venue} symbol={snapshot["symbol"]} reason={reason[:80]}')
+            finally:
+                current=self.ledger.get(ident)
+                if current and any(current.get(k)!=snapshot.get(k) for k in ('status','entry_cost','exit_proceeds')):
+                    self.log_trade(ident,'transition')
         self.ledger.heartbeat(venue, self.clock(), ','.join(sorted(set(errors))) or None)
 
     def worker(self, venue):

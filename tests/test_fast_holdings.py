@@ -33,7 +33,9 @@ class HoldingsTests(unittest.TestCase):
         self.assertIn('상태: 매수 체결 대기 중',text)
         for wrong in ['매수금액','단가','수익률','0.00%']:self.assertNotIn(wrong,text)
         self.l.advance('upbit',START+10001)
-        self.assertNotIn('KRW-WAIT',positions_page(self.l,START+10001)[0])
+        report=positions_page(self.l,START+10001)[0]
+        self.assertIn('KRW-WAIT',report);self.assertIn('미매수 · 10초 내',report)
+        self.assertNotIn('확정 순손익',report)
     def test_stale_mark_withholds_return_foreign_currency_and_partial_exit_status(self):
         self.l.fund('binance',1400,'test',START);t=self.buy(venue='binance')
         fresh='\n'.join(position_lines(t,self.l.account('binance'),START+301))
@@ -53,9 +55,9 @@ class HoldingsTests(unittest.TestCase):
         last,_=positions_page(self.l,START+1000,20)
         self.assertEqual(first.count('매수 체결 대기 중'),10)
         self.assertEqual(second.count('매수 체결 대기 중'),10)
-        self.assertNotIn('TEST-old',first+second+last)
-        self.assertIn('매수 체결 대기 중',last);self.assertIn('fast_results:10',str(buttons))
-        self.assertIn('2/2페이지',positions_page(self.l,START+1000,9999)[0])
+        self.assertNotIn('TEST-old',first+second);self.assertIn('TEST-old',last)
+        self.assertIn('매도 완료',last);self.assertIn('fast_results:10',str(buttons))
+        self.assertIn('3/3페이지',positions_page(self.l,START+1000,9999)[0])
     def test_pagination_callback_is_read_only_and_chat_scoped(self):
         from magi2 import server_runner as server
         self.buy();paper=Mock();paper.ledger=self.l
@@ -91,4 +93,3 @@ class HoldingsTests(unittest.TestCase):
             paper.clear.assert_called_once();engine.assert_not_called()
 
 if __name__=='__main__':unittest.main()
-

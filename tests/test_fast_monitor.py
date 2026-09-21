@@ -33,7 +33,7 @@ class FastMonitorTests(unittest.TestCase):
     def test_button_removed_legacy_status_kept(self):
         self.assertNotIn('FAST 후보',str(main_keyboard()))
         self.assertNotIn('FAST 후보',str(role_keyboard()))
-        self.assertEqual(parse_command('⚡ FAST 후보'),'fast')
+        self.assertEqual(parse_command('⚡ FAST 후보'),'fast_captures')
         temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
         m=FastMonitor(temporary.name,lambda _:None);self.addCleanup(m.audit.db.close)
         self.assertIn('실주문 OFF',m.summary())
