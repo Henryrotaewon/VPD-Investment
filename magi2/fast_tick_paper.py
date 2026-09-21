@@ -13,7 +13,7 @@ TAKER_BPS = dict(upbit=5, bithumb=4, binance=10, kraken=80)
 
 
 def is_tick(t):
-    return t.get('execution_version') == VERSION
+    return t.get('execution_version') in (VERSION,'fast-current-cycle-v4')
 
 
 def validate_tape(tape, now_ms):
@@ -34,6 +34,11 @@ def validate_tape(tape, now_ms):
 
 
 class TickLedger(PaperLedger):
+    execution_version=VERSION
+
+    def buy_price(self,last,rules):
+        return adjacent(last,'BUY',rules)
+
     def __init__(self, path, now_ms):
         super().__init__(path, now_ms)
         with self.lock, self.db:
@@ -60,7 +65,7 @@ class TickLedger(PaperLedger):
                       'ALL_SLOTS_USED' if len(active)>=MAX_POSITIONS else
                       'INSUFFICIENT_CASH' if a['cash_quote']-reserved < budget-1e-8 else None)
             t = dict(id=ident, venue=venue, symbol=symbol, strategy_version=strategy_version,
-                execution_version=VERSION, policy=VERSION, signal_ms=signal_ms,
+                execution_version=self.execution_version, policy=self.execution_version, signal_ms=signal_ms,
                 status='SKIPPED' if reason else 'ENTRY_PENDING',reason=reason,
                 deadline_ms=signal_ms+DEADLINE_MS, budget_quote=budget, session_cash=budget if not reason else 0,
                 ready_ms=now_ms+LATENCY_MS, fee_bps=TAKER_BPS[venue], maker_bps=MAKER_BPS[venue],
@@ -143,7 +148,7 @@ class TickLedger(PaperLedger):
         t['maker_fills' if liquidity=='MAKER' else 'taker_fills']+=1
         self._save_account(a)
         fill=dict(mode='PAPER',quantity=qty,gross_quote=gross,fee_quote=fee,slippage_quote=slip,
-                  average_price=gross/qty,liquidity=liquidity,policy=VERSION,
+                  average_price=gross/qty,liquidity=liquidity,policy=t['execution_version'],
                   reason=t['reason'],cycle=t['cycles_completed']+(1 if side=='BUY' else 0),
                   evidence=source)
         self.db.execute('INSERT INTO paper_fills(trade_id,venue,ts_ms,side,pnl_quote,fee_quote,payload) '
@@ -178,7 +183,8 @@ class TickLedger(PaperLedger):
             t['rules']=rules
             order=t['order']
             if order is None:
-                side='SELL' if t['remaining_qty']>0 else 'BUY';price=adjacent(last,side,rules)
+                side='SELL' if t['remaining_qty']>0 else 'BUY'
+                price=adjacent(last,side,rules) if side=='SELL' else self.buy_price(last,rules)
                 qty=floor_qty(t['remaining_qty'] if side=='SELL' else
                     min(t['budget_quote'],t['session_cash'])/(price*(1+t['fee_bps']/10000)),rules['step'])
                 if not valid_size(price,qty,rules):
@@ -274,3 +280,16 @@ class TickLedger(PaperLedger):
                 "(entry_ms IS NOT NULL OR status='ENTRY_PENDING' OR "
                 "json_extract(payload,'$.reason')='LIMIT_UNFILLED_10M') "
                 "ORDER BY signal_ms DESC,id DESC LIMIT ?",(now_ms,limit))]
+
+
+class CurrentTickLedger(TickLedger):
+    """v4 buys at the observed current trade price, without chasing the ask."""
+    execution_version='fast-current-cycle-v4'
+
+    def buy_price(self,last,rules):
+        from magi2.fast_tick_rules import tick_at
+        p=dec(last)
+        if p % tick_at(last,rules):raise ValueError('CURRENT_PRICE_OFF_TICK')
+        if p<dec(rules.get('min_price',0)) or (rules.get('max_price') and p>dec(rules['max_price'])):
+            raise ValueError('PRICE_OUTSIDE_LIMITS')
+        return float(p)

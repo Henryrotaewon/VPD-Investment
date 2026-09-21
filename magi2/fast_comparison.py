@@ -64,7 +64,7 @@ def report(audit,now_ms):
     def date(ts):return datetime.fromtimestamp(ts/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M')
     lines=['📊 FAST 거래소별 검증 비교',f'{date(since)} ~ {date(now_ms)} KST · 최근 72시간',
            '동일 기준: 포착 당시 매도호가 → 5분 뒤 매수호가. 비상승(≤0%)을 오탐 대용으로 집계합니다. 수수료 미차감·실매매 성적 아님.','']
-    for rule,label in [('fast-volume-accel-v2','v2 거래대금·가격 가속'),('fast-auto-v1','v1 이전 돌파 조건')]:
+    for rule,label in [('fast-price-rise-v4','v4 5분 +5%'),('fast-volume-accel-v2','v2 거래대금·가격 가속'),('fast-auto-v1','v1 이전 돌파 조건')]:
         lines.append(label)
         for r in aggregate(events,since,now_ms,rule):
             rate='—' if r['non_rising_pct'] is None else f"{r['non_rising_pct']:.1f}% ({r['non_rising']}/{r['evaluated']})"

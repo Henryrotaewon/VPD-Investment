@@ -5,7 +5,9 @@ import time
 
 from magi2.fast_paper import VENUES
 from magi2.fast_paper_service import PaperService, PublicPaperMarket, now
-from magi2.fast_tick_paper import TickLedger, VERSION, is_tick
+from magi2.fast_tick_paper import CurrentTickLedger, is_tick
+
+VERSION=CurrentTickLedger.execution_version
 from magi2.fast_tick_rules import UPBIT_GRID, BITHUMB_GRID
 
 
@@ -64,7 +66,7 @@ class TickMarket(PublicPaperMarket):
 class TickPaperService(PaperService):
     def __init__(self,root,log,market_factory=TickMarket,clock=now):
         self.clock=clock;self.log=log;self.market_factory=market_factory
-        self.ledger=TickLedger(Path(root)/'fast_paper.sqlite3',clock())
+        self.ledger=CurrentTickLedger(Path(root)/'fast_paper.sqlite3',clock())
         self.stop=Event();self.threads=[];self.wake={v:Event() for v in VENUES}
         self.last_mark={v:0 for v in VENUES}
 
