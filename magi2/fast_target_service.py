@@ -2,7 +2,7 @@
 from pathlib import Path
 import json
 from threading import Event, Thread
-from magi2.fast_paper import VENUES
+from magi2.fast_paper import VENUES, checked_book
 from magi2.fast_paper_service import PaperService, now
 from magi2.fast_tick_service import TickMarket
 from magi2.fast_target_paper import TargetLedger, VERSION
@@ -23,6 +23,8 @@ class TargetPaperService(PaperService):
         for venue in VENUES:
             thread=Thread(target=self.worker, args=(venue,), daemon=True, name='fast-target-'+venue)
             thread.start(); self.threads.append(thread)
+        thread=Thread(target=self.probe_entry_books,daemon=True,name='fast-book-recheck')
+        thread.start();self.threads.append(thread)
         self.log(f'fast_paper_started policy={VERSION} take_profit_pct=12 stop_loss_pct=-6 '
                  'deadline=none reentry=sold_day_kst live_orders=false')
         return self
@@ -54,6 +56,39 @@ class TargetPaperService(PaperService):
                 cash=a['cash_quote']*fx if fx else None
                 self.log(f'fast_paper_account venue={venue} cash_krw={cash}')
             for ident in ids:self.log_trade(ident,'restored')
+
+    def probe_entry_books(self):
+        # Independent sessions keep diagnostic HTTP calls out of the exit workers.
+        for venue in VENUES:
+            if self.stop.is_set():return
+            market=None
+            try:
+                market=self.market_factory(venue)
+                self.probe_recent_entry_books(venue,market)
+            except Exception as exc:
+                self.log(f'fast_book_recheck venue={venue} status=UNAVAILABLE reason={type(exc).__name__}')
+            finally:
+                if market is not None:market.market.http.close()
+
+    def probe_recent_entry_books(self, venue, market):
+        """Recheck public books for recent validation failures, without replaying buys."""
+        ts=self.clock();start,_=self.ledger.report_bounds(self.ledger.report_day(ts))
+        with self.ledger.lock:
+            symbols=[r[0] for r in self.ledger.db.execute(
+                "SELECT symbol FROM paper_trades WHERE venue=? AND status='SKIPPED' AND signal_ms>=? "
+                "AND json_extract(payload,'$.last_error') LIKE 'INVALID_POSITIVE_NUMBER%' "
+                "GROUP BY symbol ORDER BY MAX(signal_ms) DESC LIMIT 3", (venue,start))]
+        for symbol in symbols:
+            try:
+                book=market.book(symbol)
+                bids,asks=checked_book(book,self.clock())
+                padded={side:sum(float(p)==0 and float(q)==0 for p,q in book[side]) for side in ('bids','asks')}
+                self.log(f'fast_book_recheck venue={venue} symbol={symbol} status=VALID '
+                         f'zero_padding_bids={padded["bids"]} zero_padding_asks={padded["asks"]} '
+                         f'best_bid={bids[0][0]} best_ask={asks[0][0]} replay_entry=false')
+            except Exception as exc:
+                reason=str(exc) if isinstance(exc,ValueError) else type(exc).__name__
+                self.log(f'fast_book_recheck venue={venue} symbol={symbol} status=UNAVAILABLE reason={reason[:80]} replay_entry=false')
 
     def clear(self):
         result=self.ledger.pause_and_clear(self.clock())

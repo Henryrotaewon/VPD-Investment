@@ -45,19 +45,27 @@ def checked_book(book, now_ms, not_before=0):
     requested = int(book['requested_ms']); received = int(book['received_ms'])
     if not not_before <= requested <= received <= now_ms or now_ms - received > 3000 or received - requested > 1500:
         raise ValueError('STALE_OR_EARLY_BOOK')
-    def available(rows):
+    def available(rows, side):
         levels = []
-        for price, size in rows:
-            price = positive(price); size = float(size)
+        for index, (price, size) in enumerate(rows):
+            size = float(size)
             if not math.isfinite(size) or size < 0:
                 raise ValueError('INVALID_BOOK_SIZE')
-            # Bithumb may include valid price levels with no remaining quantity.
-            # They provide no executable liquidity and cannot set the best price.
+            price = float(price)
+            # Bithumb pads the unused side of an orderbook unit with (0, 0).
+            # This is an absent level, not a zero-priced executable order.
+            if price == 0 and size == 0:
+                continue
+            try:
+                price = positive(price)
+            except ValueError as exc:
+                raise ValueError(f'{exc} side={side} level={index} price={price:g} size={size:g}') from None
+            # Empty positive-priced levels also provide no executable liquidity.
             if size > 0:
                 levels.append((price, size))
         return levels
-    bids = available(book['bids'])
-    asks = available(book['asks'])
+    bids = available(book['bids'], 'bids')
+    asks = available(book['asks'], 'asks')
     if not bids or not asks or max(p for p, _ in bids) > min(p for p, _ in asks):
         raise ValueError('EMPTY_OR_CROSSED_BOOK')
     return sorted(bids, reverse=True), sorted(asks)
