@@ -23,6 +23,7 @@ from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
 from magi2.wave_view import WaveClient, render as render_wave
 from magi2.point_in_time_scan import build_snapshot as build_vpd, read_snapshot as read_vpd, cutoff_for
+from magi2.market_regime import view as regime_view, keyboard as regime_keyboard, unavailable as regime_unavailable
 
 ROOT=Path(__file__).resolve().parents[1]
 REPO_STATE_DIR=ROOT/'magi2'/'state'
@@ -40,6 +41,8 @@ BOT_USERNAME=''
 CONFIRMATIONS=Confirmations()
 EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
 SCAN_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='vpd-request-scan')
+REGIME_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='market-regime-view')
+REGIME_JOB=None
 SCAN_JOB=None
 SCAN_CONTEXT=None
 ENGINE_JOB=None
@@ -190,27 +193,49 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v14; FAST live paper and daily reports available')
+    log('MAGI Telegram menu registered: Korean v15; on-demand market regime available')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v14','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v15','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'📊 FAST 모의투자를 연결했습니다.\n'
-               '거래소별 가상자금 100만원 · 회당 20만원 · 최대 5종목.\n'
-               '기본 5분 시장가 청산 · 포착 후 최대 10분 청산.\n'
-               '호가 단절·잔량 부족은 청산 지연으로 표시합니다.\n'
-               '매일 09:00 KST 전일 결과 · /fast_report · 실제 주문 없음.',
+        'text':'🧭 시장 국면 버튼을 추가했습니다.\n'
+               '누르면 BTC·ETH의 최신 완료 일봉으로 현재 국면과 사유를 간단히 알려드립니다.\n'
+               '투자 참고용 조회 · /regime',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v14')
+    log('MAGI reply keyboard refreshed: magi-menu-v15')
+
+
+def start_regime_job():
+    global REGIME_JOB
+    if REGIME_JOB is not None:
+        telegram('시장 국면을 조회 중입니다. 결과를 곧 보내드리겠습니다.')
+        return
+    # Separate worker: public-data waits never occupy PAPER or FAST workers.
+    REGIME_JOB=REGIME_EXECUTOR.submit(regime_view)
+    log('market_regime requested: read_only=true')
+    telegram('🧭 최신 일봉으로 시장 국면을 조회하고 있습니다.')
+
+
+def finish_regime_job():
+    global REGIME_JOB
+    if REGIME_JOB is None or not REGIME_JOB.done(): return
+    job=REGIME_JOB
+    REGIME_JOB=None
+    try: message=job.result()
+    except Exception as exc:
+        log(f'market_regime failed: {type(exc).__name__}')
+        message=regime_unavailable()
+    telegram(message,regime_keyboard())
+    log('market_regime completed: read_only=true')
 
 
 def start_engine(mode,request_id=None):
@@ -426,6 +451,7 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='orders': send_shadow_orders()
         elif cmd=='assets': telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
+        elif cmd=='regime': start_regime_job()
         elif cmd=='wave': send_wave()
         elif cmd in ('fast_report','fast_orders','fast_daily','fast_balance'):
             from magi2.fast_paper_report import view
@@ -493,7 +519,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -593,6 +619,7 @@ def main():
         except Exception as exc: log(f'fast_paper_daily_error type={type(exc).__name__}')
         finish_engine_job()
         finish_scan_job()
+        finish_regime_job()
         if time.monotonic()>=next_monitor:
             next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
         timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)

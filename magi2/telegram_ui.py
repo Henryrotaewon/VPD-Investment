@@ -23,6 +23,7 @@ COMMANDS = [
     ('fast_balance', 'FAST 모의투자 · 거래소별 잔고·손익'),
     ('fast_daily', 'FAST 전일 모의투자 결과'), ('fast_replay', 'FAST 과거 재생검증'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
     ('wave', 'WAVE 강도·전파·매매 검증'), ('strategies', '전략 검증 기준'),
+    ('regime', '현재 시장 국면 · 투자 참고'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('rebuild', 'PAPER 전량 교체 · 최신 VPD로 재구성'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
@@ -30,10 +31,12 @@ COMMANDS = [
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
     '🧪 shadows 모의투자': 'shadows', '⚡ FAST 포착': 'fast',
-    '📊 FAST 모의검증 결과': 'fast_report', '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
+    '📊 FAST 모의검증 결과': 'fast_report', '🧭 시장 국면': 'regime',
+    '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '시장 국면': 'regime', '현재 국면': 'regime', '국면': 'regime', '국면 조회': 'regime',
     '📊 fast 모의결과': 'fast_report', 'fast 모의투자':'fast_report', 'fast 전일 결과':'fast_daily',
     '📊 fast 모의투자':'fast_report', 'fast 모의검증 결과':'fast_report', 'fast모의검증 결과':'fast_report',
     'fast 모의결과': 'fast_report', 'fast 보고서': 'fast_report', 'fast report': 'fast_report',
@@ -98,6 +101,7 @@ def role_keyboard():
     groups = [
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
         [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
+        [('🧭 시장 국면 · 투자 참고','regime')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
     ]
     return {'inline_keyboard': [[{'text': label, 'callback_data': 'nav:'+cmd}
@@ -139,6 +143,7 @@ def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
+            '/regime — 현재 시장 국면·사유 (BTC·ETH 완료 일봉, 요청 시 조회)\n'
             '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — FAST 모의검증 결과 · 최근 10건 종목·시각·순수익률\n/fast_balance — FAST 거래소별 잔고·오늘 손익\n/fast_orders — FAST 모의 거래 상세\n/fast_daily — FAST 전일 결과 (매일 09:00 KST 자동 보고)\n/fast_replay — 과거 재생검증\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
