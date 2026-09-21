@@ -115,6 +115,26 @@ class RankTests(unittest.TestCase):
         ids=self.l.offer_rank('upbit',START)
         self.assertEqual([self.l.get(i)['budget_quote'] for i in ids],[200000]*4+[50000])
 
+    def test_scheduled_launch_exact_slot_once_and_user_stop_precedence(self):
+        at=START+INTERVAL
+        self.assertTrue(self.l.configure_launch(at,START))
+        self.assertTrue(self.l.prewarming())
+        self.assertFalse(self.l.control()['enabled'])
+        self.assertFalse(self.l.activate_due(at-1))
+        self.assertTrue(self.l.activate_due(at+100))
+        self.assertTrue(self.l.save_rank('upbit',at,rows('X'),at+100,self.l.control()['generation']))
+        self.assertFalse(self.l.activate_due(at+200))
+        self.l.pause_and_clear(at+300)
+        self.assertFalse(self.l.configure_launch(at,at+400))
+        self.assertFalse(self.l.activate_due(at+400))
+
+    def test_user_pause_cancels_pending_scheduled_start(self):
+        at=START+INTERVAL;self.l.configure_launch(at,START)
+        self.l.pause_and_clear(START+100)
+        self.assertFalse(self.l.prewarming())
+        self.assertFalse(self.l.activate_due(at))
+        self.assertFalse(self.l.control()['enabled'])
+
 
 class AdapterTests(unittest.TestCase):
     def test_rank_is_calendar_close_not_rolling_or_open_and_deterministic(self):

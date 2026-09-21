@@ -641,7 +641,13 @@ def main():
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     from magi2.fast_rank_monitor import FastRankMonitor as FastMonitor, RankPaperService as PaperService
-    FAST_PAPER=PaperService(STATE_DIR,log).start()
+    FAST_PAPER=PaperService(STATE_DIR,log)
+    # Explicit user request: fresh TOP5 trial at 2026-09-21 23:46 KST, once.
+    from datetime import datetime, timezone
+    launch_ms=int(datetime(2026,9,21,14,46,tzinfo=timezone.utc).timestamp()*1000)
+    if FAST_PAPER.ledger.configure_launch(launch_ms,time.time_ns()//1000000):
+        log('fast_rank_launch_scheduled at=2026-09-21T23:46:00+09:00 prewarm_only=true')
+    FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
     next_monitor=time.monotonic()+INTERVAL
