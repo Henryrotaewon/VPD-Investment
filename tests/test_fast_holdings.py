@@ -19,17 +19,17 @@ class HoldingsTests(unittest.TestCase):
     def test_actual_buy_amount_unit_price_and_current_return(self):
         t=self.buy();self.l.mark('upbit',{'TEST-x':(110.055,111)},START+1000)
         text,_=positions_page(self.l,START+1000)
-        self.assertIn('TEST-x',text);self.assertIn('포착시간 '+clock(START),text)
-        self.assertIn('매수금액 200,000원 · 단가 100.05원',text)
-        self.assertIn('현재가 110.055원 · 현재 수익률 +10.00%',text)
-        self.assertIn('상태: 보유 중',text)
+        self.assertIn('TEST-x',text);self.assertIn('포착일시 '+clock(START),text)
+        self.assertIn('매수가 100.05원',text)
+        self.assertIn('현재가 110.055원',text);self.assertIn('현재 순손익',text);self.assertNotIn('+10.00%',text)
+        self.assertIn('매수원금 합계 200,000원',text)
         # The display must not execute orders or alter capital/history.
         self.assertEqual(self.l.get('x')['order'],t['order'])
         self.assertEqual(self.l.db.execute('SELECT COUNT(*) FROM paper_fills').fetchone()[0],1)
     def test_pending_does_not_fabricate_buy_or_zero_return(self):
         self.l.offer('waiting','upbit','KRW-WAIT',START,START)
         t=self.l.get('waiting');text='\n'.join(position_lines(t,self.l.account('upbit'),START))
-        self.assertIn('KRW-WAIT',text);self.assertIn('포착시간',text)
+        self.assertIn('KRW-WAIT',text);self.assertIn('포착일시',text)
         self.assertIn('상태: 매수 체결 대기 중',text)
         for wrong in ['매수금액','단가','수익률','0.00%']:self.assertNotIn(wrong,text)
         self.l.advance('upbit',START+10001)
@@ -37,9 +37,9 @@ class HoldingsTests(unittest.TestCase):
     def test_stale_mark_withholds_return_foreign_currency_and_partial_exit_status(self):
         self.l.fund('binance',1400,'test',START);t=self.buy(venue='binance')
         fresh='\n'.join(position_lines(t,self.l.account('binance'),START+301))
-        self.assertIn('단가 100.05 USDT',fresh);self.assertIn('매수금액',fresh)
+        self.assertIn('매수가 100.05 USDT',fresh);self.assertIn('현재 순손익',fresh)
         stale='\n'.join(position_lines(t,self.l.account('binance'),START+15301))
-        self.assertIn('수익률 확인 대기',stale);self.assertNotIn('현재 수익률 -',stale)
+        self.assertIn('순손익 확인 대기',stale);self.assertNotIn('현재 수익률 -',stale)
         self.assertEqual(unit_price(.00000123,'USDT'),'0.00000123 USDT')
         self.l.liquidate_all(START+1000)
         self.assertIn('시장가 청산 대기 중',positions_page(self.l,START+1000)[0])
@@ -53,16 +53,16 @@ class HoldingsTests(unittest.TestCase):
         last,_=positions_page(self.l,START+1000,20)
         self.assertEqual(first.count('매수 체결 대기 중'),10)
         self.assertEqual(second.count('매수 체결 대기 중'),10)
-        self.assertNotIn('TEST-old',first+second);self.assertIn('TEST-old',last)
-        self.assertIn('최종 순수익률',last);self.assertIn('fast_results:10',str(buttons))
-        self.assertIn('3/3페이지',positions_page(self.l,START+1000,9999)[0])
+        self.assertNotIn('TEST-old',first+second+last)
+        self.assertIn('매수 체결 대기 중',last);self.assertIn('fast_results:10',str(buttons))
+        self.assertIn('2/2페이지',positions_page(self.l,START+1000,9999)[0])
     def test_pagination_callback_is_read_only_and_chat_scoped(self):
         from magi2 import server_runner as server
         self.buy();paper=Mock();paper.ledger=self.l
         with patch.object(server,'FAST_PAPER',paper),patch.object(server,'ALLOWED_CHAT_ID','7'),patch.object(server,'telegram') as send,patch.object(server,'telegram_api'):
             cb={'id':'p','data':'fast_results:0','from':{'id':'7'},'message':{'chat':{'id':'7'}}}
             server.handle_callback(cb)
-            self.assertIn('매수금액',send.call_args.args[0]);paper.clear.assert_not_called()
+            self.assertIn('매수원금',send.call_args.args[0]);paper.clear.assert_not_called()
             send.reset_mock();cb['message']['chat']['id']='8';server.handle_callback(cb);send.assert_not_called()
 
     def test_clear_requires_confirmation_and_rejects_cancel_expiry_replay_other_actor(self):
@@ -78,7 +78,7 @@ class HoldingsTests(unittest.TestCase):
                 server.handle_command(command,'7','7');paper.clear.assert_not_called()
             server.handle_callback(cb('nav:fast_clear'))
             markup=send.call_args.args[1];yes,no=markup['inline_keyboard'][0]
-            self.assertEqual(yes['text'],'✅ 확인 · FAST 정리')
+            self.assertEqual(yes['text'],'✅ 확인 · 일괄정리 및 포착정지')
             server.handle_callback(cb(yes['callback_data'],'8'));paper.clear.assert_not_called()
             server.handle_callback(cb(no['callback_data']))
             server.handle_callback(cb(yes['callback_data']));paper.clear.assert_not_called()
@@ -91,3 +91,4 @@ class HoldingsTests(unittest.TestCase):
             paper.clear.assert_called_once();engine.assert_not_called()
 
 if __name__=='__main__':unittest.main()
+

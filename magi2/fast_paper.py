@@ -86,6 +86,11 @@ def market_sell(bids, quantity, fee, slip):
 
 
 class PaperLedger:
+    report_day = staticmethod(day)
+    report_bounds = staticmethod(bounds)
+    report_hour = 9
+    report_minute = 0
+
     def __init__(self, path, now_ms):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.lock = RLock()
@@ -308,7 +313,7 @@ class PaperLedger:
             return True
 
     def snapshot(self, now_ms, date=None):
-        date = date or day(now_ms); start, end = bounds(date)
+        date = date or self.report_day(now_ms); start, end = self.report_bounds(date)
         with self.lock:
             output = []
             for venue in VENUES:
@@ -347,12 +352,12 @@ class PaperLedger:
 
     def due_day(self, now_ms):
         clock = datetime.fromtimestamp(now_ms / 1000, KST)
-        if clock.hour < 9:
+        if (clock.hour, clock.minute) < (self.report_hour, self.report_minute):
             return None
         latest = clock.date() - timedelta(days=1)
         with self.lock:
             last = self.db.execute('SELECT MAX(date) FROM paper_daily').fetchone()[0]
-        candidate = datetime.fromisoformat(last).date() + timedelta(days=1) if last else datetime.fromisoformat(day(self.started_ms)).date()
+        candidate = datetime.fromisoformat(last).date() + timedelta(days=1) if last else datetime.fromisoformat(self.report_day(self.started_ms)).date()
         return candidate.isoformat() if candidate <= latest else None
 
     def queue_daily(self, date, body, now_ms):

@@ -266,7 +266,7 @@ class ServiceTests(unittest.TestCase):
         from magi2 import server_runner as server
         from magi2.telegram_ui import parse_command, main_keyboard
         self.assertEqual(parse_command('📊 FAST 모의검증 결과'),'fast_report')
-        self.assertIn('📊 FAST 모의검증 결과',str(main_keyboard()))
+        self.assertIn('FAST 모의투자',str(main_keyboard()))
         with patch.object(server,'FAST_PAPER',self.service), patch.object(server,'telegram') as send, \
              patch.object(server,'telegram_api'), patch.object(server,'start_engine') as engine, \
              patch.object(server,'ALLOWED_CHAT_ID','7'):
@@ -330,3 +330,4 @@ class PublicAdapterTests(unittest.TestCase):
 
 
 if __name__=='__main__': unittest.main()
+

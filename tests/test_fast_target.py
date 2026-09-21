@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 from magi2.fast_target_paper import TargetLedger, target_price
 from magi2.fast_target_service import TargetPaperService
 from magi2.fast_tick_rules import UPBIT_GRID
-from magi2.fast_paper import bounds, day
+from magi2.fast_session import bounds, day
 from magi2.fast_paper_report import recent, history, summary, keyboard
 from magi2.telegram_ui import parse_command
 from test_fast_tick import START, RULES, book, tape, trade
@@ -106,15 +106,15 @@ class TargetTests(unittest.TestCase):
             allowed.return_value=True
             server.handle_callback({'id':'c','data':'nav:fast_clear','from':{'id':'7'},'message':{'chat':{'id':'7'}}})
             paper.clear.assert_not_called()
-            self.assertIn('FAST 정리 하시겠습니까?',send.call_args.args[0])
+            self.assertIn('일괄정리 및 포착정지를 실행하시겠습니까?',send.call_args.args[0])
             confirm=send.call_args.args[1]['inline_keyboard'][0][0]['callback_data']
             server.handle_callback({'id':'c2','data':confirm,'from':{'id':'7'},'message':{'message_id':1,'chat':{'id':'7'}}})
             paper.clear.assert_called_once()
-            self.assertIn('정리 접수',send.call_args.args[0])
+            self.assertIn('포착정지 접수',send.call_args.args[0])
 
     def test_report_and_button(self):
         self.enter()
-        self.assertIn('매수금액',recent(self.l,START+1000))
+        self.assertIn('매수원금',recent(self.l,START+1000))
         self.assertIn('손절 기준',history(self.l,START+1000))
         msg=summary(self.l.snapshot(START+1000))
         self.assertIn('시간제한 없음',msg);self.assertLess(len(msg),3500)
@@ -123,3 +123,4 @@ class TargetTests(unittest.TestCase):
         self.assertEqual(parse_command('/fast_clear'),'fast_clear')
 
 if __name__=='__main__':unittest.main()
+

@@ -25,7 +25,9 @@ class CurrentTests(unittest.TestCase):
 
     def test_emitted_capture_and_comparison_have_new_rule_and_no_fake_volume(self):
         with tempfile.TemporaryDirectory() as root:
-            paper=Mock();m=FastPriceMonitor(root,lambda _:None,paper)
+            from magi2.fast_target_paper import TargetLedger
+            paper=Mock();paper.ledger=TargetLedger(Path(root)/'paper.db',START)
+            m=FastPriceMonitor(root,lambda _:None,paper)
             e=price_signal([(START,100),(START+300000,105)],START+300000)
             self.assertTrue(m.emit('upbit','KRW-T','T',e,104,105,START+300000,START+300000,1))
             self.assertEqual(paper.offer.call_args.kwargs['strategy_version'],VERSION)
@@ -33,7 +35,7 @@ class CurrentTests(unittest.TestCase):
             msg=m.events.get_nowait()['text']
             self.assertIn('+5%',msg);self.assertNotIn('거래대금',msg)
             text,_=captures(m.audit,START+300000)
-            self.assertIn('v4',text);self.assertIn('300초',text)
+            self.assertIn('업비트 · T',text);self.assertNotIn('300초',text)
             self.assertIn('v4',report(m.audit,START+300000))
             m.audit.db.close()
 
@@ -127,3 +129,4 @@ class CurrentTests(unittest.TestCase):
             self.assertEqual(json.loads((p/'fast_reset.json').read_text())['reset_id'],RESET_ID)
 
 if __name__=='__main__':unittest.main()
+
