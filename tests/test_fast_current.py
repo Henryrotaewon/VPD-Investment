@@ -110,6 +110,8 @@ class CurrentTests(unittest.TestCase):
     def test_reset_deletes_only_fast_and_never_repeats(self):
         with tempfile.TemporaryDirectory() as root:
             p=Path(root)
+            # An earlier completed reset must not suppress this newly authorized trial.
+            (p/'fast_reset.json').write_text(json.dumps({'reset_id':'fast-bulk-1d-fresh-20260922-v1'}))
             for name in ['fast_paper.sqlite3','fast_paper.sqlite3-wal','fast_evidence.sqlite3','fast_evidence.sqlite3-shm','paper_state.json','magi3.sqlite3']:
                 (p/name).write_text('sentinel')
             self.assertTrue(reset_once(p,lambda _:None))
@@ -129,4 +131,3 @@ class CurrentTests(unittest.TestCase):
             self.assertEqual(json.loads((p/'fast_reset.json').read_text())['reset_id'],RESET_ID)
 
 if __name__=='__main__':unittest.main()
-
