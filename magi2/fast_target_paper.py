@@ -72,6 +72,15 @@ class TargetLedger(TickLedger):
                 (now_ms,)).fetchall()
             return [json.loads(r[0]) for r in active + closed]
 
+    def recent_outcomes(self, now_ms, limit=10):
+        """Read completed/declined entries in the current 07:30 session."""
+        start, _ = bounds(day(now_ms))
+        with self.lock:
+            return [json.loads(r[0]) for r in self.db.execute(
+                "SELECT payload FROM paper_trades WHERE status IN ('CLOSED','SKIPPED') "
+                "AND COALESCE(close_ms,signal_ms)>=? AND COALESCE(close_ms,signal_ms)<=? "
+                "ORDER BY COALESCE(close_ms,signal_ms) DESC,id DESC LIMIT ?", (start,now_ms,limit))]
+
     def offer(self, ident, venue, symbol, signal_ms, now_ms, **kwargs):
         with self.lock, self.db:
             control = self.control()
@@ -92,11 +101,14 @@ class TargetLedger(TickLedger):
             return accepted
 
     def advance(self, venue, now_ms):
+        expired=[]
         with self.lock, self.db:
             for t in self._active(venue):
                 if t['status']=='ENTRY_PENDING' and now_ms>t['signal_ms']+ENTRY_TTL_MS:
                     t.update(status='SKIPPED', reason='ENTRY_QUOTE_TIMEOUT', session_cash=0., close_ms=now_ms)
                     self._save(t)
+                    expired.append(t['id'])
+        return expired
 
     def sell_price(self, t, last, rules):
         return t['take_profit_price']
@@ -121,7 +133,8 @@ class TargetLedger(TickLedger):
             # Gross performance is before both entry and exit additional slippage.
             t['gross_pnl'] += slip*ratio
             t.update(rules=rules, buy_average=average, take_profit_price=target,
-                     stop_price=float(dec(average)*dec('.94')), last_bid=bids[0][0], mark_ms=now_ms)
+                     stop_price=float(dec(average)*dec('.94')), last_bid=bids[0][0], mark_ms=now_ms,
+                     entry_bid=bids[0][0], entry_ask=asks[0][0], entry_book_ms=book['received_ms'])
             t['order_sequence'] += 1
             t['order'] = dict(id=f'{ident}:{t["order_sequence"]}', side='SELL', price=target,
                 quantity=rounded, remaining=rounded, created_ms=now_ms, ready_ms=now_ms+250,

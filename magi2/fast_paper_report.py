@@ -5,6 +5,11 @@ from magi2.fast_paper import KST
 NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='크라켄')
 REASONS = {'HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
            'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
+SKIP_REASONS = {'ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
+                'SOLD_TODAY_KST':'당일 매도 종목 재매수 제한', 'STALE_SIGNAL':'포착 유효시간 초과',
+                'FX_NOT_READY':'초기 환산율 확인 대기', 'SYMBOL_ALREADY_OPEN':'이미 보유·매수 대기 중',
+                'OVERDUE_EXIT':'기존 청산 처리 대기', 'ALL_SLOTS_USED':'5슬롯 사용 중',
+                'INSUFFICIENT_CASH':'사용 가능한 예수금 부족', 'MANUAL_FAST_CLEAR':'일괄정리로 매수 취소'}
 
 
 def tick(t):
@@ -51,6 +56,22 @@ def position_lines(t, account, now_ms):
     return lines
 
 
+def outcome_lines(t, account):
+    lines=[f'{NAMES[t["venue"]]} · {t["symbol"]}', f'포착일시 {clock(t["signal_ms"])} KST']
+    if t['status']=='SKIPPED':
+        lines.append('미매수 · '+SKIP_REASONS.get(t.get('reason'),t.get('reason') or '조건 미충족'))
+        if t.get('last_error'):lines.append('상세 사유: '+t['last_error'][:80])
+        return lines
+    cost=t['entry_cost'];fx=account.get('fx_krw_per_quote')
+    average=t.get('buy_average') or (cost/t['entry_qty'] if t.get('entry_qty') else 0)
+    lines += ['매수가 '+unit_price(average,account['quote']),
+              '매도 완료 '+clock(t['close_ms'])+' KST · '+REASONS.get(t.get('reason'),t.get('reason') or '청산'),
+              '매수금액 '+money(cost*fx if fx else None)+' / 매도수령액 '+money(t['exit_proceeds']*fx if fx else None),
+              '확정 순손익 '+money(t['realized_quote']*fx if fx else None,True)+
+              (f' ({t["realized_quote"]/cost*100:+.2f}%)' if cost else '')]
+    return lines
+
+
 def portfolio_header(ledger, now_ms):
     data=ledger.snapshot(now_ms)
     accounts=data['accounts']
@@ -62,6 +83,9 @@ def portfolio_header(ledger, now_ms):
            '최초원금 4,000,000원',f'매수원금 합계 {money(invested)} / 예수금 {money(cash)}']
     if equity is None:lines.append('평가금액·누적 수익률 확인 대기')
     else:lines.append(f'평가 {equity:,.0f}원 / 누적 {(equity/4000000-1)*100:+.2f}% ({equity-4000000:+,.0f}원)')
+    if cash is not None:
+        lines.append('누적 실현손익 '+money(cash+invested-4000000,True)+
+                     ' / 보유 평가손익 '+money(equity-cash-invested if equity is not None else None,True))
     state=ledger.control() if hasattr(ledger,'control') else {'enabled':True}
     lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
     return lines,accounts
@@ -71,12 +95,22 @@ def positions_page(ledger, now_ms, offset=0):
     # One ledger lock gives totals and positions the same accounting instant.
     with ledger.lock:
         lines,accounts=portfolio_header(ledger,now_ms)
-        trades=sorted([t for a in accounts for t in a['active']],key=lambda t:(t['signal_ms'],t['id']),reverse=True)
+        active=sorted([t for a in accounts for t in a['active']],key=lambda t:(t['signal_ms'],t['id']),reverse=True)
+        outcomes=ledger.recent_outcomes(now_ms) if hasattr(ledger,'recent_outcomes') else []
+        trades=active+outcomes
         by_venue={a['venue']:a for a in accounts};size=10
         offset=min(max(0,offset)//size*size,max(0,(len(trades)-1)//size*size))
-        lines += [f'보유·매수대기 {len(trades)}건 · {offset//size+1}/{max(1,(len(trades)+size-1)//size)}페이지','']
-        for t in trades[offset:offset+size]:lines+=position_lines(t,by_venue[t['venue']],now_ms)+['']
-        if not trades:lines.append('현재 보유·매수대기 종목이 없습니다.')
+        lines += [f'보유·매수대기 {len(active)}건 · 당일 최근 매도·미매수 {len(outcomes)}건',
+                  f'{offset//size+1}/{max(1,(len(trades)+size-1)//size)}페이지','']
+        if not active:lines+=['현재 보유·매수대기 종목이 없습니다.','']
+        previous=None
+        for t in trades[offset:offset+size]:
+            terminal=t['status'] in ('CLOSED','SKIPPED')
+            if terminal!=previous:
+                lines.append('당일 최근 매도·미매수 (최대 10건)' if terminal else '현재 보유·매수대기')
+                previous=terminal
+            lines+=(outcome_lines(t,by_venue[t['venue']]) if terminal else
+                    position_lines(t,by_venue[t['venue']],now_ms))+['']
     lines += ['','거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원.',
               '평가·순손익은 매수 비용과 예상 매도 수수료·슬리피지를 반영한 호가 기준.',
               '해외 금액은 최초 고정환율로 원화 환산 · 모의투자.']
@@ -247,4 +281,3 @@ def view(ledger, now_ms, kind='fast_report'):
         if date < ledger.report_day(ledger.started_ms):
             return '📅 FAST 전일 결과\n모의투자 시작 전 날짜입니다. 첫 일일 보고는 시작일 다음 날 07:30 KST입니다.', keyboard()
     return summary(ledger.snapshot(now_ms,date),daily=kind=='fast_daily'), keyboard()
-
