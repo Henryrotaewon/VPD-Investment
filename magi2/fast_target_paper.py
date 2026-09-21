@@ -1,5 +1,6 @@
 """FAST paper v5: one entry, fixed +12% limit, -6% market stop; no time exit."""
 from decimal import ROUND_CEILING
+import json
 from magi2.fast_paper import VENUES, day, bounds, checked_book, market_buy, ENTRY_TTL_MS
 from magi2.fast_tick_paper import TickLedger
 from magi2.fast_tick_rules import dec, tick_at, floor_qty, valid_size
@@ -23,6 +24,17 @@ def target_price(average, rules):
 
 class TargetLedger(TickLedger):
     execution_version = VERSION
+
+    def result_rows(self, now_ms):
+        """Keep every current position ahead of the ten most recent completed buys."""
+        with self.lock:
+            active = self.db.execute("SELECT payload FROM paper_trades WHERE signal_ms<=? "
+                "AND status IN ('ENTRY_PENDING','OPEN','EXIT_PENDING') ORDER BY signal_ms DESC,id DESC",
+                (now_ms,)).fetchall()
+            closed = self.db.execute("SELECT payload FROM paper_trades WHERE close_ms<=? "
+                "AND status='CLOSED' AND entry_ms IS NOT NULL ORDER BY close_ms DESC,id DESC LIMIT 10",
+                (now_ms,)).fetchall()
+            return [json.loads(r[0]) for r in active + closed]
 
     def offer(self, ident, venue, symbol, signal_ms, now_ms, **kwargs):
         with self.lock, self.db:

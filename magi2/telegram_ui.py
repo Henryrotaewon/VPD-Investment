@@ -19,9 +19,9 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST 포착 조회 · 기존 명령'),
-    ('fast', 'FAST 포착 · 최근 24시간'), ('fast_report', 'FAST 모의검증 결과 · 최근 10건'), ('fast_orders', 'FAST 모의 거래 상세'),
+    ('fast', 'FAST 포착 · 최근 24시간'), ('fast_report', 'FAST 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', 'FAST 모의 거래 상세'),
     ('fast_balance', 'FAST 모의투자 · 거래소별 잔고·손익'),
-    ('fast_clear', 'FAST 정리 · 모의 보유 전량 시장가 청산'), ('fast_daily', 'FAST 전일 모의투자 결과'), ('fast_replay', 'FAST 과거 재생검증'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
+    ('fast_clear', 'FAST 정리 · 확인 후 모의 전량 청산'), ('fast_daily', 'FAST 전일 모의투자 결과'), ('fast_replay', 'FAST 과거 재생검증'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
     ('wave', 'WAVE 강도·전파·매매 검증'), ('strategies', '전략 검증 기준'),
     ('regime', '현재 시장 국면 · 투자 참고'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
@@ -145,7 +145,7 @@ def help_text():
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 현재 시장 국면·사유 (BTC·ETH 완료 일봉, 요청 시 조회)\n'
-            '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — FAST 모의검증 결과 · 최근 10건 종목·시각·순수익률\n/fast_balance — FAST 거래소별 잔고·오늘 손익\n/fast_orders — FAST 모의 거래 상세\n/fast_clear — FAST 보유 전량 시장가 모의청산\n/fast_daily — FAST 전일 결과 (매일 09:00 KST 자동 보고)\n/fast_replay — 과거 재생검증\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
+            '/signals · /fast — FAST 포착 · 최근 24시간\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — FAST 모의투자 · 종목·포착시간·매수금액·단가·현재 수익률\n/fast_balance — FAST 거래소별 잔고·오늘 손익\n/fast_orders — FAST 모의 거래 상세\n/fast_clear — 확인 후 FAST 보유 전량 시장가 모의청산\n/fast_daily — FAST 전일 결과 (매일 09:00 KST 자동 보고)\n/fast_replay — 과거 재생검증\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'
@@ -219,7 +219,7 @@ class Confirmations:
         self.pending = {k:v for k,v in self.pending.items() if now < v[3]}
         token = secrets.token_hex(8)
         self.pending[token] = (action, str(chat_id), str(user_id), now+60)
-        label = '🔴 전량 매도 후 재매수' if action=='rebuild' else '✅ PAPER 실행'
+        label = '✅ 확인 · FAST 정리' if action=='fast_clear' else '🔴 전량 매도 후 재매수' if action=='rebuild' else '✅ PAPER 실행'
         return {'inline_keyboard': [[{'text': label, 'callback_data': 'confirm:'+token},
                                     {'text': '취소', 'callback_data': 'cancel:'+token}]]}
 
