@@ -457,10 +457,11 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='fast_clear':
             if not may_execute(chat_id,user_id):
                 telegram('실행 권한이 없는 사용자입니다.'); return
-            from magi2.fast_paper_report import keyboard
             if FAST_PAPER:
-                result=FAST_PAPER.clear()
-                telegram(f'🧹 FAST 모의투자 정리 접수\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의검증 결과에서 확인하세요. 시세·잔량 부족은 청산 대기로 표시합니다.',keyboard())
+                telegram('FAST 정리 하시겠습니까?\n'
+                         '확인하면 모든 거래소의 FAST 모의 보유분을 시장가로 매도하고 매수 대기를 취소합니다.\n'
+                         '60초 안에 확인 또는 취소를 선택하세요.',
+                         CONFIRMATIONS.issue('fast_clear',chat_id,user_id))
             else: telegram('FAST 모의원장 준비 중입니다.')
         elif cmd in ('fast_report','fast_orders','fast_daily','fast_balance'):
             from magi2.fast_paper_report import view
@@ -511,6 +512,12 @@ def handle_callback(callback):
         except ValueError:return
         if section in ('overview','strength','evidence','trading','guide') and 0<=offset<=10000:
             send_wave(section,offset)
+    elif data.startswith('fast_results:'):
+        try: offset=int(data.split(':')[1])
+        except ValueError: return
+        if 0<=offset<=10000 and FAST_PAPER:
+            from magi2.fast_paper_report import positions_page
+            telegram(*positions_page(FAST_PAPER.ledger,time.time_ns()//1000000,offset))
     elif data.startswith('captures:'):
         try:offset=max(0,int(data.split(':')[1]))
         except ValueError:return
@@ -541,6 +548,13 @@ def handle_callback(callback):
                                                    'reply_markup':{'inline_keyboard':[]}})
         except Exception as e: log(f'Keyboard cleanup failed: {type(e).__name__}')
         if prefix=='cancel': telegram('실행을 취소했습니다.'); return
+        if action=='fast_clear':
+            from magi2.fast_paper_report import keyboard
+            if FAST_PAPER:
+                result=FAST_PAPER.clear()
+                telegram(f'🧹 FAST 모의투자 정리 접수\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의검증 결과에서 확인하세요. 시세·잔량 부족은 청산 대기로 표시합니다.',keyboard())
+            else: telegram('FAST 모의원장 준비 중입니다.')
+            return
         if start_engine(action): telegram('PAPER 작업을 시작했습니다. 결과는 완료 후 안내합니다.')
         else: telegram('다른 PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.')
 
