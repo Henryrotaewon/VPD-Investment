@@ -193,26 +193,26 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v17; FAST tick-cycle paper available')
+    log('MAGI Telegram menu registered: Korean v18; FAST tick-cycle paper available')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v17','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v18','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'⚡ FAST를 초기화하고 5분 +5% 포착 방식으로 시작합니다.\n'
-               '현재가 지정가 매수 → 체결 후 현재가+1틱 매도를 포착 후 10분 동안 반복합니다.\n'
-               '10분 종료 시 잔량은 시장가 청산 · 거래소별 새 가상자금 100만원 · 실제 주문 없음\n'
+        'text':'⚡ FAST 매도가 하한을 보정하고 기록·가상잔고를 초기화했습니다.\n'
+               '현재가 매수 → 매수 평균가보다 높은 지정가 매도를 10분 동안 반복합니다.\n'
+               '10분 종료 시 미체결 취소·잔량 시장가 청산 · 기한 연장 없음 · 실제 주문 없음\n'
                '📊 FAST 모의검증 결과에서 v4 결과를 확인하세요.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v17')
+    log('MAGI reply keyboard refreshed: magi-menu-v18')
 
 
 def start_regime_job():

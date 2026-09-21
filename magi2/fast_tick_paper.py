@@ -39,6 +39,12 @@ class TickLedger(PaperLedger):
     def buy_price(self,last,rules):
         return adjacent(last,'BUY',rules)
 
+    def sell_price(self,t,last,rules):
+        return adjacent(last,'SELL',rules)
+
+    def check_sell_floor(self,t,ts,rules):
+        pass
+
     def __init__(self, path, now_ms):
         super().__init__(path, now_ms)
         with self.lock, self.db:
@@ -160,7 +166,7 @@ class TickLedger(PaperLedger):
         order['remaining']=max(0.,float(dec(order['remaining'])-dec(qty)))
         if order['side']=='BUY':
             # Sell the acquired portion promptly once a valid sell order is possible.
-            sell_price=adjacent(last,'SELL',rules)
+            sell_price=self.sell_price(t,last,rules)
             if valid_size(sell_price,t['remaining_qty'],rules):
                 self._cancel(t,ts,'SELL_ACQUIRED_QUANTITY')
         elif t['remaining_qty']==0:
@@ -181,10 +187,11 @@ class TickLedger(PaperLedger):
             if now_ms>=t['deadline_ms']:
                 self._expire(t,now_ms);self._save(t);return False
             t['rules']=rules
+            self.check_sell_floor(t,now_ms,rules)
             order=t['order']
             if order is None:
                 side='SELL' if t['remaining_qty']>0 else 'BUY'
-                price=adjacent(last,side,rules) if side=='SELL' else self.buy_price(last,rules)
+                price=self.sell_price(t,last,rules) if side=='SELL' else self.buy_price(last,rules)
                 qty=floor_qty(t['remaining_qty'] if side=='SELL' else
                     min(t['budget_quote'],t['session_cash'])/(price*(1+t['fee_bps']/10000)),rules['step'])
                 if not valid_size(price,qty,rules):
@@ -193,6 +200,9 @@ class TickLedger(PaperLedger):
                 order=dict(id=f'{ident}:{t["order_sequence"]}',side=side,price=price,
                            quantity=qty,remaining=qty,created_ms=now_ms,ready_ms=now_ms+LATENCY_MS,
                            active_ms=None,queue_ahead=None,reference_price=last)
+                if side=='SELL' and t.get('sell_price_policy'):
+                    order.update(sell_price_policy=t['sell_price_policy'],buy_average=t['remaining_gross']/t['remaining_qty'],
+                                 minimum_sell_price=self.minimum_sell_price(t,rules))
                 t['order']=order;t['last_error']=None
                 self._event(t,now_ms,'ORDER_PLACED',**order)
                 self._save(t);return True
@@ -285,6 +295,41 @@ class TickLedger(PaperLedger):
 class CurrentTickLedger(TickLedger):
     """v4 buys at the observed current trade price, without chasing the ask."""
     execution_version='fast-current-cycle-v4'
+
+    def __init__(self,path,now_ms):
+        super().__init__(path,now_ms)
+        # Cancel unsafe resting paper sells before public-data workers resume.
+        with self.lock,self.db:
+            for venue in ('upbit','bithumb','binance','kraken'):
+                for t in self._active(venue):
+                    if t.get('execution_version')!=self.execution_version:continue
+                    if now_ms>=t['deadline_ms']:self._expire(t,now_ms)
+                    elif t.get('rules'):self.check_sell_floor(t,now_ms,t['rules'])
+                    self._save(t)
+
+    @staticmethod
+    def minimum_sell_price(t,rules):
+        from magi2.fast_tick_rules import tick_at
+        if t['remaining_qty']<=0:raise ValueError('NO_SELL_INVENTORY')
+        avg=dec(t['remaining_gross'])/dec(t['remaining_qty'])
+        step=tick_at(avg,rules);nearest=(avg/step).to_integral_value()*step
+        # Normalize arithmetic dust, never actual fractional average fill prices.
+        if abs(avg-nearest)<=step*dec('0.00000001'):avg=nearest
+        return adjacent(float(avg),'SELL',rules)
+
+    def sell_price(self,t,last,rules):
+        return max(adjacent(last,'SELL',rules),self.minimum_sell_price(t,rules))
+
+    def check_sell_floor(self,t,ts,rules):
+        if t.get('execution_version')!=self.execution_version:return
+        t['sell_price_policy']='BUY_AVERAGE_FLOOR_V1'
+        t.setdefault('sell_floor_enabled_ms',ts)
+        order=t.get('order')
+        if order and order['side']=='SELL' and order['price']<self.minimum_sell_price(t,rules):
+            self._event(t,ts,'SELL_FLOOR_CORRECTION',old_price=order['price'],
+                        minimum_price=self.minimum_sell_price(t,rules),deadline_ms=t['deadline_ms'])
+            self._cancel(t,ts,'BELOW_BUY_AVERAGE_FLOOR')
+
 
     def buy_price(self,last,rules):
         from magi2.fast_tick_rules import tick_at
