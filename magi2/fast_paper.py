@@ -71,11 +71,11 @@ def checked_book(book, now_ms, not_before=0):
     return sorted(bids, reverse=True), sorted(asks)
 
 
-def market_buy(asks, budget, fee, slip):
+def market_buy(asks, budget, fee, slip, participation=.10):
     remaining = budget / (1 + fee); quantity = gross = impact = 0.0
     for price, size in asks:
         # Enter only if at most 10% of the displayed ask depth can fund the slot.
-        q = min(size * .10, remaining / (price * (1 + slip)))
+        q = min(size * participation, remaining / (price * (1 + slip)))
         paid = q * price * (1 + slip)
         quantity += q; gross += paid; impact += q * price * slip; remaining -= paid
         if remaining <= budget * 1e-10:

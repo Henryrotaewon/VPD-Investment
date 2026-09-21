@@ -25,6 +25,7 @@ def target_price(average, rules):
 
 class TargetLedger(TickLedger):
     execution_version = VERSION
+    entry_participation = .10
 
     report_day = staticmethod(day)
     report_bounds = staticmethod(bounds)
@@ -121,7 +122,8 @@ class TargetLedger(TickLedger):
             if now_ms>t['signal_ms']+ENTRY_TTL_MS:
                 self.advance(t['venue'], now_ms); return False
             bids, asks = checked_book(book, now_ms, t['ready_ms'])
-            qty, gross, _, slip = market_buy(asks, t['budget_quote'], t['fee_bps']/10000, t['slippage_bps']/10000)
+            qty, gross, _, slip = market_buy(asks, t['budget_quote'], t['fee_bps']/10000, t['slippage_bps']/10000,
+                                           participation=self.entry_participation)
             rounded = floor_qty(qty, rules.get('market_step', rules['step']))
             average = gross/qty
             if not valid_size(average, rounded, rules, market=True): raise ValueError('BELOW_MINIMUM_ORDER')
