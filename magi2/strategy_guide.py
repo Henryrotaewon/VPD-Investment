@@ -10,7 +10,10 @@ def strategy_keyboard(detail=False,fast=False):
     rows=[[{'text':name,'callback_data':'guide:'+name.lower()} for name in ('WAVE','VPD','FAST')]]
     rows.append([{'text':'⚖️ BASIS · 현선물 준비','callback_data':'guide:basis'},
                  {'text':'🌐 크로스마켓 연구','callback_data':'guide:cross'}])
-    if fast:rows.append([{'text':'📊 거래소별 신호·오탐 비교','callback_data':'nav:fast_compare'}])
+    if fast:
+        rows.append([{'text':'📊 FAST 모의검증 결과','callback_data':'nav:fast_report'},
+                     {'text':'📅 전일 결과','callback_data':'nav:fast_daily'}])
+        rows.append([{'text':'📊 거래소별 신호·오탐 비교','callback_data':'nav:fast_compare'}])
     if detail:rows.append([{'text':'↩️ 전략검증','callback_data':'nav:strategies'}])
     rows.append([{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}])
     return {'inline_keyboard':rows}
@@ -21,7 +24,21 @@ def strategy_text(name):
         return cross_market_text()
     if name=='basis':
         return basis_text()
-    if name in ('wave','fast'):
+    if name=='fast':
+        return ('⚡ FAST · 짧은 보유시간 모의투자\n\n'
+                '업비트·빗썸·바이낸스·크라켄에 각각 최초 가상자금 100만원을 둡니다. '
+                '강한 매수세 포착마다 회당 20만원, 거래소당 최대 5종목에 모의 진입합니다. '
+                '알림 발송 제한과 모의 진입 판단은 독립적이며 잔고·호가 부족은 제외 사유로 기록합니다.\n\n'
+                '기본 청산은 매수 5분 뒤 시장가 모형입니다. 포착 후 10분이 되면 신규 진입보다 '
+                '잔여 청산을 우선합니다. 호가 단절·잔량 부족 때는 청산 완료로 만들지 않고 지연을 표시합니다. '
+                '이번 기준선에는 별도 목표익절·수익보호를 적용하지 않습니다.\n\n'
+                '실제 매수 ask·매도 bid 호가 깊이에 가정 수수료·추가 슬리피지를 반영합니다. '
+                '해외 계좌는 최초 공개시세 환산율을 고정해 환율손익을 제외합니다. 원금은 매일 초기화하지 않습니다.\n\n'
+                '/fast_report 최근 10건 종목·매수/매도 시각·순수익률\n'
+                '/fast_balance 현재 잔고·오늘 실현손익\n/fast_orders 최근 거래 상세\n'
+                '/fast_daily 전일 결과 · 매일 09:00 KST 자동 보고\n\n'
+                '실시간 PAPER · 실제 주문 없음 · 수익성 미검증. 기존 매매 준비안은 별도 연구 가설입니다.')
+    if name=='wave':
         return strategy_plan_text(name.upper())
     if name=='vpd':
         cfg=json.loads((Path(__file__).with_name('config.json')).read_text())

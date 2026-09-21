@@ -169,9 +169,19 @@ See [cross-market research](CROSS_MARKET_RESEARCH.md).
 
 ## FAST 모의검증 결과 조회
 
-`/fast_report` (한글 `FAST 모의결과`)와 `/fast_orders` (`FAST 거래내역`)는
-완료된 업비트 KRW FAST 재생 실험을 조회한다. 메인 메뉴와 FAST 포착 목록에도
-`📊 FAST 모의결과` 버튼이 있다. 조회는 수집·모의매매·Shadow·실주문을 시작하지 않는다.
+2026-09-21 이후 `📊 FAST 모의검증 결과` (`/fast_report`)는 **실시간 FAST 모의투자**의
+최근 매수 10건을 최신순으로 `거래소·종목 | 매수→매도 시각(KST) | 비용 반영 순수익률`로
+간단히 보여준다. 미청산은 보유 중/청산 대기, 10분 초과 여부로 표시한다.
+`/fast_balance`는 거래소별 잔고·손익, `/fast_orders`는 최근 10건의 거래 상세를 조회한다.
+거래소별 100만원·회당 20만원·기본 5분 시장가 청산·포착 후 10분 청산 기한을
+적용하며 `/fast_daily`와 매일 09:00 KST 전일 보고를 제공한다.
+기존 재생 실험 조회는 `/fast_replay`로 유지한다. 운영 규칙·비용 가정·청산 지연
+표시·저장과 재시작 처리의 정확한 범위는 [FAST PAPER](FAST_PAPER.md)를 따른다.
+
+아래는 종전 재생 결과 조회의 입력 계약이다.
+
+`/fast_replay`는 완료된 업비트 KRW FAST 재생 실험을 조회한다.
+조회는 수집·모의매매·Shadow·실주문을 시작하지 않는다.
 
 - 입력: `FAST_PAPER_REPORT_DIR/<run-id>/result.json`과 `upbit-report.json`.
   기본 디렉터리는 운영 상태 디렉터리 아래 `fast`이며, 통상 `/data/magi2/fast`이다.
