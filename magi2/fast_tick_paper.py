@@ -13,7 +13,7 @@ TAKER_BPS = dict(upbit=5, bithumb=4, binance=10, kraken=80)
 
 
 def is_tick(t):
-    return t.get('execution_version') in (VERSION,'fast-current-cycle-v4')
+    return t.get('execution_version') in (VERSION,'fast-current-cycle-v4','fast-target-v5')
 
 
 def validate_tape(tape, now_ms):
@@ -67,7 +67,7 @@ class TickLedger(PaperLedger):
             reason = ('STALE_SIGNAL' if not self.started_ms <= signal_ms <= now_ms <= signal_ms+ENTRY_TTL_MS else
                       'FX_NOT_READY' if a['funded_ms'] is None else
                       'SYMBOL_ALREADY_OPEN' if any(t['symbol']==symbol for t in active) else
-                      'OVERDUE_EXIT' if any(t['remaining_qty']>0 and now_ms>=t['deadline_ms'] for t in active) else
+                      'OVERDUE_EXIT' if any(t['remaining_qty']>0 and t.get('deadline_ms') is not None and now_ms>=t['deadline_ms'] for t in active) else
                       'ALL_SLOTS_USED' if len(active)>=MAX_POSITIONS else
                       'INSUFFICIENT_CASH' if a['cash_quote']-reserved < budget-1e-8 else None)
             t = dict(id=ident, venue=venue, symbol=symbol, strategy_version=strategy_version,
@@ -113,11 +113,11 @@ class TickLedger(PaperLedger):
         with self.lock,self.db:
             for t in self._active(venue):
                 if is_tick(t):
-                    if now_ms>=t['deadline_ms']: self._expire(t,now_ms)
+                    if t.get('deadline_ms') is not None and now_ms>=t['deadline_ms']: self._expire(t,now_ms)
                 elif t['status']=='ENTRY_PENDING' and now_ms>t['signal_ms']+ENTRY_TTL_MS:
                     t.update(status='SKIPPED',reason='ENTRY_QUOTE_TIMEOUT')
                 elif t['status']!='ENTRY_PENDING':
-                    if now_ms>=t['deadline_ms']:
+                    if t.get('deadline_ms') is not None and now_ms>=t['deadline_ms']:
                         t.update(status='EXIT_PENDING',reason='DEADLINE_10M',
                                  exit_ready_ms=min(t.get('exit_ready_ms',now_ms),now_ms),deadline_missed=True)
                     elif now_ms>=t['exit_due_ms'] and t['status']=='OPEN':
@@ -184,7 +184,7 @@ class TickLedger(PaperLedger):
         with self.lock,self.db:
             t=self._trade(ident)
             if not t or not is_tick(t) or t['status'] not in ACTIVE: return False
-            if now_ms>=t['deadline_ms']:
+            if t.get('deadline_ms') is not None and now_ms>=t['deadline_ms']:
                 self._expire(t,now_ms);self._save(t);return False
             t['rules']=rules
             self.check_sell_floor(t,now_ms,rules)
@@ -243,7 +243,7 @@ class TickLedger(PaperLedger):
             new=[r for r in rows if r['ts']>order['cursor_ms'] or
                  (r['ts']==order['cursor_ms'] and r['id'] not in order['cursor_ids'])]
             for r in new:
-                if r['ts']<order['active_ms'] or r['ts']>=t['deadline_ms']:continue
+                if r['ts']<order['active_ms'] or (t.get('deadline_ms') is not None and r['ts']>=t['deadline_ms']):continue
                 eligible=(not r['buyer'] and r['price']<=order['price']) if order['side']=='BUY' else (
                            r['buyer'] and r['price']>=order['price'])
                 if not eligible:continue
@@ -278,7 +278,7 @@ class TickLedger(PaperLedger):
             t.update(last_book_hash=fingerprint,last_bid=bids[0][0],mark_ms=book['received_ms'])
             if t['remaining_qty']==0:
                 t.update(status='CLOSED',close_ms=book['received_ms'],session_cash=0.,last_error=None,
-                         deadline_delay_ms=max(0,book['received_ms']-t['deadline_ms']))
+                         deadline_delay_ms=max(0,book['received_ms']-t['deadline_ms']) if t.get('deadline_ms') else 0)
                 self._event(t,now_ms,'SESSION_ENDED',cycles=t['cycles_completed'],net_quote=t['realized_quote'])
             else:t['last_error']='PARTIAL_EXIT_DEPTH'
             self._save(t);return True
@@ -303,7 +303,7 @@ class CurrentTickLedger(TickLedger):
             for venue in ('upbit','bithumb','binance','kraken'):
                 for t in self._active(venue):
                     if t.get('execution_version')!=self.execution_version:continue
-                    if now_ms>=t['deadline_ms']:self._expire(t,now_ms)
+                    if t.get('deadline_ms') is not None and now_ms>=t['deadline_ms']:self._expire(t,now_ms)
                     elif t.get('rules'):self.check_sell_floor(t,now_ms,t['rules'])
                     self._save(t)
 
