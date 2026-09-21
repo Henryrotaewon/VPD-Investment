@@ -6,6 +6,7 @@ NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='�
 REASONS = {'TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
            'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
 SKIP_REASONS = {'ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
+                'ENTRY_TICK_TOO_LARGE':'1틱 등락률이 진입 허용 기준 이상',
                 'SOLD_TODAY_KST':'당일 매도 종목 재매수 제한', 'STALE_SIGNAL':'포착 유효시간 초과',
                 'FX_NOT_READY':'초기 환산율 확인 대기', 'SYMBOL_ALREADY_OPEN':'이미 보유·매수 대기 중',
                 'OVERDUE_EXIT':'기존 청산 처리 대기', 'ALL_SLOTS_USED':'5슬롯 사용 중',
@@ -62,6 +63,10 @@ def outcome_lines(t, account):
     lines=[f'{NAMES[t["venue"]]} · {t["symbol"]} · {label}', f'포착일시 {clock(t["signal_ms"])} KST']
     if t['status']=='SKIPPED':
         lines.append('미매수 · '+SKIP_REASONS.get(t.get('reason'),t.get('reason') or '조건 미충족'))
+        if t.get('reason')=='ENTRY_TICK_TOO_LARGE':
+            lines.append(f'1틱 {t["entry_tick_pct"]:.2f}% · {t["entry_tick_limit_pct"]:g}% 이상 매수 제외')
+            lines.append('판정 가격 '+unit_price(t['entry_tick_price'],account['quote'])+
+                         ' / 호가 단위 '+unit_price(t['entry_tick_size'],account['quote']))
         if t.get('last_error'):lines.append('상세 사유: '+t['last_error'][:80])
         return lines
     cost=t['entry_cost'];fx=account.get('fx_krw_per_quote')
@@ -92,6 +97,8 @@ def portfolio_header(ledger, now_ms):
     lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
     if hasattr(ledger,'latest_rank'):
         lines.append('1D 당일시가 대비 TOP 5 · 09:01 기준 5분 갱신 · 이탈 및 −6% 손절')
+    tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
+    if tick_limit is not None:lines.append(f'진입 필터: 1틱 {tick_limit:g}% 이상 매수 제외')
     return lines,accounts
 
 
@@ -137,12 +144,14 @@ def keyboard():
 def menu(ledger):
     state=ledger.control() if ledger else None
     status='준비 중' if state is None else '진행 중' if state['enabled'] else '정지'
+    tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
+    tick_filter=f'진입 필터: 1틱 {tick_limit:g}% 이상 매수 제외\n' if tick_limit is not None else ''
     return ('FAST 모의투자\n상태: '+status+'\n'
             '거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
             '당일 기준: 매일 07:30 KST · 자산과 누적 손익은 이어집니다.\n'
             '1D 당일시가 대비 TOP 5 · 09:01부터 5분 갱신\n'
             '+12% 익절 · TOP 5 이탈과 −6% 동시 충족 시 손절\n'
-            '매매 기능은 재확인 후 실행합니다.',keyboard())
+            +tick_filter+'매매 기능은 재확인 후 실행합니다.',keyboard())
 
 
 def summary(data, daily=False):
