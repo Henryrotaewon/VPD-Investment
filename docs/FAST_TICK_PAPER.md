@@ -1,3 +1,17 @@
+# Active experiment: FAST v4 (2026-09-21 user reset)
+
+User-authorized change: buy a limit at the latest observed current trade price (no one-tick discount), then sell at the current price plus one valid tick and repeat until the original signal +10 minutes. Current-price limit orders are not guaranteed immediate fills. Existing depth/queue evidence, fees, residual market exit, 20만원 slots and five concurrent symbols remain.
+
+Selection is now solely current public ticker price / the observation nearest five minutes ago −1 >=5%. Poll every 60 seconds, allow at most ±15 seconds around the five-minute baseline and record actual duration. Reject unavailable/stale prices; do not interpolate. First startup needs approximately five minutes of observations. There is no volume-ratio, acceleration or spread eligibility filter. At most 20 leading qualifying symbols receive quote validation per scan; capital and same-symbol cooldown still limit paper admission.
+
+`fast_reset.reset_once` runs before workers using exact two-file allowlist: `fast_paper.sqlite3`, `fast_evidence.sqlite3` and their WAL/SHM companions. It deletes old operational FAST captures, trades, fills, daily report queue and four virtual accounts, including outstanding paper positions. The new ledger starts each venue at KRW 1,000,000 equivalent, overseas FX set once from public prices. A durable `fast-current-fivepct-v4-20260921` marker prevents repetition on restart. VPD, MAGI1 and MAGI3 files are untouched. Previously exported research documents are not operational history and are unchanged.
+
+v4 selection: `fast-price-rise-v4`; execution: `fast-current-cycle-v4`; Telegram menu v17. The latest-ten, capture and comparison views recognize v4. No live exchange orders are sent.
+
+Validation: 108 FAST tests plus 19 Telegram tests pass, including 5% boundary, missing baseline, current-price entry, following sell, fixed deadline, scoped reset, all four seeds, marker idempotence and v4 views. The description below records the superseded v3 experiment and its unchanged execution evidence/fee assumptions.
+
+---
+
 # FAST v3: 10-minute tick cycles (PAPER)
 
 The previous execution baseline bought once at the displayed ask and sold after five minutes. Its results do not evaluate the user's repeated-limit strategy. Selection remains `fast-volume-accel-v2`; new execution is `fast-tick-cycle-v3`.

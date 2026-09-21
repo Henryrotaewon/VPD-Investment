@@ -25,6 +25,9 @@ class VolumeMarket(PublicMarket):
 
 
 class FastVolumeMonitor(FastMonitor):
+    rule_version=VERSION
+    rule_policy=POLICY
+
     def __init__(self,root,log,paper=None):
         super().__init__(root,log,paper)
         self.observations={};self.recent_signals={}
@@ -51,7 +54,8 @@ class FastVolumeMonitor(FastMonitor):
         return '\n'.join(lines)
 
     def emit(self,venue,symbol,asset,evidence,bid,ask,ts,scan_ts,rank):
-        ident=f'fast-v2:{venue}:{symbol}:{evidence["window_end_ms"]}'
+        prefix='fast-v4' if self.rule_version=='fast-price-rise-v4' else 'fast-v2'
+        ident=f'{prefix}:{venue}:{symbol}:{evidence["window_end_ms"]}'
         if ts-self.recent_signals.get((venue,symbol),-10**15)<POLICY['signal_cooldown_ms']:
             return False
         spread=(ask/bid-1)*10000
@@ -59,14 +63,14 @@ class FastVolumeMonitor(FastMonitor):
             returns_bps={'5':evidence['return_5m_bps']},rank=rank,
             selection_scan_ts_ms=scan_ts,volume_acceleration=evidence,
             legacy_spread_10bps_pass=spread<=10,
-            strength={'version':VERSION,'strong':True,'label':'거래대금·가격 가속','score':None})
+            strength={'version':self.rule_version,'strong':True,'label':'5분 +5% 상승' if self.rule_version=='fast-price-rise-v4' else '거래대금·가격 가속','score':None})
         self.audit.record('SIGNAL_DETECTED',ident,venue,symbol,'ALERT_ONLY',ts_ms=ts,
-                          rule_version=VERSION,criteria=POLICY,observed=observed)
+                          rule_version=self.rule_version,criteria=self.rule_policy,observed=observed)
         self.recent_signals[(venue,symbol)]=ts
         self.recent_signals={k:v for k,v in self.recent_signals.items() if ts-v<POLICY['signal_cooldown_ms']}
         self.audit.record('ORDER_SKIPPED',ident,venue,symbol,'ALERT_ONLY',ts_ms=ts,reason='LIVE_ORDERS_DISABLED')
         if self.paper:
-            try:self.paper.offer(ident,venue,symbol,ts,strategy_version=VERSION)
+            try:self.paper.offer(ident,venue,symbol,ts,strategy_version=self.rule_version)
             except Exception as exc:self.log(f'fast_paper_offer_error venue={venue} type={type(exc).__name__}')
         with self.lock:
             same_venue=[(k,w) for k,w in self.observations.items() if w['venue']==venue]
@@ -82,12 +86,18 @@ class FastVolumeMonitor(FastMonitor):
         else:
             stamp=datetime.fromtimestamp(ts/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
             message=(f'⚡ FAST 포착 · 거래대금·가격 가속\n{stamp} KST · {venue.upper()} {symbol}\n'
-                f'최근 5분 {evidence["return_5m_bps"]/100:+.2f}% · 직전 5분 {evidence["previous_return_5m_bps"]/100:+.2f}%\n'
-                f'체결 거래대금 {evidence["turnover_ratio"]:.2f}배 · 호가 차이 {spread/100:.3f}%\n'
+                f'최근 5분 {evidence["return_5m_bps"]/100:+.2f}% · 직전 5분 {(evidence.get("previous_return_5m_bps") or 0)/100:+.2f}%\n'
+                f'체결 거래대금 {(evidence.get("turnover_ratio") or 0):.2f}배 · 호가 차이 {spread/100:.3f}%\n'
                 '모의 진입·청산 /fast_report · 실주문 OFF')
+            if self.rule_version=='fast-price-rise-v4':
+                message=(f'⚡ FAST 포착 · 5분 +5% 이상\n{stamp} KST · {venue.upper()} {symbol}\n'
+                         f'최근 5분 {evidence["return_5m_bps"]/100:+.2f}% · 현재가 지정가 매수\n'
+                         '포착 후 10분 반복 · 모의 결과 /fast_report · 실주문 OFF')
             try:self.events.put_nowait({'id':ident,'text':message})
             except Full:self.audit.record('NOTIFICATION_DROPPED',ident,venue,symbol,'ALERT_ONLY',reason='QUEUE_FULL')
-        self.log(f'fast_volume_signal venue={venue} symbol={symbol} rise_bps={evidence["return_5m_bps"]:.1f} turnover_ratio={evidence["turnover_ratio"]:.2f}')
+        if self.rule_version=='fast-price-rise-v4':
+            self.log(f'fast_price_signal venue={venue} symbol={symbol} rise_bps={evidence["return_5m_bps"]:.1f}')
+        else:self.log(f'fast_volume_signal venue={venue} symbol={symbol} rise_bps={evidence["return_5m_bps"]:.1f} turnover_ratio={(evidence.get("turnover_ratio") or 0):.2f}')
         return True
 
     def worker(self,venue):

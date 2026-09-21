@@ -59,14 +59,17 @@ def captures(audit,ts,tracking=None,offset=0):
             latest.setdefault((s['venue'],s['symbol']),s)
     selected=list(latest.values());offset=max(0,int(offset));page=selected[offset:offset+10]
     lines=['⚡ FAST 포착 · 최근 24시간',f'조건 충족 종목 {len(selected)}개 · 전체 포착 {all_count}건',
-           'v2=5분 거래대금·가격 가속, v1=매수 주도 체결. 같은 거래소·종목은 최신 포착만 표시합니다.',
+           'v4=현재가가 5분 전 대비 +5% 이상. 같은 거래소·종목은 최신 포착만 표시합니다.',
            '알림은 시간 제한이 있어도 포착·모의투자 판단은 모두 기록합니다.',
            '유지 예측확률: 산출 대기 — 검증된 확률 모델이 없습니다.','']
     for s in page:
         obs=s['observed'];power=obs['strength'];flow=power.get('flow',{});age=max(0,(ts-s['ts_ms'])//60000)
         clock=datetime.fromtimestamp(s['ts_ms']/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M')
         lines.append(f"{s['venue'].upper()} {obs.get('asset') or s['symbol']} · {clock} KST · {age}분 경과")
-        if power.get('version')=='fast-volume-accel-v2':
+        if power.get('version')=='fast-price-rise-v4':
+            v=obs['volume_acceleration']
+            lines.append(f"v4 · 5분 +5% 기준 · 비교 간격 {v['actual_window_ms']/1000:.0f}초")
+        elif power.get('version')=='fast-volume-accel-v2':
             v=obs['volume_acceleration']
             lines.append(f"v2 · 거래대금 {v['turnover_ratio']:.2f}배 · 직전 5분 {v['previous_return_5m_bps']/100:+.2f}% → 최근 {v['return_5m_bps']/100:+.2f}%")
         else:
