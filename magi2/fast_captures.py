@@ -58,14 +58,19 @@ def captures(audit,ts,tracking=None,offset=0):
         if s.get('observed',{}).get('strength',{}).get('strong'):
             latest.setdefault((s['venue'],s['symbol']),s)
     selected=list(latest.values());offset=max(0,int(offset));page=selected[offset:offset+10]
-    lines=['⚡ FAST 포착 · 최근 24시간',f'매수세 강한 종목 {len(selected)}개 · 전체 포착 {all_count}건',
-           '강도=최근 체결 표본의 매수 주도 거래대금 비중. 같은 거래소·종목은 최신 포착만 표시합니다.',
+    lines=['⚡ FAST 포착 · 최근 24시간',f'조건 충족 종목 {len(selected)}개 · 전체 포착 {all_count}건',
+           'v2=5분 거래대금·가격 가속, v1=매수 주도 체결. 같은 거래소·종목은 최신 포착만 표시합니다.',
+           '알림은 시간 제한이 있어도 포착·모의투자 판단은 모두 기록합니다.',
            '유지 예측확률: 산출 대기 — 검증된 확률 모델이 없습니다.','']
     for s in page:
-        obs=s['observed'];power=obs['strength'];flow=power['flow'];age=max(0,(ts-s['ts_ms'])//60000)
+        obs=s['observed'];power=obs['strength'];flow=power.get('flow',{});age=max(0,(ts-s['ts_ms'])//60000)
         clock=datetime.fromtimestamp(s['ts_ms']/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M')
         lines.append(f"{s['venue'].upper()} {obs.get('asset') or s['symbol']} · {clock} KST · {age}분 경과")
-        lines.append(f"포착 강도 {power['score']:.1f}/100 · 매수비중 {flow['buyer_share_pct']:.1f}% ({flow['sample_trades']}체결 표본)")
+        if power.get('version')=='fast-volume-accel-v2':
+            v=obs['volume_acceleration']
+            lines.append(f"v2 · 거래대금 {v['turnover_ratio']:.2f}배 · 직전 5분 {v['previous_return_5m_bps']/100:+.2f}% → 최근 {v['return_5m_bps']/100:+.2f}%")
+        else:
+            lines.append(f"v1 포착 강도 {power['score']:.1f}/100 · 매수비중 {flow['buyer_share_pct']:.1f}% ({flow['sample_trades']}체결 표본)")
         lines.append(f"5분 상승 {obs['returns_bps']['5']/100:+.2f}% · 스프레드 {obs['spread_bps']/100:.3f}%")
         current=tracking.get(s['signal_id'])
         if not current and s['signal_id'] in ends:
@@ -81,11 +86,11 @@ def captures(audit,ts,tracking=None,offset=0):
         history=[]
         for h in signals.values():
             hp=h.get('observed',{}).get('strength',{});out=outcomes.get(h['signal_id'])
-            if h['venue']==s['venue'] and h['ts_ms']<s['ts_ms'] and hp.get('version')==FILTER_VERSION and hp.get('strong') and out and out[0]<s['ts_ms'] and out[1].get('status')=='EVALUATED':history.append(not out[1]['non_rising'])
+            if h['venue']==s['venue'] and h['ts_ms']<s['ts_ms'] and hp.get('version')==power.get('version') and hp.get('strong') and out and out[0]<s['ts_ms'] and out[1].get('status')=='EVALUATED':history.append(not out[1]['non_rising'])
         if len(history)>=30:lines.append(f"과거 강한 신호 5분 유지율 {sum(history)/len(history)*100:.1f}% · n={len(history)} (예측확률 아님)")
         else:lines.append(f'유지율 참고 표본 {len(history)}/30건 · 집계 대기')
         lines.append('')
-    if not page:lines.append('현재 강한 매수세 기준을 충족한 포착 기록이 없습니다. 기존 미측정 신호에는 강도를 추정해 붙이지 않습니다.')
+    if not page:lines.append('현재 선정 조건을 충족한 포착 기록이 없습니다.')
     markup={'inline_keyboard':[]}
     if offset:markup['inline_keyboard'].append([{'text':'◀ 이전','callback_data':f'captures:{max(0,offset-10)}'}])
     if offset+10<len(selected):markup['inline_keyboard'].append([{'text':'다음 ▶','callback_data':f'captures:{offset+10}'}])

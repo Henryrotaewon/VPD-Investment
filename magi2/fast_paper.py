@@ -175,7 +175,7 @@ class PaperLedger:
             account.update(heartbeat_ms=now_ms, error=error)
             self._save_account(account)
 
-    def offer(self, ident, venue, symbol, signal_ms, now_ms):
+    def offer(self, ident, venue, symbol, signal_ms, now_ms, *, strategy_version='fast-buy-flow-v1'):
         """Reserve one slot for a NEW strong signal, before notification throttling."""
         with self.lock, self.db:
             if self._trade(ident):
@@ -201,6 +201,8 @@ class PaperLedger:
                 if account['cash_quote'] - reserved < budget - 1e-9:
                     reason = 'INSUFFICIENT_CASH'
             trade = dict(id=ident, venue=venue, symbol=symbol, signal_ms=signal_ms,
+                         strategy_version=strategy_version,
+                         entry_spread_limit_bps=None if strategy_version=='fast-volume-accel-v2' else 15,
                          status='SKIPPED' if reason else 'ENTRY_PENDING', reason=reason,
                          deadline_ms=signal_ms + DEADLINE_MS, ready_ms=now_ms + LATENCY_MS,
                          budget_quote=budget, policy=VERSION, fee_bps=FEES_BPS[venue],
@@ -261,7 +263,8 @@ class PaperLedger:
             if any(x['status'] != 'ENTRY_PENDING' and now_ms >= x['deadline_ms'] for x in self._active(t['venue'])):
                 t.update(status='SKIPPED', reason='OVERDUE_EXIT'); self._save(t); return False
             bids, asks = checked_book(book, now_ms, t['ready_ms'])
-            if (asks[0][0] / bids[0][0] - 1) * 10000 > 15:
+            spread_limit=t.get('entry_spread_limit_bps',15)
+            if spread_limit is not None and (asks[0][0] / bids[0][0] - 1) * 10000 > spread_limit:
                 t.update(status='SKIPPED', reason='ENTRY_SPREAD'); self._save(t); return False
             try:
                 qty, gross, fee, impact = market_buy(asks, t['budget_quote'], t['fee_bps'] / 10000, t['slippage_bps'] / 10000)
@@ -319,7 +322,12 @@ class PaperLedger:
                 closed = [json.loads(r[0]) for r in self.db.execute('SELECT payload FROM paper_trades WHERE venue=? AND close_ms>=? AND close_ms<?', (venue,start,end))]
                 buys = self.db.execute("SELECT COUNT(*) FROM paper_fills WHERE venue=? AND side='BUY' AND ts_ms>=? AND ts_ms<?",(venue,start,end)).fetchone()[0]
                 skipped = self.db.execute("SELECT COUNT(*) FROM paper_trades WHERE venue=? AND status='SKIPPED' AND signal_ms>=? AND signal_ms<?",(venue,start,end)).fetchone()[0]
-                output.append(dict(a, cash_krw=a['cash_quote']*fx if fx else None, equity_krw=equity,
+                cohorts={}
+                for t in closed:
+                    version=t.get('strategy_version','fast-buy-flow-v1')
+                    c=cohorts.setdefault(version,{'closed':0,'closed_trade_pnl_krw':0.})
+                    c['closed']+=1;c['closed_trade_pnl_krw']+=t['realized_quote']*(fx or 0)
+                output.append(dict(a, cash_krw=a['cash_quote']*fx if fx else None, equity_krw=equity,cohorts=cohorts,
                                    active=active, unknown_marks=len(unknown), pnl_krw=pnl*fx if fx else None,
                                    fees_krw=fees*fx if fx else None, bought=buys, closed=len(closed),
                                    wins=sum(t['realized_quote']>0 for t in closed), skipped=skipped,
