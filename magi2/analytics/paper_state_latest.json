@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 0.0,
+  "cash_krw": 371268.8874192077,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -169,7 +169,7 @@
     },
     "BREV": {
       "market": "KRW-BREV",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-20T19:54:09.446197+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-20-REFILL-1954",
@@ -188,7 +188,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 116.0,
+      "last_price": 112.0,
       "peak_price": 116.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -215,7 +215,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_since": "2026-09-21T07:28:00+09:00",
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-09-21T11:37:30.736345+09:00",
+      "exit_price": 112.0,
+      "sell_fee_krw": 185.72730736328552,
+      "net_proceeds_krw": 371268.8874192077,
+      "pnl_krw": 9221.511714024411,
+      "return_pct": 2.5470455892859567,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "ZK": {
       "market": "KRW-ZK",
@@ -5140,8 +5147,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 6078.215543477738,
-  "lifetime_realized_pnl_krw": 701801.2856888485,
+  "realized_pnl_krw": 15299.727257502149,
+  "lifetime_realized_pnl_krw": 711022.7974028729,
   "paper_only": true,
   "cohort_id": "2026-09-21-VPD-0728",
   "cohort_date": "2026-09-21",
@@ -5150,7 +5157,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-21T09:23:52.081575+09:00",
+  "updated_at": "2026-09-21T11:37:30.736790+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
