@@ -155,6 +155,9 @@ class AdapterTests(unittest.TestCase):
             else:result=dict(result={'X':[[previous//1000,0,0,0,95.],[boundary//1000,0,0,0,120.]],'last':1})
             market.get=Mock(return_value=result)
             self.assertEqual(market.previous_close('X',boundary),95.)
+            if venue=='bithumb':
+                self.assertTrue(market.get.call_args.args[1]['to'].endswith('T09:00:00'))
+                self.assertNotIn('+',market.get.call_args.args[1]['to'])
             market.http.close()
     def test_missing_previous_day_is_excluded_not_older_close(self):
         market=RankMarket('kraken');boundary=rank_day(START)

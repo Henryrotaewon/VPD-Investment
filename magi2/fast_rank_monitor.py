@@ -1,5 +1,5 @@
 """Public daily-close TOP5 rankings on KST xx:01/06/...; no live orders."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from threading import Event, Thread
 import math
 import time
@@ -34,6 +34,9 @@ class RankMarket(PublicMarket):
         expected=boundary-DAY
         if self.venue in ('upbit','bithumb'):
             end=datetime.fromtimestamp(boundary/1000,timezone.utc).isoformat()
+            if self.venue=='bithumb':
+                # Bithumb's `to` is a naive KST timestamp, unlike Upbit ISO UTC.
+                end=datetime.fromtimestamp(boundary/1000,timezone(timedelta(hours=9))).strftime('%Y-%m-%dT%H:%M:%S')
             data=self.get('/v1/candles/days',dict(market=symbol,to=end,count=2))
             rows=[(int(datetime.fromisoformat(x['candle_date_time_utc']).replace(tzinfo=timezone.utc).timestamp()*1000),
                    float(x['trade_price'])) for x in data]
