@@ -15,7 +15,7 @@ class RankPaperService(TargetPaperService):
         super().start()
         thread=Thread(target=self.launch_worker,daemon=True,name='fast-rank-launch')
         thread.start();self.threads.append(thread)
-        self.log('fast_rank_policy top=5 baseline=previous_UTC_day_close schedule=KST_0901_every_5m '
+        self.log('fast_rank_policy top=5 baseline=exchange_day_open source=bulk_tickers schedule=KST_0901_every_5m '
                  'stop=outside_top5_AND_minus6 profit=plus12_limit entry_depth=100pct cumulative=preserved')
         return self
 
@@ -71,6 +71,7 @@ def top_five(prices, baselines, symbols):
 
 
 class FastRankMonitor(FastMonitor):
+    rank_label='전일종가 대비 TOP 5'
     def __init__(self, root, log, paper, market_factory=RankMarket, clock=now):
         super().__init__(root,log,paper)
         self.market_factory=market_factory;self.clock=clock
@@ -164,7 +165,7 @@ class FastRankMonitor(FastMonitor):
         selected=sorted(latest.values(),reverse=True);size=15
         offset=min(max(0,int(offset))//size*size,max(0,(len(selected)-1)//size*size))
         lines=['⚡ FAST 포착 리스트',f'{date} 07:30 이후 · {len(selected)}종목 · 최신순',
-               '전일종가 대비 TOP 5 · 09:01 기준 5분 갱신',
+               self.rank_label+' · 09:01 기준 5분 갱신',
                f'{offset//size+1}/{max(1,(len(selected)+size-1)//size)}페이지','']
         lines += [f'{NAMES[v]} · {asset} · {clock(stamp)}' for stamp,v,asset in selected[offset:offset+size]]
         if not selected:lines.append('당일 포착 종목이 없습니다.')
