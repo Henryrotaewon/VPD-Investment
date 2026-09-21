@@ -44,6 +44,9 @@ def summary(data, daily=False):
             rows.append(f'집계일 실현 {money(a["pnl_krw"],True)} · 수수료 {money(a["fees_krw"])}')
         rows.append(f'매수 {a["bought"]} · 청산 완료 {a["closed"]} · 양수 거래 {a["wins"]} · 진입 제외 {a["skipped"]}')
         rows.append(f'현재 진행 {len(a["active"])} · 10분 초과 미청산 {a["overdue"]} · 집계일 지연 청산 {a["late_closed"]}')
+        for version,c in a.get('cohorts',{}).items():
+            label='v2 거래량·가속' if version=='fast-volume-accel-v2' else 'v1 매수세'
+            rows.append(f'{label} · 완료 {c["closed"]}건 전체 순손익 {money(c["closed_trade_pnl_krw"],True)}')
         if a['unknown_marks']:
             rows.append(f'호가 미확인 {a["unknown_marks"]}건 · 전체 자산평가 보류')
         if a['error']:
@@ -74,9 +77,10 @@ def recent(ledger, now_ms):
             result = '청산 대기' if t['status'] == 'EXIT_PENDING' else '보유 중'
             if now_ms > t['deadline_ms']:
                 result += ' · 10분 초과'
-        rows.append(f'{NAMES[t["venue"]]} {t["symbol"]} | {timing} | {result}')
+        version='v2' if t.get('strategy_version')=='fast-volume-accel-v2' else 'v1'
+        rows.append(f'{NAMES[t["venue"]]} {t["symbol"]} {version} | {timing} | {result}')
     if not trades:
-        rows.append('아직 모의 매수 내역이 없습니다. 신규 강한 포착부터 기록합니다.')
+        rows.append('아직 모의 매수 내역이 없습니다. 신규 조건 충족 포착부터 기록합니다.')
     rows.append('\n모의투자 · 실제 주문 없음')
     return '\n'.join(rows)
 

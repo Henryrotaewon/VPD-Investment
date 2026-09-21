@@ -69,8 +69,8 @@ class PaperService:
         self.log(f'fast_paper_started policy={VERSION} accounts=4 seed_krw_each=1000000 slot_krw=200000 hold_sec=300 deadline_from_signal_sec=600 live_orders=false')
         return self
 
-    def offer(self, ident, venue, symbol, signal_ms):
-        accepted = self.ledger.offer(ident, venue, symbol, signal_ms, self.clock())
+    def offer(self, ident, venue, symbol, signal_ms, *, strategy_version='fast-buy-flow-v1'):
+        accepted = self.ledger.offer(ident, venue, symbol, signal_ms, self.clock(), strategy_version=strategy_version)
         if accepted:
             self.wake[venue].set()
             self.log(f'fast_paper_signal venue={venue} symbol={symbol} status=ENTRY_PENDING')

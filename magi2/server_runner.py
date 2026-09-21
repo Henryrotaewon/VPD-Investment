@@ -574,7 +574,7 @@ def main():
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
-    from magi2.fast_monitor import FastMonitor
+    from magi2.fast_volume_monitor import FastVolumeMonitor as FastMonitor
     from magi2.fast_paper_service import PaperService
     FAST_PAPER=PaperService(STATE_DIR,log).start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
