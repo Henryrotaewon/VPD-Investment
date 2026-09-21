@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import time
 
-RESET_ID='fast-current-fivepct-v4-20260921'
+RESET_ID='fast-buy-floor-v4-20260921'
 
 
 def reset_once(root,log):

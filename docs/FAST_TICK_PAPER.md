@@ -1,3 +1,19 @@
+# Sell-price floor correction and second authorized reset
+
+The user clarified that ordinary limit sells must exceed the current inventory's average purchase execution price. The new limit is max(current trade price + next tick, next valid tick strictly above remaining_gross / remaining_qty). It uses the current cycle inventory, not cumulative session buys or fees. Partial sales preserve that cost basis. Floating-point arithmetic dust at an exact tick is normalized.
+
+Order events now record buy_average, minimum_sell_price and BUY_AVERAGE_FLOOR_V1. Existing unsafe resting sells are canceled before worker recovery; new processing checks the floor before any passive fill. No below-purchase limit sell is allowed. This is a gross-price floor, not a net-profit guarantee: fees can still exceed the tick gain.
+
+The user reconfirmed the original ten-minute deadline: cancel unfilled limits and market-sell residual inventory regardless of profit/loss; never extend the session while waiting for a sell. This deadline market exit is explicitly exempt from the price floor.
+
+The user separately authorized deletion of current FAST operational history again. Reset marker is now `fast-buy-floor-v4-20260921`; exact FAST database allowlist and four 1,000,000 KRW-equivalent seeds remain. This runs once, and future restarts preserve new history. No live orders, VPD changes or changes to the 5% detector.
+
+Review before the fix: 41 buy orders and 39 sell orders matched the old reference-price rule; 12 sell limits were below purchase average and 5 equal. OPGUSDT example: buy 0.141 USDT; sell reference 0.1408; old sell limit 0.1409. Five completed sessions were all negative, total −33,589.28 KRW; fees 8,849.34 and additional slippage 268.24. These findings describe the subsequently deleted pre-fix experiment, not new results.
+
+Validation: regression tests cover a falling reference price, current-cycle versus cumulative basis, fractional/partial inventory, rounding, existing-order recovery, and loss-taking deadline exit.
+
+---
+
 # Active experiment: FAST v4 (2026-09-21 user reset)
 
 User-authorized change: buy a limit at the latest observed current trade price (no one-tick discount), then sell at the current price plus one valid tick and repeat until the original signal +10 minutes. Current-price limit orders are not guaranteed immediate fills. Existing depth/queue evidence, fees, residual market exit, 20만원 slots and five concurrent symbols remain.

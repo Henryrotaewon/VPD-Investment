@@ -45,7 +45,7 @@ def summary(data, daily=False):
     title = '📅 FAST 일일 모의투자 결과' if daily else '📊 FAST 모의투자'
     rows = [title, f'집계 {data["date"]} KST · '+('전일 청산 실현손익' if daily else '오늘 청산 실현손익'),
             '각 거래소 최초 100만원 · 종목당 20만원 · 최대 5종목',
-            'v4 현재가 매수/+1틱 매도 반복 · 포착 후 10분 잔량 시장가',
+            '현재가 매수 · 매수 평균가 초과 지정가 매도 · 10분 잔량 시장가',
             f'현재 잔고·평가 기준 {clock(data["now_ms"])} KST','']
     for a in data['accounts']:
         rows.append(f'{NAMES[a["venue"]]} · {a["quote"]}')
@@ -129,7 +129,10 @@ def history(ledger, now_ms):
                      f'왕복 {t["cycles_completed"]}회 · 실현 {money(t["realized_quote"]*fx,True)} ({return_pct(t):+.2f}%/배정금)',
                      f'수수료 {money(t["fees_paid"]*fx)} · 강제청산 {money(t["forced_exit_pnl"]*fx,True)} (포함)']
             if t.get('order'):
-                o=t['order'];rows.append(f'{"매수" if o["side"]=="BUY" else "매도"} 지정가 {o["price"]:g} · 미체결 {o["remaining"]:g}')
+                o=t['order']
+                if o.get('minimum_sell_price'):
+                    rows.append(f'매수 평균 {o["buy_average"]:g} · 최저 매도가 {o["minimum_sell_price"]:g}')
+                rows.append(f'{"매수" if o["side"]=="BUY" else "매도"} 지정가 {o["price"]:g} · 미체결 {o["remaining"]:g}')
             if t.get('last_error'):rows.append('대기 사유: '+t['last_error'])
             continue
         rows += [f'\n{NAMES[t["venue"]]} {t["symbol"]} · {t["status"]}',
