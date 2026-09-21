@@ -22,6 +22,8 @@ def rank_slot(ts):
 class RankLedger(TargetLedger):
     entry_participation = 1.0
     book_only_profit = True
+    # User-selected threshold: reject exactly 6% as well as larger ticks.
+    entry_tick_limit_pct = 6
 
     def __init__(self, path, now_ms):
         super().__init__(path, now_ms)

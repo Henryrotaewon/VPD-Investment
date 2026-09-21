@@ -122,6 +122,23 @@ class TargetLedger(TickLedger):
             if now_ms>t['signal_ms']+ENTRY_TTL_MS:
                 self.advance(t['venue'], now_ms); return False
             bids, asks = checked_book(book, now_ms, t['ready_ms'])
+            tick_limit = getattr(self, 'entry_tick_limit_pct', None)
+            if tick_limit is not None:
+                # Use the executable ask, before synthetic slippage or fills.
+                # Decimal comparison includes the exact user-selected boundary.
+                reference = dec(asks[0][0])
+                tick_size = tick_at(reference, rules)
+                tick_pct = tick_size / reference * 100
+                evidence = dict(entry_tick_price=float(reference), entry_tick_size=float(tick_size),
+                                entry_tick_pct=float(tick_pct), entry_tick_limit_pct=tick_limit,
+                                entry_tick_rule_source=rules.get('source'), entry_book_ms=book['received_ms'])
+                t.update(evidence)
+                if tick_size * 100 >= reference * dec(tick_limit):
+                    t.update(status='SKIPPED', reason='ENTRY_TICK_TOO_LARGE', session_cash=0.,
+                             close_ms=now_ms, last_error=None)
+                    self._event(t, now_ms, 'ENTRY_BLOCKED', reason=t['reason'], **evidence)
+                    self._save(t)
+                    return False
             qty, gross, _, slip = market_buy(asks, t['budget_quote'], t['fee_bps']/10000, t['slippage_bps']/10000,
                                            participation=self.entry_participation)
             rounded = floor_qty(qty, rules.get('market_step', rules['step']))

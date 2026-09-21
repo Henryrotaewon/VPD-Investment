@@ -28,6 +28,9 @@ class TargetPaperService(PaperService):
         thread.start();self.threads.append(thread)
         self.log(f'fast_paper_started policy={self.ledger.execution_version} take_profit_pct=12 stop_loss_pct=-6 '
                  'deadline=none live_orders=false')
+        tick_limit=getattr(self.ledger,'entry_tick_limit_pct',None)
+        if tick_limit is not None:
+            self.log(f'fast_entry_tick_filter reject_at_or_above_pct={tick_limit:g} reference=best_ask')
         return self
 
     def log_trade(self, ident, phase):
@@ -37,7 +40,8 @@ class TargetPaperService(PaperService):
             if not t:return
             account=self.ledger.account(t['venue']);fx=account['fx_krw_per_quote']
             data={key:t.get(key) for key in ('id','venue','symbol','status','signal_ms','entry_ms','close_ms',
-                  'reason','buy_average','entry_bid','entry_ask','stop_price','last_bid','remaining_qty')}
+                  'reason','buy_average','entry_bid','entry_ask','stop_price','last_bid','remaining_qty',
+                  'entry_tick_price','entry_tick_size','entry_tick_pct','entry_tick_limit_pct')}
             data.update(phase=phase,quote=account['quote'],error=(t.get('last_error') or '')[:80])
             for key in ('entry_cost','exit_proceeds','realized_quote','fees_paid'):
                 data[key+'_krw']=t.get(key,0)*fx if fx else None
