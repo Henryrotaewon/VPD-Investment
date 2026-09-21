@@ -36,6 +36,12 @@ class BulkTests(unittest.TestCase):
         data,calls=market.day_tickers()
         self.assertEqual(calls,1);market.get.assert_called_once_with('/0/public/Ticker')
         self.assertEqual(data,{'XUSD':(110.,100.),'YUSD':(210.,200.)});market.http.close()
+    def test_binance_unicode_symbol_is_sent_as_native_json_text(self):
+        market=BulkRankMarket('binance');market.symbols={'币安人生USDT':'币安人生'}
+        market.get=Mock(return_value=[dict(symbol='币安人生USDT',lastPrice='1',openPrice='.9')])
+        market.day_tickers()
+        self.assertIn('币安人生',market.get.call_args.args[1]['symbols'])
+        self.assertNotIn('\\u',market.get.call_args.args[1]['symbols']);market.http.close()
     def test_missing_duplicate_invalid_ticker_reject_whole_snapshot(self):
         market=BulkRankMarket('upbit');market.symbols={'X':'X','Y':'Y'}
         for rows in ([dict(market='X',trade_price=1,opening_price=1)],
