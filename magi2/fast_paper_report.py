@@ -3,7 +3,7 @@ from datetime import datetime
 from magi2.fast_paper import KST
 
 NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='크라켄')
-REASONS = {'HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
+REASONS = {'TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
            'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
 SKIP_REASONS = {'ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
                 'SOLD_TODAY_KST':'당일 매도 종목 재매수 제한', 'STALE_SIGNAL':'포착 유효시간 초과',
@@ -90,6 +90,8 @@ def portfolio_header(ledger, now_ms):
                      ' / 보유 평가손익 '+money(equity-cash-invested if equity is not None else None,True))
     state=ledger.control() if hasattr(ledger,'control') else {'enabled':True}
     lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
+    if hasattr(ledger,'latest_rank'):
+        lines.append('전일종가 대비 TOP 5 · 09:01 기준 5분 갱신 · 이탈 및 −6% 손절')
     return lines,accounts
 
 
@@ -138,14 +140,16 @@ def menu(ledger):
     return ('FAST 모의투자\n상태: '+status+'\n'
             '거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
             '당일 기준: 매일 07:30 KST · 자산과 누적 손익은 이어집니다.\n'
-            '+12% 익절 · −6% 손절 · 매매 기능은 재확인 후 실행합니다.',keyboard())
+            '전일종가 대비 TOP 5 · 09:01부터 5분 갱신\n'
+            '+12% 익절 · TOP 5 이탈과 −6% 동시 충족 시 손절\n'
+            '매매 기능은 재확인 후 실행합니다.',keyboard())
 
 
 def summary(data, daily=False):
     title = '📅 FAST 일일 모의투자 결과' if daily else '📊 FAST 모의투자'
     rows = [title, f'집계 {data["date"]} KST · '+('전일 청산 실현손익' if daily else '오늘 청산 실현손익'),
             '각 거래소 최초 100만원 · 종목당 20만원 · 최대 5종목',
-            '시장가 모의매수 · +12% 지정가 익절 · −6% 시장가 손절 · 시간제한 없음',
+            'TOP 5 시장가 모의매수 · +12% 익절 · TOP 5 이탈 및 −6% 손절 · 시간제한 없음',
             f'현재 잔고·평가 기준 {clock(data["now_ms"])} KST','']
     for a in data['accounts']:
         rows.append(f'{NAMES[a["venue"]]} · {a["quote"]}')

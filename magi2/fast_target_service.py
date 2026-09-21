@@ -9,9 +9,10 @@ from magi2.fast_target_paper import TargetLedger, VERSION
 
 
 class TargetPaperService(PaperService):
+    ledger_class = TargetLedger
     def __init__(self, root, log, market_factory=TickMarket, clock=now):
         self.clock=clock; self.log=log; self.market_factory=market_factory
-        self.ledger=TargetLedger(Path(root)/'fast_paper.sqlite3', clock())
+        self.ledger=self.ledger_class(Path(root)/'fast_paper.sqlite3', clock())
         self.stop=Event(); self.threads=[]; self.wake={v:Event() for v in VENUES}
 
     def start(self):
@@ -25,8 +26,8 @@ class TargetPaperService(PaperService):
             thread.start(); self.threads.append(thread)
         thread=Thread(target=self.probe_entry_books,daemon=True,name='fast-book-recheck')
         thread.start();self.threads.append(thread)
-        self.log(f'fast_paper_started policy={VERSION} take_profit_pct=12 stop_loss_pct=-6 '
-                 'deadline=none reentry=sold_day_kst live_orders=false')
+        self.log(f'fast_paper_started policy={self.ledger.execution_version} take_profit_pct=12 stop_loss_pct=-6 '
+                 'deadline=none live_orders=false')
         return self
 
     def log_trade(self, ident, phase):
@@ -125,6 +126,7 @@ class TargetPaperService(PaperService):
                     if book['requested_ms']<t['exit_ready_ms']: book=market.book(t['symbol'])
                     self.ledger.exit(ident, book, self.clock())
                 elif t['status']=='OPEN':
+                    if getattr(self.ledger,'book_only_profit',False):continue
                     # Stop and manual exit checks do not depend on trade-tape availability.
                     order=t['order']
                     if order and order['active_ms'] is None and order['price']>max(float(p) for p,q in book['asks']):
