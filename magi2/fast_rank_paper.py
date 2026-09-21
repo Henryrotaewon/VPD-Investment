@@ -37,6 +37,36 @@ class RankLedger(TargetLedger):
                                 (venue,day,symbol)).fetchone()
             return (row is not None, row[0] if row else None)
 
+    def configure_launch(self, at_ms, now_ms):
+        with self.lock,self.db:
+            exists=self.db.execute("SELECT 1 FROM paper_meta WHERE key='rank_launch'").fetchone()
+            if exists:return False
+            state=self._control(False,now_ms)
+            self.db.execute('INSERT INTO paper_meta VALUES(?,?)',('rank_launch',self._json(
+                dict(at_ms=at_ms,pending=True,generation=state['generation']))))
+            return True
+
+    def launch(self):
+        with self.lock:
+            row=self.db.execute("SELECT value FROM paper_meta WHERE key='rank_launch'").fetchone()
+            return json.loads(row[0]) if row else None
+
+    def activate_due(self, now_ms):
+        with self.lock,self.db:
+            launch=self.launch()
+            if not launch or not launch['pending'] or now_ms<launch['at_ms']:return False
+            state=self.control();launch['pending']=False
+            # A subsequent user stop/start always takes precedence over the timer.
+            activated=state['generation']==launch['generation']
+            if activated:self._control(True,launch['at_ms'])
+            launch.update(activated_ms=now_ms if activated else None)
+            self.db.execute("UPDATE paper_meta SET value=? WHERE key='rank_launch'",(self._json(launch),))
+            return activated
+
+    def prewarming(self):
+        launch=self.launch();state=self.control()
+        return bool(launch and launch['pending'] and launch['generation']==state['generation'])
+
     def save_baseline(self, venue, day, symbol, price):
         with self.lock, self.db:
             self.db.execute('INSERT OR REPLACE INTO fast_rank_baselines VALUES(?,?,?,?)',(venue,day,symbol,price))

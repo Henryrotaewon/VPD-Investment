@@ -13,9 +13,20 @@ class RankPaperService(TargetPaperService):
 
     def start(self):
         super().start()
+        thread=Thread(target=self.launch_worker,daemon=True,name='fast-rank-launch')
+        thread.start();self.threads.append(thread)
         self.log('fast_rank_policy top=5 baseline=previous_UTC_day_close schedule=KST_0901_every_5m '
                  'stop=outside_top5_AND_minus6 profit=plus12_limit entry_depth=100pct cumulative=preserved')
         return self
+
+    def launch_worker(self):
+        while not self.stop.is_set():
+            launch=self.ledger.launch()
+            if not launch or not launch['pending']:return
+            if self.ledger.activate_due(self.clock()):
+                self.log('fast_rank_scheduled_start activated=true at_ms='+str(self.clock()))
+                return
+            self.stop.wait(.2)
 
 
 class RankMarket(PublicMarket):
@@ -86,7 +97,8 @@ class FastRankMonitor(FastMonitor):
         try:
             while not self.stop.is_set():
                 state=self.paper.ledger.control();ts=self.clock()
-                if not state['enabled']:
+                warming=self.paper.ledger.prewarming()
+                if not state['enabled'] and not warming:
                     self.update(venue,status='PAUSED');next_slot=None
                     self.stop.wait(1);continue
                 if generation!=state['generation']:
@@ -101,7 +113,7 @@ class FastRankMonitor(FastMonitor):
                     for symbol in market.symbols:
                         if symbol in baselines:continue
                         current=self.paper.ledger.control()
-                        if (not current['enabled'] or current['generation']!=generation
+                        if ((not current['enabled'] and not self.paper.ledger.prewarming()) or current['generation']!=generation
                                 or rank_day(self.clock())!=boundary):
                             incomplete=True;break
                         found,value=self.paper.ledger.baseline(venue,boundary,symbol)
@@ -113,6 +125,8 @@ class FastRankMonitor(FastMonitor):
                         baselines[symbol]=value
                     if incomplete:continue
                     ts=self.clock()
+                    if not self.paper.ledger.control()['enabled']:
+                        self.stop.wait(.5);continue
                     if next_slot is None:
                         candidate=rank_slot(ts)
                         next_slot=candidate if ts-candidate<=15000 and candidate>=state['resumed_ms'] else candidate+INTERVAL
