@@ -290,6 +290,17 @@ class ServiceTests(unittest.TestCase):
 
 
 class PublicAdapterTests(unittest.TestCase):
+    def test_zero_size_levels_are_ignored_but_invalid_or_empty_depth_is_rejected(self):
+        value=book(START)
+        value['bids']=[(200,0),(100,1000),(99,0)]
+        value['asks']=[(90,0),(100.01,1000),(101,0)]
+        self.assertEqual(checked_book(value,START+20), ([(100,1000)],[(100.01,1000)]))
+        for size in (-1,float('nan'),float('inf')):
+            with self.assertRaisesRegex(ValueError,'INVALID_BOOK_SIZE'):
+                checked_book(dict(value,bids=[(100,size)]),START+20)
+        with self.assertRaisesRegex(ValueError,'EMPTY_OR_CROSSED_BOOK'):
+            checked_book(dict(value,bids=[(100,0)]),START+20)
+
     def test_all_four_depth_formats_use_public_get(self):
         for venue in VENUES:
             with self.subTest(venue=venue), patch('magi2.fast_monitor.PublicMarket') as factory:

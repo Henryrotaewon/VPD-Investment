@@ -17,6 +17,8 @@ market liquidation by ten minutes, and report results daily like VPD.
 - Market entry uses a new public book requested after a 250ms decision delay,
   ask VWAP and at most 10% of displayed depth. Reject wide (>15bps), slow (>1.5s),
   stale (>3s), invalid or insufficient books. No synthetic full entry on missing depth.
+  Zero-quantity levels are omitted before best-price/depth checks; negative or
+  nonfinite quantities and books with no available side remain invalid.
 - Request market exit five minutes after entry. Absolute deadline is **ten
   minutes after signal detection**, including entry delay. The deadline is
   persisted, independent of the scanner's 15-minute watch and notification queue.

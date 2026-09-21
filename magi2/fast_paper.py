@@ -45,8 +45,19 @@ def checked_book(book, now_ms, not_before=0):
     requested = int(book['requested_ms']); received = int(book['received_ms'])
     if not not_before <= requested <= received <= now_ms or now_ms - received > 3000 or received - requested > 1500:
         raise ValueError('STALE_OR_EARLY_BOOK')
-    bids = [(positive(p), positive(q)) for p, q in book['bids']]
-    asks = [(positive(p), positive(q)) for p, q in book['asks']]
+    def available(rows):
+        levels = []
+        for price, size in rows:
+            price = positive(price); size = float(size)
+            if not math.isfinite(size) or size < 0:
+                raise ValueError('INVALID_BOOK_SIZE')
+            # Bithumb may include valid price levels with no remaining quantity.
+            # They provide no executable liquidity and cannot set the best price.
+            if size > 0:
+                levels.append((price, size))
+        return levels
+    bids = available(book['bids'])
+    asks = available(book['asks'])
     if not bids or not asks or max(p for p, _ in bids) > min(p for p, _ in asks):
         raise ValueError('EMPTY_OR_CROSSED_BOOK')
     return sorted(bids, reverse=True), sorted(asks)
