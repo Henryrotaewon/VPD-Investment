@@ -41,7 +41,8 @@ def unit_price(value, quote):
 
 
 def position_lines(t, account, now_ms):
-    lines=[f'{NAMES[t["venue"]]} · {t["symbol"]}', f'포착일시 {clock(t["signal_ms"])} KST']
+    label='매수대기' if t['status']=='ENTRY_PENDING' and not t.get('entry_ms') else '보유중'
+    lines=[f'{NAMES[t["venue"]]} · {t["symbol"]} · {label}', f'포착일시 {clock(t["signal_ms"])} KST']
     if t['status']=='ENTRY_PENDING' and not t.get('entry_ms'):
         return lines+['상태: 매수 체결 대기 중']
     average=t.get('buy_average') or (t['entry_cost']/t['entry_qty'] if t.get('entry_qty') else 0)
@@ -57,7 +58,8 @@ def position_lines(t, account, now_ms):
 
 
 def outcome_lines(t, account):
-    lines=[f'{NAMES[t["venue"]]} · {t["symbol"]}', f'포착일시 {clock(t["signal_ms"])} KST']
+    label='미매수' if t['status']=='SKIPPED' else '매도완료'
+    lines=[f'{NAMES[t["venue"]]} · {t["symbol"]} · {label}', f'포착일시 {clock(t["signal_ms"])} KST']
     if t['status']=='SKIPPED':
         lines.append('미매수 · '+SKIP_REASONS.get(t.get('reason'),t.get('reason') or '조건 미충족'))
         if t.get('last_error'):lines.append('상세 사유: '+t['last_error'][:80])
