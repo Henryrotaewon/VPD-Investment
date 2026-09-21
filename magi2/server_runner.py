@@ -640,7 +640,8 @@ def main():
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
-    from magi2.fast_rank_monitor import FastRankMonitor as FastMonitor, RankPaperService as PaperService
+    from magi2.fast_bulk_rank import FastBulkRankMonitor as FastMonitor
+    from magi2.fast_rank_monitor import RankPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
     # Explicit user request: fresh TOP5 trial at 2026-09-21 23:46 KST, once.
     from datetime import datetime, timezone

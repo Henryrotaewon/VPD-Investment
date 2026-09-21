@@ -6,7 +6,7 @@ from magi2.fast_tick_paper import TickLedger
 from magi2.fast_paper import checked_book
 from magi2.fast_tick_rules import dec, floor_qty, valid_size
 
-VERSION = 'fast-daily-top5-v1'
+VERSION = 'fast-daily-top5-v2'
 DAY = 86400000
 INTERVAL = 300000
 
@@ -94,7 +94,8 @@ class RankLedger(TargetLedger):
                 entries.append(dict(row, entry_slot=prior['entry_slot'] if prior else slot,
                                     consumed=prior.get('consumed',False) if prior else False))
             snapshot=dict(venue=venue,slot=slot,day=rank_day(slot),saved_ms=now_ms,
-                          generation=generation,rows=entries)
+                          generation=generation,rows=entries,
+                          basis=rows[0].get('basis','PREVIOUS_DAY_CLOSE') if rows else 'PREVIOUS_DAY_CLOSE')
             self.db.execute('INSERT INTO fast_rank_snapshots VALUES(?,?,?)',(venue,slot,self._json(snapshot)))
             self.db.execute('DELETE FROM fast_rank_snapshots WHERE slot<?',(slot-7*DAY,))
             return True
@@ -122,7 +123,9 @@ class RankLedger(TargetLedger):
                                     strategy_version=VERSION,allow_partial_budget=True)
                 t=self._trade(ident)
                 t.update(deadline_ms=None,take_profit_pct=12.,stop_loss_pct=-6.,rank_slot=snapshot['slot'],
-                         previous_close=row['previous_close'],rise_pct=row['rise_pct'])
+                         previous_close=row.get('previous_close'),rise_pct=row['rise_pct'],
+                         baseline_price=row.get('baseline_price',row.get('previous_close')),
+                         rank_basis=row.get('basis','PREVIOUS_DAY_CLOSE'))
                 self._save(t);row['consumed']=True
                 if ok:accepted.append(ident)
             self.db.execute('UPDATE fast_rank_snapshots SET payload=? WHERE venue=? AND slot=?',

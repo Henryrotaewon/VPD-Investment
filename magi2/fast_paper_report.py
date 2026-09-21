@@ -91,7 +91,7 @@ def portfolio_header(ledger, now_ms):
     state=ledger.control() if hasattr(ledger,'control') else {'enabled':True}
     lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
     if hasattr(ledger,'latest_rank'):
-        lines.append('전일종가 대비 TOP 5 · 09:01 기준 5분 갱신 · 이탈 및 −6% 손절')
+        lines.append('1D 당일시가 대비 TOP 5 · 09:01 기준 5분 갱신 · 이탈 및 −6% 손절')
     return lines,accounts
 
 
@@ -140,7 +140,7 @@ def menu(ledger):
     return ('FAST 모의투자\n상태: '+status+'\n'
             '거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
             '당일 기준: 매일 07:30 KST · 자산과 누적 손익은 이어집니다.\n'
-            '전일종가 대비 TOP 5 · 09:01부터 5분 갱신\n'
+            '1D 당일시가 대비 TOP 5 · 09:01부터 5분 갱신\n'
             '+12% 익절 · TOP 5 이탈과 −6% 동시 충족 시 손절\n'
             '매매 기능은 재확인 후 실행합니다.',keyboard())
 
