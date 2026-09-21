@@ -46,6 +46,7 @@ ENGINE_JOB=None
 ENGINE_MODE=None
 ENGINE_REQUEST_ID=None
 FAST_MONITOR=None
+FAST_PAPER=None
 WAVE_CLIENT=None
 ALLOWED_USER_IDS={x.strip() for x in os.getenv('TELEGRAM_ALLOWED_USER_IDS','').split(',') if x.strip()}
 
@@ -189,26 +190,27 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v13; FAST replay reports available')
+    log('MAGI Telegram menu registered: Korean v14; FAST live paper and daily reports available')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v13','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v14','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'📋 MAGI 버튼 메뉴를 업데이트했습니다.\n'
-               '📊 VPD 모의투자에 🔁 전량 교체를 추가했습니다.\n'
-               '기존 모의 보유분을 전량 매도하고 새 VPD TOP10으로 균등 재구성합니다.\n'
-               '전량 교체는 별도 확인 버튼을 눌러야 실행됩니다. /rebuild로도 열 수 있습니다.',
+        'text':'📊 FAST 모의투자를 연결했습니다.\n'
+               '거래소별 가상자금 100만원 · 회당 20만원 · 최대 5종목.\n'
+               '기본 5분 시장가 청산 · 포착 후 최대 10분 청산.\n'
+               '호가 단절·잔량 부족은 청산 지연으로 표시합니다.\n'
+               '매일 09:00 KST 전일 결과 · /fast_report · 실제 주문 없음.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v13')
+    log('MAGI reply keyboard refreshed: magi-menu-v14')
 
 
 def start_engine(mode,request_id=None):
@@ -425,10 +427,13 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='assets': telegram(execution_view(cmd))
         elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
         elif cmd=='wave': send_wave()
-        elif cmd in ('fast_report','fast_orders'):
+        elif cmd in ('fast_report','fast_orders','fast_daily','fast_balance'):
+            from magi2.fast_paper_report import view
+            telegram(*view(FAST_PAPER.ledger if FAST_PAPER else None,time.time_ns()//1000000,cmd))
+        elif cmd=='fast_replay':
             from magi2.fast_report import view
             root=os.getenv('FAST_PAPER_REPORT_DIR',str(STATE_DIR/'fast'))
-            telegram(*view(root,detail=cmd=='fast_orders'))
+            telegram(*view(root))
         elif cmd=='fast_compare':
             from magi2.fast_comparison import report
             telegram(report(FAST_MONITOR.audit,time.time_ns()//1000000) if FAST_MONITOR else 'FAST 검증 자료 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
@@ -488,7 +493,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_report','fast_orders','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies'):
+        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -554,7 +559,7 @@ def poll_updates(offset,timeout=LONG_POLL_SECONDS):
 
 
 def main():
-    global FAST_MONITOR,WAVE_CLIENT
+    global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT
     prepare_persistent_state()
     WAVE_CLIENT=WaveClient(os.getenv('MAGI1_INTELLIGENCE_URL',''),
                            os.getenv('MAGI_INTELLIGENCE_TOKEN',''),log).start()
@@ -570,7 +575,9 @@ def main():
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
     from magi2.fast_monitor import FastMonitor
-    FAST_MONITOR=FastMonitor(STATE_DIR,log);FAST_MONITOR.start()
+    from magi2.fast_paper_service import PaperService
+    FAST_PAPER=PaperService(STATE_DIR,log).start()
+    FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
@@ -582,6 +589,8 @@ def main():
                 probe_job=PROBE_EXECUTOR.submit(execution_probe)
             next_execution_probe=time.monotonic()+300
         for event in FAST_MONITOR.drain(): telegram(event['text'])
+        try: FAST_PAPER.daily(lambda text:telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,'text':text}))
+        except Exception as exc: log(f'fast_paper_daily_error type={type(exc).__name__}')
         finish_engine_job()
         finish_scan_job()
         if time.monotonic()>=next_monitor:

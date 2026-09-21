@@ -89,6 +89,6 @@ def captures(audit,ts,tracking=None,offset=0):
     markup={'inline_keyboard':[]}
     if offset:markup['inline_keyboard'].append([{'text':'◀ 이전','callback_data':f'captures:{max(0,offset-10)}'}])
     if offset+10<len(selected):markup['inline_keyboard'].append([{'text':'다음 ▶','callback_data':f'captures:{offset+10}'}])
-    markup['inline_keyboard'].append([{'text':'📊 FAST 모의결과','callback_data':'nav:fast_report'}])
+    markup['inline_keyboard'].append([{'text':'📊 FAST 모의검증 결과','callback_data':'nav:fast_report'}])
     markup['inline_keyboard'] += [[{'text':'새로고침','callback_data':'nav:fast'},{'text':'거래소별 검증','callback_data':'nav:fast_compare'}],[{'text':'메인 메뉴','callback_data':'nav:menu'}]]
     return '\n'.join(lines),markup

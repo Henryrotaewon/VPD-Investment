@@ -152,12 +152,19 @@ class TradePlanTests(unittest.TestCase):
         self.assertEqual(promotion_review(evidence)['status'], 'INSUFFICIENT')
         self.assertEqual(promotion_review({})['status'], 'INSUFFICIENT')
 
-    def test_guides_fit_telegram_and_expose_preparation_status(self):
+    def test_guides_fit_telegram_and_distinguish_paper_from_research(self):
         for strategy in ('fast','wave'):
             text = strategy_text(strategy)
             self.assertLess(len(text.encode('utf-16-le'))//2, 4096)
-            self.assertIn('검증 전 가설', text)
-            self.assertIn('실주문 OFF', text)
+            if strategy == 'fast':
+                self.assertIn('실시간 PAPER', text)
+                self.assertIn('실제 주문 없음', text)
+                self.assertIn('수익성 미검증', text)
+                self.assertIn('100만원', text)
+                self.assertIn('10분', text)
+            else:
+                self.assertIn('검증 전 가설', text)
+                self.assertIn('실주문 OFF', text)
         self.assertFalse(policy()['live_enabled'])
 
 

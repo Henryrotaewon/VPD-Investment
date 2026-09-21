@@ -104,8 +104,8 @@ class Watch:
         return hit
 
 class FastMonitor:
-    def __init__(self,root,log):
-        self.root=Path(root);self.log=log;self.events=Queue(maxsize=100);self.lock=Lock();self.stop=Event()
+    def __init__(self,root,log,paper=None):
+        self.root=Path(root);self.log=log;self.paper=paper;self.events=Queue(maxsize=100);self.lock=Lock();self.stop=Event()
         self.state={};self.threads=[];self.tracking={}
         self.audit=FastAudit(self.root/'fast_evidence.sqlite3')
         self.alert_gate=AlertGate(self.audit)
@@ -113,7 +113,7 @@ class FastMonitor:
     def start(self):
         for venue in VENUES:
             t=Thread(target=self.worker,args=(venue,),daemon=True,name='fast-'+venue);t.start();self.threads.append(t)
-        self.log('fast_monitor_started scan=300s watch=900s quote_target=1s mode=ALERT_ONLY')
+        self.log('fast_monitor_started scan=300s watch=900s quote_target=1s mode='+('OBSERVE_WITH_PAPER' if self.paper else 'ALERT_ONLY'))
     def update(self,venue,**fields):
         with self.lock:
             self.state[venue]={**self.state.get(venue,{}),**fields,'updated_ts_ms':now()}
@@ -147,6 +147,9 @@ class FastMonitor:
                       'strength':getattr(watch,'strength',{}),'selection_scan_ts_ms':watch.row.get('selection_scan_ts_ms'),'selection_reason':watch.row.get('reason'),'watch_started_ts_ms':watch.started,'watch_until_ts_ms':watch.until})
         self.audit.record('ORDER_SKIPPED',watch.signal_id,venue,symbol,'ALERT_ONLY',ts_ms=ts,
                           reason='LIVE_EXECUTION_NOT_CONNECTED',result={'submitted':False})
+        if self.paper and getattr(watch,'strength',{}).get('strong'):
+            try:self.paper.offer(watch.signal_id,venue,symbol,ts)
+            except Exception as exc:self.log(f'fast_paper_offer_error venue={venue} type={type(exc).__name__}')
 
     def worker(self,venue):
         market=PublicMarket(venue);tracker=RankTracker(RankPolicy(scan_minutes=5,watch_minutes=15))
@@ -203,7 +206,7 @@ class FastMonitor:
                             stamp=datetime.fromtimestamp(decision_ts/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
                             event={'id':watch.signal_id, 'venue':venue,'symbol':symbol,
                                    'created_ts_ms':decision_ts,'watch_until_ms':watch.until,'bid':bid,'ask':ask,'mode':'ALERT_ONLY',
-                                   'text':f'⚡ FAST 포착 · 강한 매수세\n{stamp} KST · {venue.upper()} {symbol}\n5분 상승 {watch.row["returns_bps"]["5"]/100:+.2f}% · 순위 {watch.row["rank"]}\n매수 주도 비중 {(flow.get("buyer_share_pct") or 0):.1f}% · 강도는 확률이 아닙니다.\n30초 고점 돌파 · 후보별 15분 집중 감시\n실주문 OFF · 예산 설계: FAST 전체 5% 미만. 수익 보장 신호가 아닙니다.'}
+                                   'text':f'⚡ FAST 포착 · 강한 매수세\n{stamp} KST · {venue.upper()} {symbol}\n5분 상승 {watch.row["returns_bps"]["5"]/100:+.2f}% · 순위 {watch.row["rank"]}\n매수 주도 비중 {(flow.get("buyer_share_pct") or 0):.1f}% · 강도는 확률이 아닙니다.\n30초 고점 돌파 · 후보별 15분 집중 감시\n실주문 OFF · 모의 진입·청산은 /fast_report에서 확인하세요.'}
                             self.record_signal(venue,symbol,watch,decision_ts,decision_ts-quote_started)
                             reason='BUY_FLOW_FILTER' if not watch.strength['strong'] else self.alert_gate.claim(watch.signal_id,venue,symbol,watch.row['asset'],now())
                             if reason:

@@ -86,8 +86,8 @@ class FastReportTests(unittest.TestCase):
         with patch.object(server,'telegram') as send, patch.object(server,'telegram_api'), \
              patch.object(server,'start_engine') as engine, patch.object(server,'ALLOWED_CHAT_ID','7'), \
              patch.dict('os.environ',{'FAST_PAPER_REPORT_DIR':str(self.root)}):
-            server.handle_command('/fast_report','7','7')
-            server.handle_callback({'id':'c','data':'nav:fast_orders','from':{'id':'7'},'message':{'chat':{'id':'7'}}})
+            server.handle_command('/fast_replay','7','7')
+            server.handle_callback({'id':'c','data':'nav:fast_replay','from':{'id':'7'},'message':{'chat':{'id':'7'}}})
             engine.assert_not_called()
             self.assertEqual(send.call_count,2)
             self.assertIn('검증 결과 대기',send.call_args.args[0])

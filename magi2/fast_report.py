@@ -92,7 +92,7 @@ def load_latest(root):
 
 def keyboard():
     return {'inline_keyboard': [
-        [{'text': '📊 FAST 모의결과', 'callback_data': 'nav:fast_report'},
+        [{'text': '📊 FAST 모의검증 결과', 'callback_data': 'nav:fast_report'},
          {'text': '📒 FAST 거래내역', 'callback_data': 'nav:fast_orders'}],
         [{'text': '⚡ 포착 목록', 'callback_data': 'nav:fast'},
          {'text': '🔎 5분 신호 평가', 'callback_data': 'nav:fast_compare'}],
@@ -100,14 +100,14 @@ def keyboard():
 
 
 def view(root, detail=False):
-    title = '📒 FAST 모의 거래내역' if detail else '📊 FAST 모의검증 결과'
+    title = '📒 FAST 과거 재생 거래내역' if detail else '🧪 FAST 과거 재생검증'
     try:
         data = load_latest(root)
         if data is None:
             return (title + '\n업비트 KRW · 검증 결과 대기\n'
                     '완료된 모의매매 재생 결과가 아직 없습니다.\n'
                     '현재 /fast는 포착 조회, /fast_compare는 수수료 미차감 5분 평가입니다.\n'
-                    '실시간 FAST 전용 모의계좌는 아직 연결되지 않았습니다.\n'
+                    '실시간 FAST 모의투자는 /fast_report에서 확인하세요.\n'
                     '조회만 수행하며 매매·수집을 시작하지 않습니다.'), keyboard()
         p = data['policy']
         lines = [title, '업비트 KRW · 오프라인 재생 모의매매',
@@ -137,7 +137,7 @@ def view(root, detail=False):
                   f"지연 가정 {number(p['latency_ms']):g}ms · 최대 보유 {number(p['max_hold_ms'])/1000:g}초",
                   '호가 스프레드·모형 비용 반영. 실제 체결 실적이 아닙니다.',
                   '독립 실험 합계이며 계좌 수익률·잔고·최대낙폭은 산출하지 않습니다.',
-                  '실시간 모의계좌·매도전략 A/B/C 비교는 미연결 · 수익성 미검증']
+                  '실시간 모의투자 /fast_report · 본 재생 실험의 수익성 미검증']
         return '\n'.join(lines), keyboard()
     except (OSError, ValueError, TypeError, KeyError, AttributeError, OverflowError):
         return (title + '\n완료 결과를 확인할 수 없습니다. 저장 파일 누락·형식을 점검해야 합니다.\n'
