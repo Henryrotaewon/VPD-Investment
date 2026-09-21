@@ -1,7 +1,7 @@
 # MAGI1 crypto–macro index research
 
-Status: **offline research prototype; no connected historical panel, measured
-predictive result, scheduled collection, live index, or trading integration**.
+Status: **offline macro prototype plus an exploratory price-only regime backtest**.
+The audited macro panel, live index and trading integration remain unconnected.
 The existing MAGI1 WAVE records, services, schemas, and raw collectors are not
 modified. This is the initial research implementation for the proposed new MAGI1
 role, not a claim that WAVE has been empirically disproved.
@@ -122,7 +122,9 @@ Current metrics are descriptive out-of-sample MSE, return correlation, direction
 accuracy and R² versus the rolling historical-mean forecast. The mixed-minus-crypto
 error comparison is paired. They do **not** yet perform block-bootstrap confidence
 intervals, multiple-testing adjustment, regime tests or a final untouched holdout.
-Those remain mandatory before any adoption; `promotion` is always `NOT_EVALUATED`.
+Those remain mandatory before adoption of the macro model; its `promotion` is
+always `NOT_EVALUATED`. The separate price-regime experiment below adds block
+bootstrap and a fixed later evaluation period, without upgrading macro validation.
 
 Required next work:
 
@@ -150,3 +152,97 @@ Required next work:
 The user-facing research memo dated 2026-09-21 documents the rationale and source
 limitations. This prototype has no dependencies on MAGI1 collectors, FAST paper
 accounts, exchange order clients or Telegram handlers.
+
+## Four market regimes and allocation experiment
+
+`regimes.py` adds the requested **up/down × low/high volatility** definition.
+These are market trend/risk states, not the economic growth/inflation quadrants.
+BTC and ETH are the preselected two-asset universe; no claim is made about all
+major coins, altcoin survivorship or strategy selection for VPD/FAST/Q portfolios.
+
+The price-only baseline uses the mean BTC/ETH 90-day log return for direction,
+30-day annualized volatility of equal-weight daily log returns, and a 65th
+percentile high-volatility boundary from the preceding 252 volatility observations.
+All signal inputs lag the modeled execution date by **two calendar days**. A new
+state requires two consecutive confirmations; during transition the lower old/new
+risk cap applies immediately. No confidence probability is invented. Disagreement
+between BTC and ETH is reported as an observation.
+
+| State | Initial maximum crypto weight | Remaining cash |
+|---|---:|---:|
+| UP_LOW | 80% | at least 20% |
+| UP_HIGH | 40% | at least 60% |
+| DOWN_LOW | 20% | at least 80% |
+| DOWN_HIGH | 0% | 100% |
+
+These are **frozen research hypotheses, not recommended personal allocations**.
+Within each cap, compare cash, equal weights, positive-momentum weights and inverse
+volatility weights. The adaptive selector uses only completed results strictly
+before its decision, the preceding 365 days, and the same regime (minimum 30
+observations). It refits at most every 30 days per state, using mean net log growth;
+cash wins ties. This also reveals how sparse regime samples can force cash.
+
+Compare adaptive selection, a simple regime-cap/equal-weight rule, a daily fixed
+50% BTC/ETH allocation, initial 100% BTC/ETH buy-and-hold and cash. Holdings drift
+with returns, and buys/sells pay proportional costs on actual risky-asset notional.
+Self-financing rebalancing solves target weights **after** costs. No leverage,
+shorting, cash yield, tax or FX is modeled; final values are marks, not forced sales.
+Fees plus slippage are tested at 15 and 30bps each way. There is no intraday fill
+or liquidity model, so these are reference-price backtests, not executable P&L.
+
+`regime_protocol.json` records the configuration and source revision before the
+first result was inspected in this session. This is not a historical preregistration.
+History begins 2017-01-01, development evaluation 2020-01-01, later walk-forward
+evaluation 2023-01-01 through the available final price. Sequential refits continue
+using completed earlier observations inside that later period according to the
+frozen rule; the period is not an embargo on all future model updates.
+
+### Actual preliminary result, 2026-09-21
+
+Coin Metrics' official public archive commit
+`f1a36afb962731c387bb03982758ab0103063da5` supplies `PriceUSD` through **2026-05-23**.
+Its files are current historical snapshots, **not archived as-of vintages**.
+The separate CLI requires explicit `--allow-historical-snapshot`; it never relabels
+these observations as `VERIFIED_VINTAGE` for the strict macro engine. A two-day lag
+does not prove historical availability or remove retrospective price revisions.
+No current September regime is claimed; `current_status` is `STALE_HISTORY`.
+Source data is CC BY-NC 4.0, attributed to [Coin Metrics](https://github.com/coinmetrics/data).
+
+At 15bps one-way modeled costs, later evaluation (2023-01-01 to 2026-05-23):
+
+| Rule | Total return | Maximum drawdown | Mean crypto exposure |
+|---|---:|---:|---:|
+| Adaptive strategy selection | -2.17% | -30.14% | 28.89% |
+| Regime cap with equal weights | +63.56% | -31.58% | 44.01% |
+| Fixed 50% allocation | +93.38% | -31.96% | 50.00% |
+| Initial 100% buy-and-hold | +133.50% | -57.12% | 100.00% |
+
+At doubled costs, adaptive return is -7.38%, regime-cap equal weights +55.18%,
+and fixed 50% +91.36%. The adaptive rule has **not demonstrated improvement**.
+The simple regime cap gives up return for only a small drawdown difference versus
+fixed 50% in this period. Lower drawdown versus 100% investment alone is not skill:
+the strategies carried materially less risk exposure. Do not promote either rule
+based on these results or retrospectively tune caps to make the chart look better.
+
+Thirty-day moving-block bootstrap, 2,000 samples, compares adaptive minus fixed-50
+daily log growth. The 95% annualized log-growth interval in the 15bps later period
+is [-0.390, +0.053]; it spans zero. Holm adjustment covers all four predeclared
+period/cost comparisons; adjusted one-sided p-values are 1.0. This exploratory
+inference does not establish added value, correct source revisions or validate
+the still-unconnected macro model. Results and provenance are in
+`regime_results_summary.json`; tests run with `test_crypto*.py` (18 cases).
+
+```bash
+python -m research.crypto_macro.regime_cli \
+  --btc-csv /path/to/coinmetrics/csv/btc.csv \
+  --eth-csv /path/to/coinmetrics/csv/eth.csv \
+  --asof 2026-09-21 --allow-historical-snapshot \
+  --output /path/to/regime_result.json
+```
+
+An optional `--macro-report` consumes seven-day mixed forecasts from the existing
+PIT engine. It validates issue/fit/input/outcome-cutoff metadata, ignores realized
+forecast outcomes, requires both assets at each signal cutoff and refuses missing
+evaluation signals. This path is software-tested but **not empirically validated**.
+Compare price-only versus mixed on an identical audited period before attributing
+any improvement to rates, commodities, economic news or crypto issuance events.
