@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import time
 
-RESET_ID='fast-top5-tick6-fresh-20260922-v1'
+RESET_ID='fast-capture-limit-v6-fresh-20260922-v1'
 
 
 def reset_once(root,log):
@@ -19,3 +19,4 @@ def reset_once(root,log):
     temp.replace(marker)
     log('fast_reset_completed reset_id='+RESET_ID+' captures_and_paper_deleted=true seed_krw_each=1000000')
     return True
+
