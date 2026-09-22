@@ -8,6 +8,7 @@ if __package__ in (None, ''):
 from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
 from magi2.point_in_time_scan import read_snapshot, build_snapshot, cutoff_for, SCHEMA, MAX_AGE_SECONDS
 from magi2.full_rebalance import plan_rebuild, commit_rebuild, recover_rebuild
+from magi2.entry_policy import POLICY as ENTRY_POLICY, rank_entry_candidates
 
 ROOT=Path(__file__).resolve().parents[1]
 CFG=json.loads((ROOT/'magi2'/'config.json').read_text(encoding='utf-8'))
@@ -157,9 +158,9 @@ def archive_closed_slot(st,coin):
 def buy_position(st,row,px,budget,session,sid,date):
     if px is None or budget<=0 or float(st.get('cash_krw',0))+1e-9<budget: return False
     slip=float(CFG.get('slippage_rate',.001)); fee=float(CFG.get('fee_rate',.0005)); fill=float(px)*(1+slip); notional=budget/(1+fee); coin=row['coin']; archive_closed_slot(st,coin)
-    st.setdefault('positions',{})[coin]={'market':row['market'],'status':'OPEN','entry_at':now_iso(),'entry_session':session,'entry_session_id':sid,'first_selected_date':date,'last_selected_date':date,'consecutive_top10_days':1,'signal_rank':row.get('Rank'),'signal_vpd':row.get('VPD'),'signal_price':row.get('price'),'entry_market_price':float(px),'entry_price':fill,'buy_notional_krw':notional,'buy_fee_krw':budget-notional,'qty':notional/fill,'cost_krw':budget,'target_profit_pct':float(CFG['exit']['take_profit_pct']),'stop_loss_pct':float(CFG['exit']['hard_stop_pct']),'warning_profit_pct':float(CFG['exit']['warning_profit_pct']),'last_price':float(px),'peak_price':float(px),'tp_warning_sent':False,'sl_warning_sent':False}
+    entry=row.get('_entry_assessment') or {}; st.setdefault('positions',{})[coin]={'market':row['market'],'status':'OPEN','entry_at':now_iso(),'entry_session':session,'entry_session_id':sid,'first_selected_date':date,'last_selected_date':date,'consecutive_top10_days':1,'signal_rank':row.get('Rank'),'signal_vpd':row.get('VPD'),'signal_entry_score':entry.get('score'),'signal_entry_policy':ENTRY_POLICY,'signal_price':row.get('price'),'entry_market_price':float(px),'entry_price':fill,'buy_notional_krw':notional,'buy_fee_krw':budget-notional,'qty':notional/fill,'cost_krw':budget,'target_profit_pct':float(CFG['exit']['take_profit_pct']),'stop_loss_pct':float(CFG['exit']['hard_stop_pct']),'warning_profit_pct':float(CFG['exit']['warning_profit_pct']),'last_price':float(px),'peak_price':float(px),'tp_warning_sent':False,'sl_warning_sent':False}
     st['cash_krw']=float(st.get('cash_krw',0))-budget
-    log_event({'ts':now_iso(),'type':'BUY','cohort_id':st.get('cohort_id'),'session_id':sid,'entry_session':session,'coin':coin,'market':row['market'],'budget_krw':round(budget,2),'buy_notional_krw':round(notional,2),'buy_fee_krw':round(budget-notional,2),'market_price':float(px),'fill_price':fill,'target_profit_pct':float(CFG['exit']['take_profit_pct']),'stop_loss_pct':float(CFG['exit']['hard_stop_pct']),'signal_rank':row.get('Rank'),'signal_vpd':row.get('VPD'),'paper_only':True})
+    log_event({'ts':now_iso(),'type':'BUY','cohort_id':st.get('cohort_id'),'session_id':sid,'entry_session':session,'coin':coin,'market':row['market'],'budget_krw':round(budget,2),'buy_notional_krw':round(notional,2),'buy_fee_krw':round(budget-notional,2),'market_price':float(px),'fill_price':fill,'target_profit_pct':float(CFG['exit']['take_profit_pct']),'stop_loss_pct':float(CFG['exit']['hard_stop_pct']),'signal_rank':row.get('Rank'),'signal_vpd':row.get('VPD'),'signal_entry_score':entry.get('score'),'signal_entry_policy':ENTRY_POLICY,'paper_only':True})
     return True
 
 def close_position(st,coin,p,px,reason,send_status=True):
@@ -277,19 +278,29 @@ def morning_rebalance(st,expected_asof=None):
         costs=[float(p.get('cost_krw',0)) for p in open_after.values() if float(p.get('cost_krw',0))>0]
         morning_slot=sum(costs)/len(costs) if costs else 0.0
         daily_source='MORNING_ALL_KEEP_OPEN_AVG'
-    for row in candidates:
+    entry_ranked=rank_entry_candidates(candidates,CFG)
+    entry_audit=[]
+    for row,entry_assessment,_ in entry_ranked:
+        entry_audit.append({'coin':row['coin'],'rank':row.get('Rank'),'score':entry_assessment['score'],'eligible':entry_assessment['eligible'],'reasons':entry_assessment['reasons']})
         if len(open_after)>=top_n: break
         if row['coin'] in open_after or row['coin'] in exited: continue
+        if not entry_assessment['eligible']:
+            decisions.append(f'{row["coin"]} · 신규진입 제외 · EntryScore {entry_assessment["score"]:.2f}\n  ' + ', '.join(entry_assessment['reasons']))
+            continue
         old=st.get('positions',{}).get(row['coin'],{})
         old_exit=parse_snapshot_asof(old.get('exit_at'))
         if old.get('status')=='CLOSED' and old_exit and old_exit.date().isoformat()==today:
             decisions.append(f'{row["coin"]} · 재진입 유예\n  오늘 청산한 종목은 당일 리밸런싱에서 다시 매수하지 않습니다.')
             continue
-        if buy_position(st,row,prices.get(row['market']),morning_slot,stage,sid,today): bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
+        buy_row=dict(row); buy_row['_entry_assessment']=entry_assessment
+        if buy_position(st,buy_row,prices.get(row['market']),morning_slot,stage,sid,today):
+            bought.append(row['coin']); open_after[row['coin']]=st['positions'][row['coin']]
+            decisions.append(f'{row["coin"]} · 신규진입 · EntryScore {entry_assessment["score"]:.2f} · VPD {float(row.get("VPD",0)):g} ({row.get("Rank","-")}위)')
     st['cohort_id']=sid; st['cohort_date']=today; st['last_rebalance_date']=today; st['last_rebalance_vpd_asof']=asof.isoformat(); st['source_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); st['strategy']=CFG.get('paper_strategy','VPD_TOP10_EQUAL_WEIGHT'); st['cohort_policy']='ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL'; st['capital_model']='ROLLING_KEEP_DYNAMIC_NEW_SLOT'
     st['source_snapshot_revision']=snap.get('_source_revision')
     st['daily_equal_buy_krw']=morning_slot; st['daily_equal_buy_date']=today; st['daily_equal_buy_source']=daily_source
     result={'asof':asof.isoformat(),'kept':kept,'weakening':weakening,'sold':exited,'bought':bought,
+            'entry_policy':ENTRY_POLICY,'entry_audit':entry_audit,
             'cash_krw':round(st['cash_krw'],2),'paper_only':True}
     st['last_rebalance_result']=result
     st['last_rebalance_decisions']=decisions; st['hold_policy']=POLICY; save_state(st)
@@ -346,11 +357,16 @@ def refill(st):
     if not slot: raise RuntimeError("Today's daily_equal_buy_krw is unavailable. No OPEN-position average exists.")
     top_n=int(CFG.get('session',{}).get('top_n',10)); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; vacant=max(0,top_n-len(active)); cash=float(st.get('cash_krw',0)); count=min(vacant,int((cash+1e-9)//slot))
     if count<=0: telegram(f'ℹ️ MAGI2 REFILL\n빈자리 {vacant} / 예수금 {cash:,.0f}원 / 당일 균등매수원가 {slot:,.0f}원\n리필 가능한 슬롯이 없습니다.\nPAPER ONLY'); send_current_status(st); return False
-    rows=[r for r in snap.get('top10',[])[:top_n] if r['coin'] not in active][:count]
-    if not rows: telegram('ℹ️ MAGI2 REFILL\n현재 VPD TOP10에 신규 리필 후보가 없습니다.\nPAPER ONLY'); send_current_status(st); return False
-    prices=get_prices([r['market'] for r in rows]); sid=f'{today}-REFILL-{now_dt().strftime("%H%M")}'; bought=[]
-    for row in rows:
-        if buy_position(st,row,prices.get(row['market']),slot,'REFILL',sid,today): bought.append(row['coin'])
+    raw_rows=[r for r in snap.get('top10',[])[:top_n] if r['coin'] not in active]
+    ranked=rank_entry_candidates(raw_rows,CFG)
+    rows=[(r,a) for r,a,_ in ranked if a['eligible']][:count]
+    if not rows:
+        rejected=', '.join(f'{r["coin"]} {a["score"]:.1f}' for r,a,_ in ranked[:5]) or '-'
+        telegram(f'ℹ️ MAGI2 REFILL\n현재 VPD TOP10에 EntryScore 통과 신규 후보가 없습니다.\n상위 제외: {rejected}\nPAPER ONLY'); send_current_status(st); return False
+    prices=get_prices([r['market'] for r,a in rows]); sid=f'{today}-REFILL-{now_dt().strftime("%H%M")}'; bought=[]
+    for row,entry_assessment in rows:
+        buy_row=dict(row); buy_row['_entry_assessment']=entry_assessment
+        if buy_position(st,buy_row,prices.get(row['market']),slot,'REFILL',sid,today): bought.append(row['coin'])
     if not bought: raise RuntimeError('Refill candidates existed, but no PAPER buy could be executed.')
     st['last_refill_at']=now_iso(); st['last_refill_session_id']=sid; st['source_refill_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); save_state(st)
     details='\n'.join(f'{i+1}. {c} | 매수금액 {slot:,.0f}원' for i,c in enumerate(bought)); telegram(f'♻️ MAGI2 REFILL 완료\n{sid}\nBUY {len(bought)}\n{details}\n당일 균등매수원가 {slot:,.0f}원\n잔여 예수금 {float(st["cash_krw"]):,.0f}원\n※ 기존 보유 종목 매도 없음 · PAPER ONLY'); send_current_status(st,'📊 REFILL 후 VPD 모의투자 현황 [PAPER]'); return True
