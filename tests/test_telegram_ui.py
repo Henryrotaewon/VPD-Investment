@@ -220,3 +220,11 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(get.call_args_list[1].kwargs['timeout'],0)
 
 if __name__=='__main__': unittest.main()
+
+
+def test_rescan_command_and_button_are_available():
+    from magi2.telegram_ui import parse_command, vpd_keyboard
+    assert parse_command('/rescan') == 'rescan'
+    assert parse_command('VPD 재스캔') == 'rescan'
+    callbacks = [b['callback_data'] for row in vpd_keyboard()['inline_keyboard'] for b in row]
+    assert 'nav:rescan' in callbacks
