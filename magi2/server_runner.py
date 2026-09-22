@@ -281,9 +281,14 @@ def finish_scan_job():
         snapshot=SCAN_JOB.result()
     except Exception as e:
         log(f'VPD scan failed: {type(e).__name__}')
-        record_request(SCAN_CONTEXT.get('request_id'),'scan_failed',error=type(e).__name__)
+        context=SCAN_CONTEXT or {}
+        record_request(context.get('request_id'),'scan_failed',error=type(e).__name__)
+        mode=context.get('mode')
         SCAN_JOB=None; SCAN_CONTEXT=None
-        telegram('VPD 자료를 완성하지 못해 리밸런싱을 보류했습니다.\n잠시 후 리밸런싱을 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
+        if mode=='rescan':
+            telegram('VPD 재스캔을 완료하지 못했습니다. 포트폴리오와 매매이력은 변경하지 않았습니다.')
+        else:
+            telegram('VPD 자료를 완성하지 못해 리밸런싱을 보류했습니다.\n잠시 후 리밸런싱을 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
         return
     if ENGINE_JOB is not None and not ENGINE_JOB.done(): return
     finish_engine_job()
