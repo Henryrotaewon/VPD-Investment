@@ -30,7 +30,8 @@ class TargetPaperService(PaperService):
                  'deadline=none live_orders=false')
         tick_limit=getattr(self.ledger,'entry_tick_limit_pct',None)
         if tick_limit is not None:
-            self.log(f'fast_entry_tick_filter reject_at_or_above_pct={tick_limit:g} reference=best_ask')
+            reference='capture_last' if getattr(self.ledger,'entry_price_policy',None) else 'best_ask'
+            self.log(f'fast_entry_tick_filter reject_at_or_above_pct={tick_limit:g} reference={reference}')
         return self
 
     def log_trade(self, ident, phase):
@@ -41,7 +42,9 @@ class TargetPaperService(PaperService):
             account=self.ledger.account(t['venue']);fx=account['fx_krw_per_quote']
             data={key:t.get(key) for key in ('id','venue','symbol','status','signal_ms','entry_ms','close_ms',
                   'reason','buy_average','entry_bid','entry_ask','stop_price','last_bid','remaining_qty',
-                  'entry_tick_price','entry_tick_size','entry_tick_pct','entry_tick_limit_pct')}
+                  'entry_tick_price','entry_tick_size','entry_tick_pct','entry_tick_limit_pct',
+                  'capture_price','capture_ms','entry_price_policy','entry_limit_price',
+                  'entry_wait_reason','entry_unspent_quote','entry_fill_levels')}
             data.update(phase=phase,quote=account['quote'],error=(t.get('last_error') or '')[:80])
             for key in ('entry_cost','exit_proceeds','realized_quote','fees_paid'):
                 data[key+'_krw']=t.get(key,0)*fx if fx else None
@@ -143,7 +146,8 @@ class TargetPaperService(PaperService):
                 self.log(f'fast_target_error venue={venue} symbol={snapshot["symbol"]} reason={reason[:80]}')
             finally:
                 current=self.ledger.get(ident)
-                if current and any(current.get(k)!=snapshot.get(k) for k in ('status','entry_cost','exit_proceeds')):
+                if current and any(current.get(k)!=snapshot.get(k) for k in (
+                        'status','entry_cost','exit_proceeds','entry_limit_price','entry_wait_reason')):
                     self.log_trade(ident,'transition')
         self.ledger.heartbeat(venue, self.clock(), ','.join(sorted(set(errors))) or None)
 
@@ -156,3 +160,4 @@ class TargetPaperService(PaperService):
                 self.ledger.heartbeat(venue, self.clock(), type(exc).__name__)
                 self.log(f'fast_target_worker_error venue={venue} type={type(exc).__name__}')
             self.wake[venue].wait(1)
+
