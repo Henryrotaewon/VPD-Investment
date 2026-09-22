@@ -6,6 +6,8 @@ NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='�
 REASONS = {'TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
            'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
 SKIP_REASONS = {'ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
+                'ENTRY_LIMIT_UNFILLED':'10초 내 포착가+1틱 이하 체결 가능 물량 없음',
+                'MISSING_CAPTURE_PRICE':'포착가격 확인 불가 · 매수 제외',
                 'ENTRY_TICK_TOO_LARGE':'1틱 등락률이 진입 허용 기준 이상',
                 'SOLD_TODAY_KST':'당일 매도 종목 재매수 제한', 'STALE_SIGNAL':'포착 유효시간 초과',
                 'FX_NOT_READY':'초기 환산율 확인 대기', 'SYMBOL_ALREADY_OPEN':'이미 보유·매수 대기 중',
@@ -14,7 +16,7 @@ SKIP_REASONS = {'ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 
 
 
 def tick(t):
-    return t.get('execution_version') in ('fast-tick-cycle-v3','fast-current-cycle-v4','fast-target-v5')
+    return t.get('execution_version') in ('fast-tick-cycle-v3','fast-current-cycle-v4','fast-target-v5','fast-capture-limit-v6')
 
 
 def sessions(ledger,now_ms):
@@ -44,8 +46,12 @@ def unit_price(value, quote):
 def position_lines(t, account, now_ms):
     label='매수대기' if t['status']=='ENTRY_PENDING' and not t.get('entry_ms') else '보유중'
     lines=[f'{NAMES[t["venue"]]} · {t["symbol"]} · {label}', f'포착일시 {clock(t["signal_ms"])} KST']
+    if t.get('capture_price'):
+        cap=t.get('entry_limit_price')
+        lines.append('포착가 '+unit_price(t['capture_price'],account['quote'])+
+                     ' / 매수상한 '+(unit_price(cap,account['quote']) if cap else '포착가+1틱 확인 중'))
     if t['status']=='ENTRY_PENDING' and not t.get('entry_ms'):
-        return lines+['상태: 매수 체결 대기 중']
+        return lines+['상태: 매수 체결 대기 중'+(' · 상한 초과 추격 없음' if t.get('entry_price_policy') else '')]
     average=t.get('buy_average') or (t['entry_cost']/t['entry_qty'] if t.get('entry_qty') else 0)
     lines.append('매수가 '+unit_price(average,account['quote']))
     bid,stamp=t.get('last_bid'),t.get('mark_ms');fx=account.get('fx_krw_per_quote')
@@ -67,6 +73,9 @@ def outcome_lines(t, account):
             lines.append(f'1틱 {t["entry_tick_pct"]:.2f}% · {t["entry_tick_limit_pct"]:g}% 이상 매수 제외')
             lines.append('판정 가격 '+unit_price(t['entry_tick_price'],account['quote'])+
                          ' / 호가 단위 '+unit_price(t['entry_tick_size'],account['quote']))
+        if t.get('entry_limit_price') and t.get('reason')=='ENTRY_LIMIT_UNFILLED':
+            lines.append('포착가 '+unit_price(t['capture_price'],account['quote'])+
+                         ' / 매수상한 '+unit_price(t['entry_limit_price'],account['quote']))
         if t.get('last_error'):lines.append('상세 사유: '+t['last_error'][:80])
         return lines
     cost=t['entry_cost'];fx=account.get('fx_krw_per_quote')
@@ -99,6 +108,8 @@ def portfolio_header(ledger, now_ms):
         lines.append('1D 당일시가 대비 TOP 5 · 09:01 기준 5분 갱신 · 이탈 및 −6% 손절')
     tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
     if tick_limit is not None:lines.append(f'진입 필터: 1틱 {tick_limit:g}% 이상 매수 제외')
+    if getattr(ledger,'entry_price_policy',None):
+        lines.append('매수: 포착 현재가+1틱 상한 · 10초 대기 · 초과 추격 없음')
     return lines,accounts
 
 
@@ -146,19 +157,21 @@ def menu(ledger):
     status='준비 중' if state is None else '진행 중' if state['enabled'] else '정지'
     tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
     tick_filter=f'진입 필터: 1틱 {tick_limit:g}% 이상 매수 제외\n' if tick_limit is not None else ''
+    entry_policy='매수: 포착 현재가+1틱 상한 · 10초 대기 · 초과 추격 없음\n' if getattr(ledger,'entry_price_policy',None) else ''
     return ('FAST 모의투자\n상태: '+status+'\n'
             '거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
             '당일 기준: 매일 07:30 KST · 자산과 누적 손익은 이어집니다.\n'
             '1D 당일시가 대비 TOP 5 · 09:01부터 5분 갱신\n'
             '+12% 익절 · TOP 5 이탈과 −6% 동시 충족 시 손절\n'
-            +tick_filter+'매매 기능은 재확인 후 실행합니다.',keyboard())
+            +tick_filter+entry_policy+'매매 기능은 재확인 후 실행합니다.',keyboard())
 
 
 def summary(data, daily=False):
     title = '📅 FAST 일일 모의투자 결과' if daily else '📊 FAST 모의투자'
     rows = [title, f'집계 {data["date"]} KST · '+('전일 청산 실현손익' if daily else '오늘 청산 실현손익'),
             '각 거래소 최초 100만원 · 종목당 20만원 · 최대 5종목',
-            'TOP 5 시장가 모의매수 · +12% 익절 · TOP 5 이탈 및 −6% 손절 · 시간제한 없음',
+            'TOP 5 모의매수 · +12% 익절 · TOP 5 이탈 및 −6% 손절 · 보유 시간제한 없음',
+            '신규 매수: 포착 현재가+1틱 상한 · 10초 미체결 취소',
             f'현재 잔고·평가 기준 {clock(data["now_ms"])} KST','']
     for a in data['accounts']:
         rows.append(f'{NAMES[a["venue"]]} · {a["quote"]}')
@@ -172,10 +185,10 @@ def summary(data, daily=False):
         rows.append(f'매수 체결 {a["bought"]} · 세션 완료 {a["closed"]} · 양수 {a["wins"]} · 제외/미체결 {a["skipped"]}')
         rows.append(f'현재 보유/대기 {len(a["active"])} · 매도 당일 재매수 금지(07:30 기준)')
         for version,c in a.get('cohorts',{}).items():
-            label=('v5 +12%/−6%' if version=='fast-target-v5' else 'v4 현재가 반복' if version=='fast-current-cycle-v4' else 'v3 1틱 반복' if version=='fast-tick-cycle-v3' else
+            label=('v6 포착가+1틱 상한' if version=='fast-capture-limit-v6' else 'v5 +12%/−6%' if version=='fast-target-v5' else 'v4 현재가 반복' if version=='fast-current-cycle-v4' else 'v3 1틱 반복' if version=='fast-tick-cycle-v3' else
                    'v2 거래량·가속/5분 보유' if version=='fast-volume-accel-v2' else 'v1 매수세/5분 보유')
             rows.append(f'{label} · 완료 {c["closed"]}건 전체 순손익 {money(c["closed_trade_pnl_krw"],True)}')
-            if version in ('fast-tick-cycle-v3','fast-current-cycle-v4','fast-target-v5'):
+            if version in ('fast-tick-cycle-v3','fast-current-cycle-v4','fast-target-v5','fast-capture-limit-v6'):
                 rows.append(f'지정가 매도 완료 {c["cycles"]}회 · 비용 전 {money(c["gross_krw"],True)} · 수수료 {money(c["fees_krw"])}')
                 rows.append(f'추가 슬리피지 {money(c["slippage_krw"])} · 시장가 청산 순손익 {money(c["forced_pnl_krw"],True)} (전체에 포함)')
         if a['unknown_marks']:
@@ -187,7 +200,8 @@ def summary(data, daily=False):
         rows.append('')
     rows += ['해외 자금은 최초 공개시세로 환산 후 환산율 고정(환율손익 제외).',
              '메이커/테이커 수수료 가정: 업비트 0.05/0.05%, 빗썸 0.04/0.04%, 바이낸스 0.1/0.1%, 크라켄 0.4/0.8%.',
-             '지정가: 대기 물량·실제 체결량 모형. 시장가: 호가 깊이+슬리피지 0.05%.',
+             'v6 매수: 상한 내 실제 호가 잔량만 반영 · 부족분 취소 · 매수 가격 가산 없음.',
+             '시장가 청산: 호가 깊이+슬리피지 0.05%.',
              '구버전 비용 유지. 자료 단절·잔량/최소주문 미달은 청산 지연 표시.',
              '모의투자 · 실제 주문 없음 · 매일 07:30 KST 전일 보고']
     return '\n'.join(rows)
@@ -200,11 +214,11 @@ def recent(ledger, now_ms):
             'v5 +12%/−6% · 포착→종료 KST · 순수익률은 배정 20만원 기준', '']
     trades = sessions(ledger,now_ms)
     for t in trades:
-        if t.get('execution_version')=='fast-target-v5':
+        if t.get('execution_version') in ('fast-target-v5','fast-capture-limit-v6'):
             timing=clock(t['signal_ms'])+'→'+(clock(t['close_ms']) if t.get('close_ms') else '진행')
             result=(f'{return_pct(t):+.2f}% · '+REASONS.get(t['reason'],t['reason'] or '') if t['status']=='CLOSED' else
                     '시장가 청산 대기' if t['status']=='EXIT_PENDING' else '익절/손절 대기' if t.get('entry_ms') else '매수 대기')
-            rows.append(f'{NAMES[t["venue"]]} {t["symbol"]} v5 | {timing} | {result}')
+            rows.append(f'{NAMES[t["venue"]]} {t["symbol"]} | {timing} | {result}')
             continue
         if tick(t):
             version='v4' if t['execution_version']=='fast-current-cycle-v4' else 'v3'
@@ -241,8 +255,8 @@ def history(ledger, now_ms):
     rows = ['📒 FAST 모의 거래내역 · 최근 10건 · KST']
     for t in sessions(ledger,now_ms):
         fx = ledger.account(t['venue'])['fx_krw_per_quote']
-        if t.get('execution_version')=='fast-target-v5':
-            rows += [f'\n{NAMES[t["venue"]]} {t["symbol"]} v5 · {t["status"]}',
+        if t.get('execution_version') in ('fast-target-v5','fast-capture-limit-v6'):
+            rows += [f'\n{NAMES[t["venue"]]} {t["symbol"]} · {t["status"]}',
                      f'포착 {clock(t["signal_ms"])} · 종료 '+(clock(t['close_ms']) if t.get('close_ms') else '대기'),
                      f'매수 평균 {t.get("buy_average",0):g} · 익절 주문 {t.get("take_profit_price",0):g} · 손절 기준 {t.get("stop_price",0):g}',
                      f'실현 {money(t["realized_quote"]*fx,True)} ({return_pct(t):+.2f}%/배정금) · '+REASONS.get(t['reason'],t['reason'] or '보유 중')]
@@ -296,3 +310,4 @@ def view(ledger, now_ms, kind='fast_report'):
         if date < ledger.report_day(ledger.started_ms):
             return '📅 FAST 전일 결과\n모의투자 시작 전 날짜입니다. 첫 일일 보고는 시작일 다음 날 07:30 KST입니다.', keyboard()
     return summary(ledger.snapshot(now_ms,date),daily=kind=='fast_daily'), keyboard()
+
