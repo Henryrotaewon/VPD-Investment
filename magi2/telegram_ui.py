@@ -16,7 +16,7 @@ COMMANDS = [
     ('status', 'MAGI1·2·3 상태 선택'), ('vpd', 'VPD 모의투자 메뉴'), ('report', 'VPD 모의투자 현황'),
     ('assets', '실계좌 자산 · 거래소별 조회'),
     ('shadows', 'shadows 모의투자 메뉴'), ('shadow', 'Shadow 현재 자산현황'), ('orders', 'Shadow 최근 3일 매매이력'),
-    ('scan', '최근 VPD 조회 · 오전/저녁 선택'),
+    ('scan', '최근 VPD 조회 · 오전/저녁 선택'), ('rescan', '현재 시점 VPD 재스캔 · 매매 없음'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('signals', 'FAST 포착 조회 · 기존 명령'),
     ('fast', 'FAST 모의투자 메뉴'), ('fast_captures', 'FAST 당일 포착 리스트'), ('fast_start', 'FAST 포착 및 매매 시작 · 재확인'), ('fast_report', 'FAST 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', 'FAST 모의 거래 상세'),
@@ -47,7 +47,7 @@ ALIASES = {
     '일괄정리 및 포착정지':'fast_clear', '포착 및 매매 시작':'fast_start',
     '🧪 shadow 자산': 'shadow', '📒 shadow 원장': 'orders', 'shadows 모의투자': 'shadows',
     '🐋 whale 참고': 'wave',
-    '🔎 vpd 조회': 'scan', '❓ 도움말': 'help', '📋 메뉴': 'menu',
+    '🔎 vpd 조회': 'scan', '🔄 vpd 재스캔': 'rescan', 'vpd 재스캔': 'rescan', '재스캔': 'rescan', '❓ 도움말': 'help', '📋 메뉴': 'menu',
     '🌐 WAVE 근거': 'wave', '⚡ 신호조회': 'signals',
     '🔄 paper 리밸런싱': 'morning', '♻️ paper 빈자리 채우기': 'refill',
     '리밸런싱': 'morning', '리벨런싱': 'morning', '종목리필': 'refill', '종목 리필': 'refill',
@@ -122,6 +122,7 @@ def vpd_keyboard():
     return {'inline_keyboard': [
         [{'text': '📊 현황 보고', 'callback_data': 'nav:report'},
          {'text': '🔎 VPD 조회', 'callback_data': 'nav:scan'}],
+        [{'text': '🧪 VPD 재스캔 · 매매 없음', 'callback_data': 'nav:rescan'}],
         [{'text': '🔄 리밸런싱', 'callback_data': 'nav:morning'},
          {'text': '♻️ 종목 리필', 'callback_data': 'nav:refill'}],
         [{'text': '🔁 전량 교체', 'callback_data': 'nav:rebuild'}],
@@ -145,7 +146,7 @@ def scan_keyboard():
 def help_text():
     return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
-            '/scan — 오전·저녁 VPD 선택\n/morning_scan · /evening_scan — 저장본 조회\n'
+            '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 현재 시장 국면·사유 (BTC·ETH 완료 일봉, 요청 시 조회)\n'
             '/fast — FAST 모의투자 메뉴\n/signals · /fast_captures — 당일 포착 리스트 (07:30 기준)\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — FAST 거래소별 잔고·오늘 손익\n/fast_orders — FAST 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 재확인 후 포착 및 매매 시작\n/fast_daily — FAST 전일 결과 (매일 07:30 KST 자동 보고)\n/fast_replay — 과거 재생검증\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
@@ -154,7 +155,7 @@ def help_text():
             '/cancel — 대기 중 확인 취소 (진행 중 작업 중단 아님)\n\n'
             '[화면]\n/menu — 버튼 메뉴\n/help — 이 안내\n\n'
             'magi 접두어 없이 report, help 또는 한글 버튼을 사용하세요. 기존 명령도 지원합니다.\n'
-            'VPD 조회는 신규 스캔을 실행하지 않습니다. 실거래 시작 명령은 제공하지 않습니다.')
+            'VPD 조회는 저장본 조회이며, /rescan만 현재 시점 신규 스캔을 실행합니다. /rescan은 매매하지 않습니다. 실거래 시작 명령은 제공하지 않습니다.')
 
 
 def observation_text(rows,view='signals'):
