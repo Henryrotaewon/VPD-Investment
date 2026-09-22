@@ -242,16 +242,19 @@ def finish_regime_job():
 def start_engine(mode,request_id=None):
     global ENGINE_JOB, ENGINE_MODE, SCAN_JOB, SCAN_CONTEXT
     if ENGINE_JOB is None or ENGINE_JOB.done(): finish_engine_job()
-    if mode in ('morning','rebuild'):
+    if mode in ('morning','rebuild','rescan'):
         if SCAN_JOB is not None or (ENGINE_JOB is not None and ENGINE_MODE in ('morning','rebuild')): return False
         now=datetime.now(KST)
         SCAN_CONTEXT={'asof':cutoff_for(now).isoformat(),'request_id':request_id,'mode':mode}
         SCAN_JOB=SCAN_EXECUTOR.submit(build_vpd,STATE_DIR/'vpd_rebalance.json',now)
         log(f'VPD scan started: mode={mode} asof={SCAN_CONTEXT["asof"]} request={request_id or "telegram"}')
-        action='전량 교체' if mode=='rebuild' else '리밸런싱'
-        telegram(f'🔎 VPD {action} 자료를 새로 조회하고 있습니다.\n'
-                 f'기준: {cutoff_for(now):%m/%d %H:%M} KST까지 완료된 분봉\n'
-                 f'전 종목을 같은 시각 기준으로 분석한 뒤 요청한 모의 {action} 작업을 실행합니다. 수 분 걸릴 수 있으며 기존 보유분 모니터는 계속 작동합니다.')
+        if mode=='rescan':
+            telegram(f'🧪 VPD 재스캔을 시작했습니다.\n기준: {cutoff_for(now):%m/%d %H:%M} KST까지 완료된 분봉\n전 종목을 같은 시각 기준으로 다시 분석합니다. 매매·보유판정·포트폴리오 변경은 수행하지 않습니다.')
+        else:
+            action='전량 교체' if mode=='rebuild' else '리밸런싱'
+            telegram(f'🔎 VPD {action} 자료를 새로 조회하고 있습니다.\n'
+                     f'기준: {cutoff_for(now):%m/%d %H:%M} KST까지 완료된 분봉\n'
+                     f'전 종목을 같은 시각 기준으로 분석한 뒤 요청한 모의 {action} 작업을 실행합니다. 기존 보유분 모니터는 계속 작동합니다.')
         return True
     if ENGINE_JOB is not None and not ENGINE_JOB.done(): return False
     if mode=='refill' and SCAN_JOB is not None: return False
@@ -285,6 +288,17 @@ def finish_scan_job():
     if ENGINE_JOB is not None and not ENGINE_JOB.done(): return
     finish_engine_job()
     context=SCAN_CONTEXT; SCAN_JOB=None; SCAN_CONTEXT=None
+    if context.get('mode')=='rescan':
+        top=(snapshot.get('top10') or [])[:10]
+        lines=['🧪 VPD 재스캔 완료 · 매매 없음', f'기준 {snapshot.get("asof_kst") or snapshot.get("asof") or "-"}', f'Scanner {snapshot.get("scanner","-")}', '', '📊 VPD TOP10']
+        for i,x in enumerate(top,1):
+            dv=x.get('VPDVelocity'); dvtxt='-' if dv is None else f'{float(dv):+.0f}'
+            risk=x.get('DistributionRisk','CLEAR'); rocket=' 🚀' if x.get('Rocket') else ''; new=' 🆕' if x.get('NEW_TOP10') else ''
+            lines.append(f'{i}. {x.get("coin","-")} | VPD {num(x.get("VPD"))} | Δ{dvtxt} | {x.get("momentum","-")} | {risk}{new}{rocket}')
+        lines += ['', '※ 조회 전용: 보유판정·매도·매수·리필 없음']
+        telegram('\n'.join(lines),vpd_keyboard())
+        log(f'VPD rescan completed read_only=true asof={snapshot.get("asof")}')
+        return
     if (snapshot.get('asof')!=context['asof'] or
             read_vpd(STATE_DIR/'vpd_rebalance.json',datetime.now(KST),context['asof']) is None):
         record_request(context.get('request_id'),'scan_expired')
@@ -400,12 +414,19 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram(help_text() if cmd=='help' else '📋 MAGI 메뉴\n시장 관측 · 전략 검증 · 자산 관리\n실계좌 조회·PAPER·Shadow를 구분해 표시합니다.\n역할별 안내는 🧩 MAGI 역할을 누르세요.',main_keyboard())
         elif cmd=='vpd':
             telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n'
-                     '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\n리밸런싱: 요청 시점 새 스캔 후 보유 종목 재조정\n종목 리필: 빈자리 채우기\n전량 교체: 모두 매도 후 새 VPD TOP10으로 균등 재구성\n'
+                     '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\nVPD 재스캔: 현재 시점 분석만 새로 수행 · 매매 없음\n리밸런싱: 요청 시점 새 스캔 후 보유 종목 재조정\n종목 리필: 빈자리 채우기\n전량 교체: 모두 매도 후 새 VPD TOP10으로 균등 재구성\n'
                      '실행 버튼을 누르면 먼저 확인 화면이 열립니다.',vpd_keyboard())
         elif cmd=='about': telegram(role_text(),role_keyboard())
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
         elif cmd=='morning_scan': return_magi1_state('morning')
         elif cmd=='evening_scan': return_magi1_state('evening')
+        elif cmd=='rescan':
+            if not may_execute(chat_id,user_id):
+                telegram('실행 권한이 없는 사용자입니다. 조회 메뉴는 이용할 수 있습니다.'); return
+            if SCAN_JOB is not None or (ENGINE_JOB is not None and not ENGINE_JOB.done()):
+                telegram('다른 VPD/PAPER 작업이 진행 중입니다. 완료 후 다시 선택하세요.'); return
+            if not start_engine('rescan'):
+                telegram('VPD 재스캔을 시작하지 못했습니다. 현재 작업 상태를 확인하세요.')
         elif cmd=='report':
             if not start_engine('report'): telegram('다른 PAPER 작업이 진행 중입니다. 잠시 후 다시 조회하세요.')
             else: telegram('📊 VPD 현황을 조회하고 있습니다. 결과를 곧 보내드리겠습니다.')
@@ -542,7 +563,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','menu','help','about','status','status1','status2','status3','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
