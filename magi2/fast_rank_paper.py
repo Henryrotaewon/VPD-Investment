@@ -1,7 +1,7 @@
 """TOP5 rotation state. Rank snapshots commit before any simulated order."""
 import hashlib
 import json
-from magi2.fast_target_paper import TargetLedger
+from magi2.fast_entry_limit import CaptureLimitLedger
 from magi2.fast_tick_paper import TickLedger
 from magi2.fast_paper import checked_book
 from magi2.fast_tick_rules import dec, floor_qty, valid_size
@@ -19,7 +19,7 @@ def rank_slot(ts):
     return (ts - 60000) // INTERVAL * INTERVAL + 60000
 
 
-class RankLedger(TargetLedger):
+class RankLedger(CaptureLimitLedger):
     entry_participation = 1.0
     book_only_profit = True
     # User-selected threshold: reject exactly 6% as well as larger ticks.
@@ -125,6 +125,8 @@ class RankLedger(TargetLedger):
                                     strategy_version=VERSION,allow_partial_budget=True)
                 t=self._trade(ident)
                 t.update(deadline_ms=None,take_profit_pct=12.,stop_loss_pct=-6.,rank_slot=snapshot['slot'],
+                         capture_price=row.get('price'),capture_ms=snapshot['saved_ms'],
+                         entry_price_policy=self.entry_price_policy,
                          previous_close=row.get('previous_close'),rise_pct=row['rise_pct'],
                          baseline_price=row.get('baseline_price',row.get('previous_close')),
                          rank_basis=row.get('basis','PREVIOUS_DAY_CLOSE'))
@@ -171,3 +173,4 @@ class RankLedger(TargetLedger):
                     return True
             self._save(t)
             return False
+
