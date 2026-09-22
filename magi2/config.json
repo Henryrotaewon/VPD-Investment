@@ -31,10 +31,10 @@
     "interval_minutes": 5
   },
   "entry": {
-    "policy": "ENTRY_SCORE_V1",
+    "policy": "ENTRY_SCORE_V1_1",
     "min_vpd": 70,
     "min_entry_score": 55,
-    "hard_max_giveback_pct_point": 20,
+    "hard_max_giveback_pct_point": 25,
     "hard_max_1d_pct": 20,
     "hard_min_1d_pct": -12,
     "watch_penalty": 10
