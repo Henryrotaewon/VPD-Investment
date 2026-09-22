@@ -1,4 +1,4 @@
-POLICY = 'ENTRY_SCORE_V1'
+POLICY = 'ENTRY_SCORE_V1_1'
 
 def _num(row, name, default=0.0):
     try:
@@ -33,7 +33,7 @@ def assess_entry(row, cfg):
         blocked.append('SPIKE_COLLAPSE')
     if risk == 'HIGH':
         blocked.append('DISTRIBUTION_HIGH')
-    if giveback >= float(ecfg.get('hard_max_giveback_pct_point', 20.0)):
+    if giveback >= float(ecfg.get('hard_max_giveback_pct_point', 25.0)):
         blocked.append('GIVEBACK_HARD')
     if vpd < float(ecfg.get('min_vpd', 70.0)):
         blocked.append('VPD_LOW')
@@ -69,13 +69,18 @@ def assess_entry(row, cfg):
         timing_score -= 4.0
     timing_score = max(0.0, timing_score)
 
-    if giveback <= 3.0:
+    # Giveback penalty starts only after 6%p and increases gradually.
+    # 0~6%p: no penalty, 6~9: -2, 9~12: -4,
+    # 12~15: -6, 15~20: -8, 20~25: -10, 25%p+: hard block.
+    if giveback <= 6.0:
         giveback_score = 10.0
-    elif giveback <= 5.0:
+    elif giveback <= 9.0:
         giveback_score = 8.0
-    elif giveback <= 8.0:
-        giveback_score = 5.0
     elif giveback <= 12.0:
+        giveback_score = 6.0
+    elif giveback <= 15.0:
+        giveback_score = 4.0
+    elif giveback <= 20.0:
         giveback_score = 2.0
     else:
         giveback_score = 0.0
