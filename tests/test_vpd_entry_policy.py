@@ -4,7 +4,7 @@ CFG = {
     'entry': {
         'min_vpd': 70,
         'min_entry_score': 55,
-        'hard_max_giveback_pct_point': 20,
+        'hard_max_giveback_pct_point': 25,
         'hard_max_1d_pct': 20,
         'hard_min_1d_pct': -12,
         'watch_penalty': 10,
@@ -67,3 +67,21 @@ def test_spike_collapse_never_enters():
     result = assess_entry(row(SpikeCollapse=True), CFG)
     assert result['eligible'] is False
     assert 'SPIKE_COLLAPSE' in result['reasons']
+
+
+def test_giveback_penalty_starts_after_six():
+    six = assess_entry(row(**{'Giveback%p': 6.0}), CFG)
+    nine = assess_entry(row(**{'Giveback%p': 9.0}), CFG)
+    twelve = assess_entry(row(**{'Giveback%p': 12.0}), CFG)
+    fifteen = assess_entry(row(**{'Giveback%p': 15.0}), CFG)
+    twenty = assess_entry(row(**{'Giveback%p': 20.0}), CFG)
+    assert six['components']['giveback'] == 10.0
+    assert nine['components']['giveback'] == 8.0
+    assert twelve['components']['giveback'] == 6.0
+    assert fifteen['components']['giveback'] == 4.0
+    assert twenty['components']['giveback'] == 2.0
+
+def test_giveback_twenty_five_is_hard_block():
+    result = assess_entry(row(**{'Giveback%p': 25.0}), CFG)
+    assert result['eligible'] is False
+    assert 'GIVEBACK_HARD' in result['reasons']
