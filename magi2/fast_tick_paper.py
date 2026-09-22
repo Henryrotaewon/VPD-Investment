@@ -13,7 +13,7 @@ TAKER_BPS = dict(upbit=5, bithumb=4, binance=10, kraken=80)
 
 
 def is_tick(t):
-    return t.get('execution_version') in (VERSION,'fast-current-cycle-v4','fast-target-v5')
+    return t.get('execution_version') in (VERSION,'fast-current-cycle-v4','fast-target-v5','fast-capture-limit-v6')
 
 
 def validate_tape(tape, now_ms):
@@ -340,3 +340,4 @@ class CurrentTickLedger(TickLedger):
         if p<dec(rules.get('min_price',0)) or (rules.get('max_price') and p>dec(rules['max_price'])):
             raise ValueError('PRICE_OUTSIDE_LIMITS')
         return float(p)
+
