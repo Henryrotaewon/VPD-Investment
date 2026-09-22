@@ -16,7 +16,8 @@ class RankPaperService(TargetPaperService):
         thread=Thread(target=self.launch_worker,daemon=True,name='fast-rank-launch')
         thread.start();self.threads.append(thread)
         self.log('fast_rank_policy top=5 baseline=exchange_day_open source=bulk_tickers schedule=KST_0901_every_5m '
-                 'stop=outside_top5_AND_minus6 profit=plus12_limit entry_depth=100pct cumulative=preserved')
+                 'stop=outside_top5_AND_minus6 profit=plus12_limit entry_depth=100pct cumulative=preserved '
+                 'entry_price=CAPTURE_LAST_PLUS_ONE_TICK entry_wait_sec=10 entry_chase=false')
         return self
 
     def launch_worker(self):
@@ -180,3 +181,4 @@ class FastRankMonitor(FastMonitor):
         if offset+size<len(selected):nav.append(dict(text='다음 ▶',callback_data=f'captures:{offset+size}'))
         markup['inline_keyboard'].insert(0,nav)
         return '\n'.join(lines),markup
+
