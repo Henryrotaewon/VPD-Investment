@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import time
 
-RESET_ID='fast-capture-limit-v6-fresh-20260922-v1'
+RESET_ID='fast-wave-indicator-v1-fresh-20260923-v1'
 
 
 def reset_once(root,log):
