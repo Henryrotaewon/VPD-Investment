@@ -3167,7 +3167,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 559.0,
+      "last_price": 557.0,
       "peak_price": 561.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -5548,8 +5548,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 448.0,
-      "peak_price": 450.0,
+      "last_price": 451.0,
+      "peak_price": 451.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -5576,7 +5576,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2701.0,
+      "last_price": 2699.0,
       "peak_price": 2701.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -5632,7 +5632,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 595.0,
+      "last_price": 594.0,
       "peak_price": 595.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -5660,8 +5660,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1509.0,
-      "peak_price": 1512.0,
+      "last_price": 1514.0,
+      "peak_price": 1514.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     }
@@ -5676,7 +5676,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-24T08:59:00.512444+09:00",
+  "updated_at": "2026-09-24T09:04:01.514109+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
