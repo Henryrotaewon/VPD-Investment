@@ -1,0 +1,30 @@
+name: Five Asset Reentry Public Data Research
+on:
+  push:
+    branches: [research/ark-daily-20260911]
+    paths:
+      - research/five_asset_reentry_20260910/policy.json
+      - research/five_asset_reentry_20260910/collect.py
+      - .github/workflows/five-asset-reentry-research.yml
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/ark-daily-20260911
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Collect specified public candles only
+        run: PYTHONPATH=. python research/five_asset_reentry_20260910/collect.py
+      - name: Archive public data on research branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/five_asset_reentry_20260910/data
+          git diff --cached --quiet || git commit -m 'Archive five-asset public candles for reentry study'
+          git push origin HEAD:research/ark-daily-20260911
