@@ -652,7 +652,7 @@ def main():
     global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT
     prepare_persistent_state()
     from magi2.fast_reset import reset_once
-    reset_once(STATE_DIR,log)
+    fast_was_reset=reset_once(STATE_DIR,log)
     WAVE_CLIENT=WaveClient(os.getenv('MAGI1_INTELLIGENCE_URL',''),
                            os.getenv('MAGI_INTELLIGENCE_TOKEN',''),log).start()
     start_shadow_bridge(STATE_DIR,GITHUB_REPO,log)
@@ -669,10 +669,10 @@ def main():
     from magi2.fast_bulk_rank import FastBulkRankMonitor as FastMonitor
     from magi2.fast_rank_monitor import RankPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
-    # Explicit user request: reset the bulk-1D trial and resume once after reset.
-    launch_ms=time.time_ns()//1000000
-    if FAST_PAPER.ledger.configure_launch(launch_ms,time.time_ns()//1000000):
-        log('fast_rank_launch_scheduled mode=immediate_after_reset at_ms='+str(launch_ms))
+    # A reset clears history; it must not restart the retired TOP5 experiment.
+    if fast_was_reset:
+        FAST_PAPER.clear()
+        log('fast_reset_ready paused=true legacy_autostart=false replacement=preparation')
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
