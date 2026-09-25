@@ -115,6 +115,24 @@ def backup(storage, dest):
     return maximum
 
 
+def recover_archive_workspace(root):
+    """Remove abandoned archive scratch databases left by interrupted compaction."""
+    work = Path(root) / 'archive_work'
+    if not work.exists():
+        return {'removed': 0, 'bytes': 0}
+    removed = freed = 0
+    for path in work.iterdir():
+        name = path.name
+        scratch = (name.startswith(('old-check.db', 'new-check.db')) or
+                   (name.startswith('research-') and ('.db' in name)))
+        if scratch and path.is_file():
+            size = path.stat().st_size
+            path.unlink(missing_ok=True)
+            removed += 1; freed += size
+    LOG.info('archive_workspace_recovered removed=%d freed_bytes=%d', removed, freed)
+    return {'removed': removed, 'bytes': freed}
+
+
 def prune_research(storage, max_rowid, cutoff_ms):
     with storage._lock:
         storage.db.execute('DELETE FROM records WHERE rowid<=? AND ts_ms>0 AND ts_ms<?', (max_rowid, cutoff_ms))
