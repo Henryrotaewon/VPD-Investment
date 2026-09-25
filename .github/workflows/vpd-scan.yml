@@ -2,6 +2,7 @@ name: MAGI1 Scan
 
 on:
   push:
+    branches: [main]
     paths:
       - '.github/vpd-trigger.txt'
   workflow_dispatch:
@@ -24,12 +25,15 @@ concurrency:
 
 jobs:
   scan:
+    # Production publication also targets main; reject manual feature-branch runs.
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -51,6 +55,7 @@ jobs:
           echo "value=$SESSION" >> "$GITHUB_OUTPUT"
           echo "MAGI1 session: $SESSION"
       - name: Run MAGI1 scan
+        id: scan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -58,12 +63,16 @@ jobs:
           MAGI1_SESSION: ${{ steps.session.outputs.value }}
         run: python scanner/run_vpd_action_v1_6.py
       - name: Refresh scanner outputs
-        run: git pull --rebase origin main
+        id: refresh
+        run: git pull --ff-only origin main
       - name: Run WPI5/VWPI5 shadow and 30-day validation
+        id: shadow
         run: python scanner/wpi5_shadow.py
       - name: Run VWPI5 200-market expanded validation
+        id: expanded
         run: python scanner/vwpi5_validation_200.py
       - name: Commit shadow validation outputs
+        id: publish
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -79,9 +88,16 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SCAN_SESSION: ${{ steps.session.outputs.value }}
+          SCAN_RESULT: ${{ steps.scan.outcome }}
+          REFRESH_RESULT: ${{ steps.refresh.outcome }}
+          SHADOW_RESULT: ${{ steps.shadow.outcome }}
+          EXPANDED_RESULT: ${{ steps.expanded.outcome }}
+          PUBLISH_RESULT: ${{ steps.publish.outcome }}
         run: |
-          MSG="🚨 MAGI1 ${{ steps.session.outputs.value }} scan FAILED\nRepo: ${GITHUB_REPOSITORY}\nRun: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\nCommit: ${GITHUB_SHA}"
+          printf -v MSG '🚨 MAGI1 %s workflow FAILED\n스캔: %s\n결과 동기화: %s\nShadow 검증: %s\n확장 검증: %s\n검증결과 저장: %s\nRepo: %s\nRun: %s/%s/actions/runs/%s\nCommit: %s' \
+            "$SCAN_SESSION" "$SCAN_RESULT" "$REFRESH_RESULT" "$SHADOW_RESULT" "$EXPANDED_RESULT" "$PUBLISH_RESULT" \
+            "$GITHUB_REPOSITORY" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_SHA"
           curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MSG}"
-

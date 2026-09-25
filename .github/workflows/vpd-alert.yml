@@ -2,6 +2,7 @@ name: VPD Telegram Alert
 
 on:
   push:
+    branches: [main]
     paths:
       - '.github/vpd-alert-trigger.txt'
 
@@ -10,10 +11,13 @@ permissions:
 
 jobs:
   alert:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Send Telegram alert
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
