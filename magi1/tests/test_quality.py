@@ -38,11 +38,21 @@ class QualityTests(unittest.TestCase):
         y=replace(x,trade_id='b',received_ts_ms=1)
         e.ingest(x);e.ingest(y);e.ingest(replace(x,received_ts_ms=2))
         self.s.flush();self.assertEqual(self.s.raw_stats['kinds']['trade']['count'],2)
-    def test_unchanged_book_heartbeat_changed_books_preserved(self):
+    def test_book_heartbeat_and_features_continue_without_raw_writes(self):
         e=ResearchEngine(self.s,['BTC'],0)
-        for t in [0,100,200,1000]:e.ingest(self.event(t))
-        e.ingest(self.event(1001,99,102));self.s.flush()
-        self.assertEqual(self.s.raw_stats['kinds']['book']['count'],3)
+        key=('upbit','BTC')
+        for ts,heartbeat in [(0,0),(100,0),(200,0),(1000,1000)]:
+            e.ingest(self.event(ts))
+            self.assertEqual(e.raw_books[key][1],heartbeat)
+        changed=self.event(1001,99,102)
+        e.ingest(changed);self.s.flush()
+        self.assertEqual(e.raw_books[key][1],1001)
+        self.assertEqual(e.features.books[key],changed)
+        self.assertEqual(e.quotes.at('upbit','BTC',1001)[1:3],(99.0,102.0))
+        self.assertNotIn('book',self.s.raw_stats['kinds'])
+        self.assertFalse(list(self.s.raw.glob('book-*.jsonl.gz')))
+        self.assertEqual(sum(v for k,v in self.s.restore('quality_counts_v2').items()
+                             if 'UNCHANGED_BOOK' in k),2)
     def test_cleanup_preserves_valid_and_counts_missing_idempotently(self):
         self.s.append('evaluation',{'event_ts_ms':1000,'status':'COMPLETE','asset':'BTC'})
         self.s.append('evaluation',{'event_ts_ms':1000,'status':'MISSING_DATA','asset':'BTC'})
