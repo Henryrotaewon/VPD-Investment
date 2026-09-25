@@ -26,12 +26,34 @@ class IndicatorLedger(CaptureLimitLedger):
             self.db.execute('CREATE TABLE IF NOT EXISTS indicator_signals('
                             'id TEXT PRIMARY KEY, ts_ms INTEGER, venue TEXT, symbol TEXT, payload TEXT)')
             self.db.execute('CREATE INDEX IF NOT EXISTS indicator_marks_date ON indicator_marks(date,ts_ms)')
+            self.policy_review_required = bool(self.db.execute(
+                "SELECT 1 FROM paper_meta WHERE key='daily_policy_review_required'").fetchone())
+
+    def suspend_for_daily_review(self, now_ms):
+        """Stop new entries without selling holdings or deleting the old trial."""
+        with self.lock, self.db:
+            self.policy_review_required = True
+            self.db.execute('INSERT OR REPLACE INTO paper_meta VALUES(?,?)',
+                            ('daily_policy_review_required', 'true'))
+            if self.control()['enabled']: self._control(False, now_ms)
+            canceled = 0
+            for venue in ('upbit','bithumb','binance','kraken'):
+                for trade in self._active(venue):
+                    if trade['status'] == 'ENTRY_PENDING':
+                        self._request_exit(trade, now_ms, 'DAILY_POLICY_REVIEW')
+                        canceled += 1
+            return canceled
+
+    def resume(self, now_ms):
+        if self.policy_review_required: return False
+        return super().resume(now_ms)
 
     def offer(self, *args, **kwargs):
         # Require the reproducible indicator + fresh flow decision path below.
         return False
 
     def offer_decision(self, result, capture_price, capture_ms, now_ms, generation):
+        if self.policy_review_required: return False
         result = evaluate(result.get('observations', []), now_ms, flow=result.get('flow'))
         if (not result['paper_candidate'] or not 0 <= now_ms-capture_ms <= 3000
                 or not math.isfinite(capture_price) or capture_price <= 0):
@@ -160,6 +182,9 @@ class IndicatorPaperService(TargetPaperService):
         target = Path(root)/'indicator_paper'/COHORT
         target.mkdir(parents=True, exist_ok=True)
         super().__init__(target, log, **kwargs)
+        canceled = self.ledger.suspend_for_daily_review(self.clock())
+        log(f'indicator_daily_review entry_enabled=false minute_capture_enabled=false '
+            f'canceled_entries={canceled} existing_trial_preserved=true live_orders=false')
 
     def daily(self, send):
         ts = self.clock(); self.ledger.record_mark(ts)

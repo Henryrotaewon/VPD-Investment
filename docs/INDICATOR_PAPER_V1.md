@@ -1,5 +1,9 @@
 # FAST indicator acceleration PAPER v1
 
+Superseded for new entries by `DAILY_INDICATOR_REVIEW.md`: the user clarified
+daily D-close signal / D+1 session-open intent. The minute-based runtime is held
+and its results remain a separate, unapproved historical trial.
+
 Replaces the retired WAVE propagation UI and legacy TOP5 runtime. This is a new
 paper cohort, not a validated profitability claim or a live-order integration.
 

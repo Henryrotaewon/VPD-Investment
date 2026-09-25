@@ -156,7 +156,7 @@ class TradePlanTests(unittest.TestCase):
         for strategy in ('fast','wave'):
             text = strategy_text(strategy)
             self.assertLess(len(text.encode('utf-16-le'))//2, 4096)
-            for required in ('MACD','RSI','Williams','PAPER','실제 주문 없음','100만원','60분'):
+            for required in ('MACD','RSI','Williams','일봉','미확정','D+1','자동 포착·예약매수·실주문에 연결하지'):
                 self.assertIn(required, text)
             self.assertNotIn('시작과 확산', text)
         self.assertFalse(policy()['live_enabled'])
