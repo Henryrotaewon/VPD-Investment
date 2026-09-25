@@ -1,0 +1,17 @@
+name: Public candle diagnostic
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Read public Bithumb candles
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          url = 'https://api.bithumb.com/v1/candles/days?market=KRW-BTC&count=2'
+          with urllib.request.urlopen(url, timeout=15) as r:
+              print(json.dumps(json.load(r), ensure_ascii=False))
+          PY
