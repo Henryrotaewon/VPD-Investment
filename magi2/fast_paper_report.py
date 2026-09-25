@@ -107,6 +107,10 @@ def portfolio_header(ledger, now_ms):
                      ' / 보유 평가손익 '+money(equity-cash-invested if equity is not None else None,True))
     state=ledger.control() if hasattr(ledger,'control') else {'enabled':True}
     lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
+    if getattr(ledger,'policy_review_required',False):
+        lines += ['이전 분 단위 모의 실험 이력 · 일봉 전략 성적이 아닙니다.',
+                  '신규 매수 중지 · 일봉 포착 가중치·임계값·매도 조건 검토 중']
+        return lines,accounts
     if getattr(ledger,'indicator_strategy',False):
         lines += ['MACD·RSI·거래량·Williams 가속도 + 수급 확인',
                   '+12%/−6% · 수익 보호 +6%→2%p · 지표 약화 · 최대 60분']
@@ -161,6 +165,13 @@ def keyboard():
 
 
 def menu(ledger):
+    if getattr(ledger,'policy_review_required',False):
+        return ('FAST · 일봉 가속도 전략 설계 검토\n'
+                '분 단위 포착·신규 모의매수 중지\n'
+                'D일 확정 일봉 신호 → D+1일 일봉 시작 매수 구상\n'
+                'MACD 12·26·9 / RSI 14·신호 9 / Williams %R 14 / 거래량 MA 5·10·20\n'
+                '종합 가중치·포착 임계값·매도 조건 미확정\n'
+                '아래 모의 결과는 이전 실험 이력입니다.',keyboard())
     state=ledger.control() if ledger else None
     status='준비 중' if state is None else '진행 중' if state['enabled'] else '정지'
     tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
@@ -324,4 +335,3 @@ def view(ledger, now_ms, kind='fast_report'):
         if date < ledger.report_day(ledger.started_ms):
             return '📅 FAST 전일 결과\n모의투자 시작 전 날짜입니다. 첫 일일 보고는 시작일 다음 날 07:30 KST입니다.', keyboard()
     return summary(ledger.snapshot(now_ms,date),daily=kind=='fast_daily'), keyboard()
-

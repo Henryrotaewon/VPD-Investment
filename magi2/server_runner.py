@@ -485,6 +485,8 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd in ('fast_clear','fast_start'):
             if not may_execute(chat_id,user_id):
                 telegram('실행 권한이 없는 사용자입니다.'); return
+            if cmd=='fast_start' and FAST_PAPER and getattr(FAST_PAPER.ledger,'policy_review_required',False):
+                telegram('일봉 가속도 전략 설계 검토 중입니다.\n포착 임계값·가중치·매도 조건 미확정으로 신규 모의매수는 중지했습니다.\n전략검증에서 확정 범위를 확인하세요.'); return
             if FAST_PAPER:
                 prompt=('일괄정리 및 포착정지를 실행하시겠습니까?\n'
                         '신규 포착·매수를 중지하고, 매수 대기를 취소한 뒤 보유분을 시장가로 모의매도합니다.'
@@ -598,6 +600,8 @@ def handle_callback(callback):
         if action=='fast_start':
             from magi2.fast_paper_report import keyboard
             if not FAST_PAPER: telegram('FAST 모의원장 준비 중입니다.')
+            elif getattr(FAST_PAPER.ledger,'policy_review_required',False):
+                telegram('일봉 가속도 전략 설계 검토 중입니다. 포착·매도 기준 확정 전에는 재개하지 않습니다.',keyboard())
             elif FAST_PAPER.resume():
                 telegram('FAST 포착 및 매매를 시작했습니다.\n신규 포착부터 가용 예수금으로 투자합니다.\n전일 지표와 새로운 관측 3개를 준비한 뒤 포착을 시작합니다.',keyboard())
             else:
