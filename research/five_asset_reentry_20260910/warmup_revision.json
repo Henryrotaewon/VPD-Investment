@@ -1,0 +1,9 @@
+{
+  "revision": "warmup-100-with-original-150-sensitivity",
+  "timing": "Defined after collection found B3/SPK shorter native histories, before calculating any five-asset strategy returns.",
+  "original_minimum_completed_history": 150,
+  "effective_minimum_completed_history": 100,
+  "reason": "At Sep10 B3 has 126 native daily observations and SPK 140. The existing magi2.fast_wave_indicator.Policy minimum history is 100. MACD/RSI/Williams can be calculated with these histories; 150 was an added study gate, not an API permission or user requirement.",
+  "unchanged": "All indicator definitions, entry/exit thresholds, costs, allocation, date boundaries and tomorrow price scenarios remain frozen. No fabricated pre-listing candles or other-exchange history.",
+  "sensitivity": "Also run the original 150-completed-day eligibility rule at each signal time. Show its impact explicitly rather than mislabeling 100-day results as the original protocol."
+}
