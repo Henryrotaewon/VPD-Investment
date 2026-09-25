@@ -15,6 +15,29 @@ import aiohttp
 LOG = logging.getLogger('magi1.archive')
 API = 'https://www.googleapis.com/drive/v3/files'
 FIELDS = 'id,name,size,md5Checksum,appProperties,trashed'
+OAUTH_ACTIONS = {
+    'invalid_grant': 'reauthorize_same_client_and_account',
+    'invalid_client': 'check_client_id_and_secret',
+    'unauthorized_client': 'check_client_type_and_grant',
+    'invalid_request': 'check_refresh_configuration',
+    'invalid_scope': 'check_granted_scopes',
+    'temporarily_unavailable': 'retry_later',
+    'server_error': 'retry_later',
+}
+
+
+async def oauth_failure(response):
+    # Emit only fixed, allowlisted codes. Google response text may contain secrets.
+    try:
+        payload = await response.json()
+    except (ValueError, aiohttp.ContentTypeError):
+        payload = {}
+    code = payload.get('error') if isinstance(payload, dict) else None
+    if not isinstance(code, str) or code not in OAUTH_ACTIONS:
+        code = 'unknown'
+    action = OAUTH_ACTIONS.get(code, 'inspect_oauth_configuration')
+    return RuntimeError('Drive OAuth refresh HTTP %s code=%s action=%s' %
+                        (response.status, code, action))
 
 
 def digest(path):
@@ -42,7 +65,7 @@ class Drive:
             data['grant_type'] = 'refresh_token'
             async with self.session.post('https://oauth2.googleapis.com/token', data=data) as r:
                 if r.status != 200:
-                    raise RuntimeError('Drive OAuth refresh HTTP %s' % r.status)
+                    raise await oauth_failure(r)
                 result = await r.json()
                 self.token = result['access_token']
                 self.expires = time.time() + result.get('expires_in', 3600) - 120

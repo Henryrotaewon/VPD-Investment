@@ -17,10 +17,13 @@ def main():
     parser = argparse.ArgumentParser(description="Authorize MAGI1 Drive access on your own PC")
     parser.add_argument("--client-json", required=True, type=Path,
                         help="Downloaded Desktop OAuth client JSON (keep outside repository)")
+    parser.add_argument("--output", type=Path,
+                        default=Path.home() / ".magi1" / "railway-drive-variables.json",
+                        help="New private output file; existing files are never overwritten")
     args = parser.parse_args()
-    destination = Path.home() / ".magi1" / "railway-drive-variables.json"
+    destination = args.output.expanduser()
     if destination.exists():
-        parser.error("Credential file already exists under your home .magi1 directory; preserve it before reauthorizing.")
+        parser.error("Output file already exists; choose a new --output path to preserve existing credentials.")
     destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     from google_auth_oauthlib.flow import InstalledAppFlow
     from google.auth.transport.requests import Request
@@ -42,7 +45,7 @@ def main():
     print("Saved privately to: " + str(destination))
     print("Paste this JSON only into Railway MAGI1-Flow Variables / Raw Editor.")
     print("Do not send it in chat, upload it to Drive, or commit it to GitHub.")
-    print("Uploader is not enabled by this helper. It creates no Drive files.")
+    print("This helper does not change Railway settings or create Drive files.")
 
 if __name__ == "__main__":
     main()
