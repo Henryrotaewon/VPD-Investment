@@ -117,7 +117,8 @@ class SessionTests(unittest.TestCase):
     def test_main_and_submenu_exact_and_start_requires_confirm(self):
         from magi2 import server_runner as server
         main=[b['text'] for r in main_keyboard()['keyboard'] for b in r]
-        self.assertEqual([b for b in main if 'FAST' in b],['FAST 모의투자'])
+        self.assertIn('지표가속 모의투자',main)
+        self.assertNotIn('FAST 모의투자',main)
         self.assertEqual([b['text'] for r in keyboard()['inline_keyboard'] for b in r],
             ['포착 리스트','모의투자 결과','일괄정리 및 포착정지','포착 및 매매 시작','일별 평가','관측 상태','매매 이력','전략 설명'])
         paper=Mock();paper.resume.return_value=True

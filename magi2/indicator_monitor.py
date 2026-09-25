@@ -134,12 +134,12 @@ class IndicatorMonitor:
 
     def summary(self):
         if getattr(self.paper.ledger,'policy_review_required',False):
-            return ('일봉 가속도 전략 · 설계 검토 중\n'
+            return ('지표가속 · 일봉 전략 설계 검토 중\n'
                     '분 단위 포착·신규 매수 중지. 이전 모의 이력은 별도 보존합니다.\n'
                     'D일 확정 일봉까지의 지표 변화·가속도 → D+1일 일봉 시작 매수 구상.\n'
                     '현재 일봉 자동 포착은 아직 시작하지 않았습니다. 가중치·임계값·매도 조건 미확정.')
         from magi2.fast_paper_report import NAMES
-        lines=['⚡ FAST · '+LABEL,'거래소별 거래대금 상위 20종목 + 보유종목 · 약 1분 관측',
+        lines=['⚡ 지표가속 · '+LABEL,'거래소별 거래대금 상위 20종목 + 보유종목 · 약 1분 관측',
                '전일 확정 지표와 현재 변화·가속도 비교 → 기술점수 상위 5개 수급 확인',
                '후보가 부족하면 현금 유지 · 점수는 승률이 아닙니다.','']
         with self.lock: states=dict(self.state)
@@ -159,7 +159,7 @@ class IndicatorMonitor:
             rows=self.paper.ledger.db.execute('SELECT ts_ms,venue,symbol,payload FROM indicator_signals '
                 'WHERE ts_ms>=? AND ts_ms<=? ORDER BY ts_ms DESC',(start,ts)).fetchall()
         size=8;offset=min(max(0,offset)//size*size,max(0,(len(rows)-1)//size*size))
-        lines=['⚡ FAST 지표 가속도 포착',f'{day(ts)} 07:30 이후 · 수급 확인 {len(rows)}건','']
+        lines=['⚡ 지표가속 포착',f'{day(ts)} 07:30 이후 · 수급 확인 {len(rows)}건','']
         if getattr(self.paper.ledger,'policy_review_required',False):
             lines.insert(0,'이전 분 단위 실험 이력 · 신규 포착 중지 · 일봉 전략 결과 아님')
         for stamp,venue,symbol,payload in rows[offset:offset+size]:

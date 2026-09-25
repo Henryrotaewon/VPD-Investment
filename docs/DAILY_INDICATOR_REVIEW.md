@@ -1,5 +1,11 @@
 # Daily indicator strategy — user design review
 
+Telegram name: **지표가속**, with the main button **지표가속 모의투자**
+and `/indicator` entry point. FAST remains a separate future strategy, not a
+synonym for this strategy. Existing `fast_*` Telegram commands/callbacks remain
+compatibility routes for the current indicator screens; they do not restart FAST.
+This naming change does not approve or activate an entry or exit policy.
+
 Supersedes the unagreed minute acceleration trial. Its runtime capture and new
 entries are stopped, pending buys canceled, and historical results preserved.
 Already-open trial positions retain their stored risk handling; no liquidation
