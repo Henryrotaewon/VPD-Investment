@@ -1,0 +1,61 @@
+{
+  "scope": {
+    "mode": "CONDITIONAL_SEP18_REENTRY_HOLD_REVIEW",
+    "user_update_kst": "2026-09-26T02:51:30+09:00",
+    "entry": "First two-consecutive-hour confirmation of the Sep18 provisional daily recovery hypothesis; enter next actual five-minute open. Conditional on being flat then, not a claim that the entire first-leg strategy creates this state.",
+    "initial_capital_krw": 3000000,
+    "hold_exit": "Reuse prior study B: at least two daily indicator first differences are negative AND completed daily close strictly below the prior daily low. No five-day endpoint liquidation or +12%/5% partial trail.",
+    "initial_structure_stop": "First completed hourly close strictly below the already observed signal-day low at entry. Fixed from information known at entry; never widened. Next actual five-minute opening reference.",
+    "control": "At the same entry, compare the prior 50% C plus 50% A scenario. Do not compare different entry prices as exit-rule performance.",
+    "fee_per_side": 0.0005,
+    "slippage_per_side": 0.0005,
+    "tomorrow": "2026-09-27 KST. No future price is available. Report current marked equity and hypothetical current liquidation separately; no realized sale on Sep27 and no scheduled action.",
+    "caveat": "Single-asset, post-outcome design review. The Sep16 false reentry signal is not solved by selecting the Sep18 case. No runtime changes, no orders, no claims of independent validation."
+  },
+  "data_cutoff_kst": "2026-09-26T02:30:00+09:00",
+  "entry": {
+    "signal_kst": "09/18 19:00",
+    "fill_kst": "09/18 19:00",
+    "price": 191.0,
+    "initial_structure_stop": 185.0,
+    "quantity": 15691.111248696008
+  },
+  "actual_simulated_exit": null,
+  "pending_exit": null,
+  "current": {
+    "price": 314.0,
+    "marked_equity": 4927008.932090547,
+    "marked_return_pct": 64.23363106968489,
+    "hypothetical_liquidation_equity": 4922083.15491069,
+    "hypothetical_liquidation_pct": 64.069438497023,
+    "realized_pnl": 0,
+    "last_completed_daily_label": "09/24",
+    "previous_daily_low_for_current_daily_exit": 214.0
+  },
+  "controls": {
+    "A": {
+      "exit_kst": "09/22 09:00",
+      "price": 208.0,
+      "net_pct": 8.682940150894192
+    },
+    "C": {
+      "exit_kst": "09/20 01:00",
+      "price": 208.0,
+      "net_pct": 8.682940150894192
+    }
+  },
+  "split_control_net_pct": 8.682940150894192,
+  "close_to_close_drawdown_pct": 12.5,
+  "drawdown_pair": {
+    "peak_price": 280.0,
+    "peak_kst": "09/25 09:40",
+    "trough_price": 245.0,
+    "trough_kst": "09/25 10:40"
+  },
+  "future_exit_formula": "net_return(P) = (P / entry_reference) * (1-slip)*(1-fee)/((1+slip)*(1+fee)) - 1",
+  "limits": [
+    "Conditional Sep18 entry only, not a fully validated reentry strategy.",
+    "Current liquidation is hypothetical, not a future Sep27 sale.",
+    "Whole-hour close confirmation can miss intra-hour breaks; drawdown metric uses five-minute closes."
+  ]
+}
