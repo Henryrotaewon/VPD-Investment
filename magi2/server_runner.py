@@ -21,7 +21,6 @@ from magi2.strategy_guide import strategy_keyboard, strategy_text
 from magi2.execution_client import view as execution_view
 from magi2.shadow_bridge import start as start_shadow_bridge
 from magi2.magi1_intelligence import load_intelligence, fetch_intelligence
-from magi2.wave_view import WaveClient, render as render_wave
 from magi2.point_in_time_scan import build_snapshot as build_vpd, read_snapshot as read_vpd, cutoff_for
 from magi2.market_regime import view as regime_view, keyboard as regime_keyboard, unavailable as regime_unavailable
 
@@ -497,15 +496,14 @@ def handle_command(text,chat_id=None,user_id=None):
                          CONFIRMATIONS.issue(cmd,chat_id,user_id))
             else: telegram('FAST 모의원장 준비 중입니다.')
         elif cmd in ('fast_report','fast_orders','fast_daily','fast_balance'):
-            from magi2.fast_paper_report import view
+            from magi2.indicator_report import view
             telegram(*view(FAST_PAPER.ledger if FAST_PAPER else None,time.time_ns()//1000000,cmd))
         elif cmd=='fast_replay':
             from magi2.fast_report import view
             root=os.getenv('FAST_PAPER_REPORT_DIR',str(STATE_DIR/'fast'))
             telegram(*view(root))
         elif cmd=='fast_compare':
-            from magi2.fast_comparison import report
-            telegram(report(FAST_MONITOR.audit,time.time_ns()//1000000) if FAST_MONITOR else 'FAST 검증 자료 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
+            telegram(FAST_MONITOR.summary() if FAST_MONITOR else '지표 관측 준비 중입니다.',strategy_keyboard(detail=True,fast=True))
         elif cmd in ('signals','fast_captures'):
             if FAST_MONITOR: telegram(*FAST_MONITOR.captures())
             else: telegram('FAST 포착 자료 준비 중입니다.')
@@ -518,7 +516,7 @@ def handle_command(text,chat_id=None,user_id=None):
 
 
 def send_wave(section='overview',offset=0):
-    telegram(*(WAVE_CLIENT.view(section,offset) if WAVE_CLIENT else render_wave(None,section,offset)))
+    telegram(strategy_text('wave'),strategy_keyboard(detail=True,fast=True))
 
 
 def send_shadow_orders(until=None,offset=0):
@@ -538,7 +536,16 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('wave:'):
+    if data.startswith('indicator_daily:') and FAST_PAPER:
+        from magi2.indicator_report import daily_view
+        try:telegram(*daily_view(FAST_PAPER.ledger,data.split(':',1)[1],time.time_ns()//1000000))
+        except ValueError:return
+    elif data.startswith('indicator_orders:') and FAST_PAPER:
+        from magi2.indicator_report import orders_view
+        try:offset=int(data.split(':',1)[1])
+        except ValueError:return
+        if 0<=offset<=1000000:telegram(*orders_view(FAST_PAPER.ledger,time.time_ns()//1000000,offset))
+    elif data.startswith('wave:'):
         try:
             _,section,offset=data.split(':')
             offset=int(offset)
@@ -592,7 +599,7 @@ def handle_callback(callback):
             from magi2.fast_paper_report import keyboard
             if not FAST_PAPER: telegram('FAST 모의원장 준비 중입니다.')
             elif FAST_PAPER.resume():
-                telegram('FAST 포착 및 매매를 시작했습니다.\n신규 포착부터 가용 예수금으로 투자합니다.\n5분 비교 자료를 준비한 뒤 포착을 시작합니다.',keyboard())
+                telegram('FAST 포착 및 매매를 시작했습니다.\n신규 포착부터 가용 예수금으로 투자합니다.\n전일 지표와 새로운 관측 3개를 준비한 뒤 포착을 시작합니다.',keyboard())
             else:
                 telegram('일괄정리 청산이 아직 남아 있어 시작하지 않았습니다.\n모의투자 결과에서 청산 상태를 확인한 뒤 다시 시작하세요.',keyboard())
             return
@@ -652,9 +659,8 @@ def main():
     global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT
     prepare_persistent_state()
     from magi2.fast_reset import reset_once
-    fast_was_reset=reset_once(STATE_DIR,log)
-    WAVE_CLIENT=WaveClient(os.getenv('MAGI1_INTELLIGENCE_URL',''),
-                           os.getenv('MAGI_INTELLIGENCE_TOKEN',''),log).start()
+    reset_once(STATE_DIR,log)
+    WAVE_CLIENT=None  # Retired propagation view; old buttons route to indicator guide.
     start_shadow_bridge(STATE_DIR,GITHUB_REPO,log)
     if not BOT_TOKEN or not ALLOWED_CHAT_ID: raise RuntimeError('TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required.')
     try: backup_paper_history()
@@ -666,13 +672,10 @@ def main():
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
-    from magi2.fast_bulk_rank import FastBulkRankMonitor as FastMonitor
-    from magi2.fast_rank_monitor import RankPaperService as PaperService
+    from magi2.indicator_monitor import IndicatorMonitor as FastMonitor
+    from magi2.indicator_paper import IndicatorPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
-    # A reset clears history; it must not restart the retired TOP5 experiment.
-    if fast_was_reset:
-        FAST_PAPER.clear()
-        log('fast_reset_ready paused=true legacy_autostart=false replacement=preparation')
+    log('indicator_paper_ready legacy_history_loaded=false live_orders=false')
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()

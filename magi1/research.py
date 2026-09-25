@@ -11,7 +11,8 @@ from .derived_signals import DerivedSignalEngine
 from .quality import QuoteCoverage, outcome, record_quality, VERSION, HORIZONS
 
 class ResearchEngine:
-    def __init__(self,storage,assets,now):
+    def __init__(self,storage,assets,now,wave_enabled=True):
+        self.wave_enabled=wave_enabled
         self.storage=storage; self.assets=assets; self.features=FeatureEngine(); self.derived=DerivedSignalEngine(storage)
         self.formation=FormationEngine(self.emit); self.stats=PropagationStats()
         self.vpd=VPDPointInTimeJoin(storage.query('vpd_snapshot',now-4*86400000,now+1))
@@ -53,7 +54,7 @@ class ResearchEngine:
         for f in self.features.ingest(e):
             self.features_latest[(f.venue,f.asset,f.horizon)]=f
             self.derived.on_feature(f)
-            self.formation.ingest(f)
+            if self.wave_enabled:self.formation.ingest(f)
 
     def add_vpd(self,row):
         if any(x['ts_ms']==row['ts_ms'] for x in self.vpd.rows):return
@@ -122,7 +123,7 @@ class ResearchEngine:
 
     def tick(self,ts):
         self.quotes.tick(ts)
-        self.formation.tick(ts)
+        if self.wave_enabled:self.formation.tick(ts)
         for shock_id,row in list(self.pending.items()):
             due=[h for h in HORIZONS if h not in row['done'] and ts>=row['event_ts_ms']+h*1000]
             samples=list(self.quotes.samples[('upbit',row['asset'])])

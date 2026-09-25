@@ -156,15 +156,9 @@ class TradePlanTests(unittest.TestCase):
         for strategy in ('fast','wave'):
             text = strategy_text(strategy)
             self.assertLess(len(text.encode('utf-16-le'))//2, 4096)
-            if strategy == 'fast':
-                self.assertIn('실시간 PAPER', text)
-                self.assertIn('실제 주문 없음', text)
-                self.assertIn('수익성 미검증', text)
-                self.assertIn('100만원', text)
-                self.assertIn('10분', text)
-            else:
-                self.assertIn('검증 전 가설', text)
-                self.assertIn('실주문 OFF', text)
+            for required in ('MACD','RSI','Williams','PAPER','실제 주문 없음','100만원','60분'):
+                self.assertIn(required, text)
+            self.assertNotIn('시작과 확산', text)
         self.assertFalse(policy()['live_enabled'])
 
 

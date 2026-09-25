@@ -4,9 +4,9 @@ import time
 from magi3.accounts import quantity
 
 BOT_NAME = 'MAGI'
-BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · FAST · WAVE'
+BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · FAST 지표 가속도'
 BOT_DESCRIPTION = ('MAGI — 코인 시장 분석과 투자 현황을 한곳에서.\n'
-    'MAGI1: 시장 데이터·FAST·WAVE 관측\n'
+    'MAGI1: 시장 데이터·수급 관측\n'
     'MAGI2: VPD 분석·모의투자·전략 검증\n'
     'MAGI3: 실계좌 조회·Shadow 검증·실행 관리\n'
     '모의투자와 실제 자산을 구분해 확인하세요. /menu로 시작합니다.')
@@ -22,7 +22,7 @@ COMMANDS = [
     ('fast', 'FAST 모의투자 메뉴'), ('fast_captures', 'FAST 당일 포착 리스트'), ('fast_start', 'FAST 포착 및 매매 시작 · 재확인'), ('fast_report', 'FAST 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', 'FAST 모의 거래 상세'),
     ('fast_balance', 'FAST 모의투자 · 거래소별 잔고·손익'),
     ('fast_clear', 'FAST 일괄정리 및 포착정지 · 재확인'), ('fast_daily', 'FAST 전일 모의투자 결과'), ('fast_replay', 'FAST 과거 재생검증'), ('fast_compare', 'FAST 거래소별 신호·오탐 비교'),
-    ('wave', 'WAVE 강도·전파·매매 검증'), ('strategies', '전략 검증 기준'),
+    ('wave', 'MACD·RSI·거래량·Williams 전략 설명'), ('strategies', '전략 검증 기준'),
     ('regime', '현재 시장 국면 · 투자 참고'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('rebuild', 'PAPER 전량 교체 · 최신 VPD로 재구성'),
@@ -91,10 +91,10 @@ def main_keyboard():
 
 def role_text():
     return ('🧩 MAGI — 시장 관측 · 전략 검증 · 실행 관리\n\n'
-            'MAGI1 · 시장 관측\n시세·체결·호가와 FAST 후보, WAVE 근거를 관측합니다.\n'
-            'WHALE은 독립 조회 없이 WAVE 보조지표의 추가 효과를 검증하는 데이터로 보존합니다.\n\n'
+            'MAGI1 · 시장 관측\n시세·체결·호가와 수급 자료를 관측합니다.\n'
+            '온체인 관측은 참고 자료이며 새 지표 전략의 매수 신호와 구분합니다.\n\n'
             'MAGI2 · 전략 검증\nVPD 분석과 PAPER 모의투자를 수행합니다. '
-            'FAST는 거래소별 최초 100만원으로 1D 당일시가 대비 TOP 5 모의투자를 수행합니다. +12% 익절, TOP 5 이탈 및 −6% 동시 충족 시 손절합니다.\n\n'
+            'FAST는 MACD·RSI·거래량·Williams 가속도와 매수 주도 체결을 확인하는 별도 모의투자입니다.\n\n'
             'MAGI3 · 자산·실행 관리\n실계좌 잔고와 Shadow 모의 체결을 구분합니다. '
             '실거래 활성화 여부는 시스템 상태에서 확인하세요.\n\n'
             '아래 조회 메뉴는 매매를 시작하지 않습니다.')
@@ -148,7 +148,7 @@ def help_text():
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 현재 시장 국면·사유 (BTC·ETH 완료 일봉, 요청 시 조회)\n'
-            '/fast — FAST 모의투자 메뉴\n/signals · /fast_captures — 당일 포착 리스트 (07:30 기준)\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — FAST 거래소별 잔고·오늘 손익\n/fast_orders — FAST 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 재확인 후 포착 및 매매 시작\n/fast_daily — FAST 전일 결과 (매일 07:30 KST 자동 보고)\n/fast_replay — 과거 재생검증\n/wave — WAVE 신호 강도·전파 근거·매매 가능성\n/strategies — 전략 검증 기준\n'
+            '/fast — FAST 모의투자 메뉴\n/signals · /fast_captures — 당일 포착 리스트 (07:30 기준)\n/fast_compare — 거래소별 신호·오탐 비교\n/fast_report — 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — FAST 거래소별 잔고·오늘 손익\n/fast_orders — FAST 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 재확인 후 포착 및 매매 시작\n/fast_daily — FAST 전일 결과 (매일 07:30 KST 자동 보고)\n/fast_replay — 과거 재생검증\n/wave — MACD·RSI·거래량·Williams 가속도 전략 설명\n/strategies — 전략 검증 기준\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'
@@ -203,12 +203,12 @@ def magi3_status():
 
 
 def validation_text():
-    return ('🧭 전략검증\n전략별 설명·매매 공략과 검증 진행 상황을 확인하세요. WAVE는 실제 관측 및 시간 이동 대조군 분석으로 연결됩니다.\n\n'
-            '🌐 WAVE: 거래소 간 움직임의 시작과 확산\n'
+    return ('🧭 전략검증\n\n'
+            '⚡ 지표 가속도: MACD·RSI·거래량·Williams 변화와 가속도 + 매수주도 체결 확인\n'
             '📊 VPD: 상위 후보 분산 모의투자\n'
-            '⚡ FAST: 1D 당일시가 대비 TOP 5·5분 갱신·+12% 익절·TOP 5 이탈 및 −6% 손절\n\n'
-            '이 메뉴는 분석·설명 조회입니다. 버튼을 눌러도 매매를 시작하지 않습니다. '
-            '연구 가설과 현재 운영 규칙을 구분해 표시하며 검증된 수익을 보장하지 않습니다.')
+            'FAST 메뉴에서 새 지표 전략의 포착·보유 현황·매매 이력·일별 평가를 확인합니다.\n\n'
+            '기존 WAVE 전파 전략은 종료했습니다. 신규 전략은 별도 원장으로 검증하며 VPD 성과와 합산하지 않습니다. '
+            '설명 조회로 매매가 시작되지는 않습니다. 실주문 없음.')
 
 
 class Confirmations:

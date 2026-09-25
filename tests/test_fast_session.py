@@ -119,7 +119,7 @@ class SessionTests(unittest.TestCase):
         main=[b['text'] for r in main_keyboard()['keyboard'] for b in r]
         self.assertEqual([b for b in main if 'FAST' in b],['FAST 모의투자'])
         self.assertEqual([b['text'] for r in keyboard()['inline_keyboard'] for b in r],
-            ['포착 리스트','모의투자 결과','일괄정리 및 포착정지','포착 및 매매 시작'])
+            ['포착 리스트','모의투자 결과','일괄정리 및 포착정지','포착 및 매매 시작','일별 평가','관측 상태','매매 이력','전략 설명'])
         paper=Mock();paper.resume.return_value=True
         confirmations=Confirmations();callback=lambda data,user='7':{'id':'x','data':data,'from':{'id':user},'message':{'message_id':1,'chat':{'id':'7'}}}
         with patch.object(server,'FAST_PAPER',paper),patch.object(server,'CONFIRMATIONS',confirmations),patch.object(server,'ALLOWED_CHAT_ID','7'),patch.object(server,'ALLOWED_USER_IDS',{'7','8'}),patch.object(server,'telegram') as send,patch.object(server,'telegram_api'):

@@ -1,0 +1,26 @@
+name: Indicator Paper Tests
+on:
+  pull_request:
+    paths: ['magi2/**', 'tests/**', 'requirements.txt', '.github/workflows/indicator-tests.yml']
+  push:
+    branches: [main]
+    paths: ['magi2/**', 'tests/**', 'requirements.txt', '.github/workflows/indicator-tests.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m compileall -q magi2
+      - run: python -m unittest discover -s tests -p 'test_indicator_paper.py' -v
+      - run: python -m unittest discover -s tests -p 'test_fast_wave*.py' -v
+      - run: python -m unittest discover -s tests -p 'test_fast_session.py' -v
+      - run: python -m unittest discover -s tests -p 'test_trade_plan.py' -v
+      - run: python -m unittest discover -s tests -p 'test_wave_view.py' -v

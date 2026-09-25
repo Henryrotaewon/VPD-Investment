@@ -7,7 +7,7 @@ from magi2.cross_market import guide_text as cross_market_text
 
 
 def strategy_keyboard(detail=False,fast=False):
-    rows=[[{'text':name,'callback_data':'guide:'+name.lower()} for name in ('WAVE','VPD','FAST')]]
+    rows=[[{'text':'지표 가속도','callback_data':'guide:wave'}, {'text':'VPD','callback_data':'guide:vpd'}, {'text':'FAST 모의투자','callback_data':'nav:fast'}]]
     rows.append([{'text':'⚖️ BASIS · 현선물 준비','callback_data':'guide:basis'},
                  {'text':'🌐 크로스마켓 연구','callback_data':'guide:cross'}])
     if fast:
@@ -24,21 +24,23 @@ def strategy_text(name):
         return cross_market_text()
     if name=='basis':
         return basis_text()
-    if name=='fast':
-        return ('⚡ FAST · +12% 익절 / −6% 손절 모의투자\n\n'
-                '5분 전 대비 +5% 이상 포착 조건을 유지합니다. 1분 간격 관측, 거래량·호가 차이 필터 없음.\n'
-                '거래소별 가상자금 100만원 · 종목당 최대 20만원 · 최대 5종목 · 가용 예수금 범위에서 매수.\n'
-                '포착 후 시장가 모의매수하고 평균체결가의 112% 이상 유효 호가에 지정가 매도 주문을 냅니다. '
-                '매수호가가 평균매수가 대비 −6% 이하에 도달하면 지정가를 취소하고 시장가로 손절합니다. '
-                '가격 기준이며 수수료·슬리피지는 별도 반영합니다. 시간제한이나 반복 재매수는 없습니다.\n'
-                '매도한 거래소·종목은 다음 07:30 KST까지 재매수하지 않습니다. 다음 거래일 신규 포착부터 허용합니다.\n'
-                '일괄정리 및 포착정지 → 확인: 신규 포착·매수를 중지하고, 모든 거래소 FAST 보유 전량 시장가 청산, 미체결 매수 취소. '
-                '실제 체결 가능한 호가·잔량으로 모의처리하며 자료 부족 시 청산 대기로 남깁니다.\n'
-                '/fast 모의투자 메뉴 · /fast_report 통합 자산 및 보유 순손익 · /fast_start 재확인 후 포착·매매 재개\n'
-                '/fast_daily 매일 07:30 KST 전일 보고\n'
-                '사용자 요청에 따라 FAST 이력·잔고를 한 번 초기화합니다. 이후 재시작 시 보존합니다. 실제 주문 없음.')
-    if name=='wave':
-        return strategy_plan_text(name.upper())
+    if name in ('fast','wave'):
+        return ('⚡ FAST · MACD+RSI+거래량+Williams 가속도\n\n'
+                '전일 확정 일봉을 기준으로 당일 지표의 변화량·분당 속도·가속도를 비교합니다. '
+                'MACD(12,26,9), RSI14, Williams %R14, 경과시간 보정 거래량을 사용합니다.\n\n'
+                '포착: 거래소별 거래대금 상위 20종목과 보유종목을 약 1분마다 관측합니다. '
+                '동일 기준의 관측 3개가 필요하며, 4개 지표 중 3개 상승·2개 가속·거래량 상승·기술점수 65 이상을 요구합니다. '
+                'RSI 78 이상 또는 Williams −8 이상은 추격 진입을 제외합니다. '
+                '기술 후보 상위 5개 중 최근 체결 매수주도 70% 이상·20체결 이상·호가 차이 0.1% 이하를 확인합니다.\n\n'
+                '모의매수: 4개 거래소별 최초 100만원, 최대 5종목, 슬롯당 최대 20만원. '
+                '포착 현재가+1틱 이하의 실제 호가 잔량으로 모의체결하며 10초 미체결은 취소합니다. 조건 미달이면 현금을 유지합니다.\n\n'
+                '청산: 가격 +12% 익절·−6% 독립 손절. 순수익 +6% 도달 후 고점 대비 2%p 반납 시 수익 보호. '
+                '기술점수 30 미만과 MACD·RSI 속도 하락이 2회 연속이면 조기 청산하며 최대 보유는 60분입니다. '
+                '청산은 현재 호가·잔량·수수료·슬리피지를 반영하므로 목표 수익률을 보장하지 않습니다.\n\n'
+                '매도한 종목은 같은 07:30 거래일에 재매수하지 않습니다. 자산·누적손익은 날짜가 바뀌어도 유지됩니다. '
+                '포착 근거·매매 원장·분 단위 평가·일별 보고를 별도 저장합니다.\n\n'
+                '기존 WAVE 전파 전략을 대체한 신규 PAPER 전략입니다. 점수는 승률이 아니며 위 임계값은 검증용 초기값입니다. '
+                '거래량 보정은 시간대별 계절성을 반영하지 않은 선형 추정입니다. 실제 주문 없음.')
     if name=='vpd':
         cfg=json.loads((Path(__file__).with_name('config.json')).read_text())
         top=cfg['session']['top_n']; hold=cfg['hold']; exits=cfg['exit']
