@@ -17,7 +17,7 @@ from .auto_summary import publish_summary
 from .research import ResearchEngine
 from .report import build_daily,report_cutoff,KST
 from .storage import Storage
-from .archive import Archiver
+from .archive import Archiver, recover_archive_workspace
 from .quality import cleanup_invalid, VERSION, quality_summary
 from .timing_quality import pair_resolution_matrix
 from .event_scan import publish_new_events
@@ -177,6 +177,7 @@ def data_root():
 async def start(duration=None):
     root = data_root()
     LOG.info('magi1_starting mode=COLLECT_ONLY data_dir=%s', root)
+    recover_archive_workspace(root)
     selected = await discover(str(root / 'universe.json'))
     app = App(root, selected['assets'])
     try:
