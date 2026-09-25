@@ -4,7 +4,7 @@ from magi2.fast_paper import KST
 
 NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='크라켄')
 REASONS = {'INDICATOR_WEAKENED':'지표 약화 2회','PROFIT_PROTECTION':'수익 보호','MAX_HOLD_60M':'최대 60분 보유','TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
-           'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
+           'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'수동 일괄정리',None:'보유 중'}
 SKIP_REASONS = {'INDICATOR_WEAKENED':'지표 약화 2회','PROFIT_PROTECTION':'수익 보호','MAX_HOLD_60M':'최대 60분 보유','ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
                 'ENTRY_LIMIT_UNFILLED':'10초 내 포착가+1틱 이하 체결 가능 물량 없음',
                 'MISSING_CAPTURE_PRICE':'포착가격 확인 불가 · 매수 제외',
@@ -98,7 +98,8 @@ def portfolio_header(ledger, now_ms):
     funded=all(a['funded_ms'] is not None for a in accounts)
     cash=sum(a['cash_krw'] for a in accounts) if funded else None
     equity=sum(a['equity_krw'] for a in accounts) if all(a['equity_krw'] is not None for a in accounts) else None
-    lines=['📊 FAST 모의투자 현황',f'조회 {clock(now_ms)} KST · 당일 기준 07:30',
+    title='지표가속' if getattr(ledger,'indicator_strategy',False) else 'FAST'
+    lines=[f'📊 {title} 모의투자 현황',f'조회 {clock(now_ms)} KST · 당일 기준 07:30',
            '최초원금 4,000,000원',f'매수원금 합계 {money(invested)} / 예수금 {money(cash)}']
     if equity is None:lines.append('평가금액·누적 수익률 확인 대기')
     else:lines.append(f'평가 {equity:,.0f}원 / 누적 {(equity/4000000-1)*100:+.2f}% ({equity-4000000:+,.0f}원)')
@@ -166,7 +167,7 @@ def keyboard():
 
 def menu(ledger):
     if getattr(ledger,'policy_review_required',False):
-        return ('FAST · 일봉 가속도 전략 설계 검토\n'
+        return ('지표가속 모의투자 · 일봉 전략 설계 검토\n'
                 '분 단위 포착·신규 모의매수 중지\n'
                 'D일 확정 일봉 신호 → D+1일 일봉 시작 매수 구상\n'
                 'MACD 12·26·9 / RSI 14·신호 9 / Williams %R 14 / 거래량 MA 5·10·20\n'
@@ -178,7 +179,7 @@ def menu(ledger):
     tick_filter=f'진입 필터: 1틱 {tick_limit:g}% 이상 매수 제외\n' if tick_limit is not None else ''
     entry_policy='매수: 포착 현재가+1틱 상한 · 10초 대기 · 초과 추격 없음\n' if getattr(ledger,'entry_price_policy',None) else ''
     if getattr(ledger,'indicator_strategy',False):
-        return ('FAST 지표 가속도 모의투자\n상태: '+status+'\n'
+        return ('지표가속 모의투자\n상태: '+status+'\n'
                 'MACD·RSI·거래량·Williams + 매수주도 체결\n'
                 '거래소별 최초 100만원 · 최대 5종목 · 슬롯당 최대 20만원\n'
                 '+12% 익절 / −6% 손절 · 수익 보호 · 지표 약화 · 최대 60분\n'

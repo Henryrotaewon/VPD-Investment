@@ -152,7 +152,7 @@ class IndicatorLedger(CaptureLimitLedger):
         from magi2.fast_paper_report import money, clock, NAMES
         start, end = bounds(date)
         perf = self.performance(date)
-        lines = ['📅 FAST 지표 가속도 · 일별 매매평가', date+' 07:30~다음 날 07:30 KST',
+        lines = ['📅 지표가속 · 일별 매매평가', date+' 07:30~다음 날 07:30 KST',
                  '전략 '+VERSION+' · PAPER ONLY']
         if perf['last']:
             ts,equity = perf['last']

@@ -5,7 +5,7 @@ from magi2.fast_session import day
 
 
 def view(ledger, now_ms, command):
-    if ledger is None: return '지표 모의투자 준비 중입니다.',keyboard()
+    if ledger is None: return '지표가속 모의투자 준비 중입니다.',keyboard()
     if command=='fast_daily':
         date=(datetime.fromisoformat(day(now_ms))-timedelta(days=1)).date().isoformat()
         return daily_view(ledger,date,now_ms)
@@ -41,7 +41,7 @@ def orders_view(ledger, now_ms, offset=0):
         offset=min(max(0,offset)//size*size,max(0,(count-1)//size*size))
         rows=ledger.db.execute('SELECT payload FROM paper_trades ORDER BY signal_ms DESC,id DESC LIMIT ? OFFSET ?',
                                (size,offset)).fetchall()
-        lines=['📒 FAST 지표 가속도 · 매매 이력',f'전체 {count}건 · {offset//size+1}/{max(1,(count+size-1)//size)}페이지','']
+        lines=['📒 지표가속 · 매매 이력',f'전체 {count}건 · {offset//size+1}/{max(1,(count+size-1)//size)}페이지','']
         for payload, in rows:
             t=json.loads(payload);account=ledger.account(t['venue'])
             lines+=(outcome_lines(t,account) if t['status'] in ('CLOSED','SKIPPED') else position_lines(t,account,now_ms))+['']

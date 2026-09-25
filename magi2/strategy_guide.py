@@ -7,11 +7,11 @@ from magi2.cross_market import guide_text as cross_market_text
 
 
 def strategy_keyboard(detail=False,fast=False):
-    rows=[[{'text':'지표 가속도','callback_data':'guide:wave'}, {'text':'VPD','callback_data':'guide:vpd'}, {'text':'FAST 모의투자','callback_data':'nav:fast'}]]
+    rows=[[{'text':'지표가속 설명','callback_data':'guide:wave'}, {'text':'VPD','callback_data':'guide:vpd'}, {'text':'지표가속 모의투자','callback_data':'nav:indicator'}]]
     rows.append([{'text':'⚖️ BASIS · 현선물 준비','callback_data':'guide:basis'},
                  {'text':'🌐 크로스마켓 연구','callback_data':'guide:cross'}])
     if fast:
-        rows.append([{'text':'📊 FAST 모의검증 결과','callback_data':'nav:fast_report'},
+        rows.append([{'text':'📊 지표가속 모의검증 결과','callback_data':'nav:fast_report'},
                      {'text':'📅 전일 결과','callback_data':'nav:fast_daily'}])
         rows.append([{'text':'📊 거래소별 신호·오탐 비교','callback_data':'nav:fast_compare'}])
     if detail:rows.append([{'text':'↩️ 전략검증','callback_data':'nav:strategies'}])
@@ -25,7 +25,8 @@ def strategy_text(name):
     if name=='basis':
         return basis_text()
     if name in ('fast','wave'):
-        return ('일봉 지표 가속도 · 설계 검토 중\n\n'
+        return ('지표가속 · 일봉 전략 설계 검토 중\n'
+                'FAST는 향후 별도로 설계·운영할 전략입니다.\n\n'
                 '확정 방향: D일 확정 일봉까지의 지표 변화와 증가 가속을 종합하여 포착하고, '
                 'D+1일 일봉 시작에 매수합니다. 11일 신호 → 12일 시작 매수 구상입니다.\n\n'
                 '차트 설정: MACD 12·26·신호 9, RSI 14·신호 9, Williams %R 14, '
@@ -58,4 +59,3 @@ def strategy_text(name):
                 '검증 포인트\n수수료·슬리피지 차감 손익, 최대 손실폭, 보유 기간과 순위 교체 효과를 확인합니다. 실제 수익률은 VPD 모의투자 → 현황 보고에서 조회하세요.\n\n'
                 '현재 단계\nPAPER 운영 중입니다. 실제 계좌 자산·MAGI3 Shadow와는 별도이며 실거래 수익을 의미하지 않습니다.')
     raise ValueError('UNKNOWN_STRATEGY_GUIDE')
-
