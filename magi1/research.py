@@ -32,9 +32,10 @@ class ResearchEngine:
                 record_quality(self.storage,'INVALID_BOOK',e.received_ts_ms,e.base,venue=e.venue);return
             signature=(tuple((x.price,x.quantity) for x in e.bids),tuple((x.price,x.quantity) for x in e.asks))
             old=self.raw_books.get(key)
-            # Preserve every changed book, and one heartbeat per second for unchanged books.
+            # Track changed books and one heartbeat per second in memory.
             if not old or old[0]!=signature or e.received_ts_ms-old[1]>=1000:
-                # Full order-book raw persistence disabled: quote state remains in memory for evaluation/features.\n                self.raw_books[key]=(signature,e.received_ts_ms)
+                # Raw book persistence is disabled; keep quote state for evaluation/features.
+                self.raw_books[key]=(signature,e.received_ts_ms)
             else:record_quality(self.storage,'UNCHANGED_BOOK',e.received_ts_ms,e.base,venue=e.venue)
         if isinstance(e,TradeEvent):
             if e.trade_id:
