@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import tempfile
 import unittest
 
-from magi2.fast_wave_indicator import DAY_MS, VENUES
+from magi2.fast_wave_indicator import DAY_MS, VENUES, day_offset, day_start, snapshot, Candle
 from magi2.fast_wave_market import IndicatorMarket, normalize
 from magi2.fast_wave_probe import observe_one
 from magi2.fast_wave_store import EvidenceStore
@@ -13,7 +13,7 @@ def payload(venue):
     rows = []
     for i in range(121):
         if venue in ('upbit', 'bithumb'):
-            rows.append(dict(candle_date_time_utc=datetime.fromtimestamp(i * 86400, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),
+            rows.append(dict(candle_date_time_utc=datetime.fromtimestamp(i * 86400 + day_offset(venue)/1000, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),
                              high_price=110, low_price=90, trade_price=100, candle_acc_trade_volume=1000))
         elif venue == 'binance':
             rows.append([i * DAY_MS, '100', '110', '90', '100', '1000', (i + 1) * DAY_MS - 1])
@@ -23,11 +23,43 @@ def payload(venue):
 
 
 class MarketTests(unittest.TestCase):
+    def test_bithumb_observed_kst_midnight_boundary_and_volume_pace(self):
+        # Public KRW-BTC response captured 2026-09-25T08:47Z.
+        raw = [dict(candle_date_time_utc='2026-09-24T15:00:00',
+                    high_price=115670000, low_price=114190000,
+                    trade_price=114891000, candle_acc_trade_volume=151.80480519)]
+        row = normalize('bithumb', raw)[0]
+        expected = int(datetime(2026,9,24,15,tzinfo=timezone.utc).timestamp()*1000)
+        self.assertEqual(row.open_ms, expected)
+        self.assertEqual(day_start('bithumb', expected + DAY_MS - 1), expected)
+        self.assertEqual(day_start('bithumb', expected + DAY_MS), expected + DAY_MS)
+        rows = normalize('bithumb', payload('bithumb'))
+        current = Candle(rows[-1].open_ms,110,90,100,500)
+        result = snapshot(rows[:-1],current,current.open_ms+DAY_MS//2,
+                          venue='bithumb',symbol='KRW-TEST')
+        self.assertEqual(result['current']['volume_pace'],1.)
+        with self.assertRaisesRegex(ValueError,'INVALID_DAILY_CANDLE'):
+            normalize('upbit',raw)
+
+    def test_bithumb_cross_midnight_response_is_rejected(self):
+        boundary = 121*DAY_MS+day_offset('bithumb')
+        tick = [boundary-100]
+        market = IndicatorMarket('bithumb',clock=lambda:tick[0])
+        self.addCleanup(market.http.close)
+        market.symbols={'TEST':'TEST'}
+        def get(*args):
+            tick[0]=boundary+100
+            return payload('bithumb')
+        market.get=get
+        with self.assertRaisesRegex(ValueError,'SLOW_OR_CROSS_DAY'):
+            market.observe('TEST')
+
     def test_all_four_adapters_and_cached_baseline(self):
         for venue in VENUES:
             with self.subTest(venue=venue):
                 response = payload(venue)
-                ticks = [120 * DAY_MS + 600000]
+                offset = day_offset(venue)
+                ticks = [120 * DAY_MS + offset + 600000]
                 market = IndicatorMarket(venue, clock=lambda: ticks[0])
                 self.addCleanup(market.http.close)
                 market.symbols = {'TEST': 'TEST'}
@@ -40,8 +72,8 @@ class MarketTests(unittest.TestCase):
                 ticks[0] += 60000
                 second = market.observe('TEST')
                 self.assertEqual(first['baseline'], second['baseline'])
-                self.assertEqual(first['baseline_ms'], 119 * DAY_MS)
-                self.assertEqual(first['day_ms'], 120 * DAY_MS)
+                self.assertEqual(first['baseline_ms'], 119 * DAY_MS + offset)
+                self.assertEqual(first['day_ms'], 120 * DAY_MS + offset)
                 if venue != 'kraken':
                     key = 'limit' if venue == 'binance' else 'count'
                     self.assertEqual(calls[0][1][key], 121)

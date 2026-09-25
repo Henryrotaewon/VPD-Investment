@@ -1,7 +1,7 @@
 """Public REST adapters for the four FAST spot venues; no account/order endpoints."""
 from datetime import datetime, timezone
 from magi2.fast_monitor import PublicMarket, now
-from magi2.fast_wave_indicator import Candle, DAY_MS, snapshot
+from magi2.fast_wave_indicator import Candle, DAY_MS, snapshot, day_offset, day_start
 
 
 def normalize(venue, payload):
@@ -23,7 +23,7 @@ def normalize(venue, payload):
     else:
         raise ValueError('INVALID_VENUE')
     for row in rows:
-        row.validate()
+        row.validate(day_offset(venue))
     if len({row.open_ms for row in rows}) != len(rows):
         raise ValueError('DUPLICATE_CANDLE')
     return sorted(rows, key=lambda row: row.open_ms)
@@ -40,7 +40,7 @@ class IndicatorMarket(PublicMarket):
         if symbol not in self.symbols:
             raise ValueError('SYMBOL_OUTSIDE_SPOT_UNIVERSE')
         started = self.clock()
-        day = started // DAY_MS * DAY_MS
+        day = day_start(self.venue, started)
         cached = self.cache.get(symbol)
         warm = cached is not None and cached[0] == day
         count = 2 if warm else 121
@@ -52,7 +52,7 @@ class IndicatorMarket(PublicMarket):
             payload = self.get('/0/public/OHLC', {'pair': symbol, 'interval': 1440,
                                'since': (day - (1 if warm else 120) * DAY_MS) // 1000})
         finished = self.clock()
-        if not 0 <= finished - started <= 3000 or finished // DAY_MS * DAY_MS != day:
+        if not 0 <= finished - started <= 3000 or day_start(self.venue, finished) != day:
             raise ValueError('SLOW_OR_CROSS_DAY_OHLC')
         rows = normalize(self.venue, payload)
         if any(row.open_ms > day for row in rows):
