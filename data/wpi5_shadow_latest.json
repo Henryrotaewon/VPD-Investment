@@ -7,7 +7,7 @@
     {
       "Rank": 1,
       "coin": "ANKR",
-      "VPD": 73.0,
+      "VPD": 76.0,
       "MaxPriceReturn%": 8.64,
       "WPI5": 39.98,
       "VWPI5": 37.81,
@@ -66,6 +66,21 @@
     },
     {
       "Rank": 5,
+      "coin": "MANTRA",
+      "VPD": 51.0,
+      "MaxPriceReturn%": 28.24,
+      "WPI5": -23.2,
+      "VWPI5": -78.79,
+      "LowerDominantDays5": 2,
+      "UpperDominantDays5": 3,
+      "LowerWickTotal5": 1.26,
+      "UpperWickTotal5": 2.0214,
+      "VWLowerWeighted5": 2825684104.11,
+      "VWUpperWeighted5": 23815116308.9,
+      "WPI5Status": "BEARISH_WICK"
+    },
+    {
+      "Rank": 6,
       "coin": "KAITO",
       "VPD": 50.0,
       "MaxPriceReturn%": 1.26,
@@ -80,7 +95,7 @@
       "WPI5Status": "BULLISH_WICK"
     },
     {
-      "Rank": 6,
+      "Rank": 7,
       "coin": "TRUMP",
       "VPD": 50.0,
       "MaxPriceReturn%": 1.45,
@@ -95,7 +110,7 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 7,
+      "Rank": 8,
       "coin": "PROS",
       "VPD": 48.0,
       "MaxPriceReturn%": 6.04,
@@ -110,10 +125,10 @@
       "WPI5Status": "BULLISH_WICK"
     },
     {
-      "Rank": 8,
+      "Rank": 9,
       "coin": "PUMP",
       "VPD": 47.0,
-      "MaxPriceReturn%": 0.76,
+      "MaxPriceReturn%": 0.95,
       "WPI5": -1.37,
       "VWPI5": -9.91,
       "LowerDominantDays5": 3,
@@ -125,7 +140,7 @@
       "WPI5Status": "NEUTRAL"
     },
     {
-      "Rank": 9,
+      "Rank": 10,
       "coin": "FLOCK",
       "VPD": 47.0,
       "MaxPriceReturn%": 0.61,
@@ -137,21 +152,6 @@
       "UpperWickTotal5": 1.7191,
       "VWLowerWeighted5": 19961849311.77,
       "VWUpperWeighted5": 46505404671.91,
-      "WPI5Status": "BEARISH_WICK"
-    },
-    {
-      "Rank": 10,
-      "coin": "MANTRA",
-      "VPD": 46.0,
-      "MaxPriceReturn%": 28.24,
-      "WPI5": -23.2,
-      "VWPI5": -78.79,
-      "LowerDominantDays5": 2,
-      "UpperDominantDays5": 3,
-      "LowerWickTotal5": 1.26,
-      "UpperWickTotal5": 2.0214,
-      "VWLowerWeighted5": 2825684104.11,
-      "VWUpperWeighted5": 23815116308.9,
       "WPI5Status": "BEARISH_WICK"
     }
   ],
