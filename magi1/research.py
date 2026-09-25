@@ -34,7 +34,7 @@ class ResearchEngine:
             old=self.raw_books.get(key)
             # Preserve every changed book, and one heartbeat per second for unchanged books.
             if not old or old[0]!=signature or e.received_ts_ms-old[1]>=1000:
-                self.storage.append_raw('book',e); self.raw_books[key]=(signature,e.received_ts_ms)
+                # Full order-book raw persistence disabled: quote state remains in memory for evaluation/features.\n                self.raw_books[key]=(signature,e.received_ts_ms)
             else:record_quality(self.storage,'UNCHANGED_BOOK',e.received_ts_ms,e.base,venue=e.venue)
         if isinstance(e,TradeEvent):
             if e.trade_id:
