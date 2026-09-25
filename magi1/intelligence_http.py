@@ -17,6 +17,8 @@ def make_app(root, token):
         supplied=request.headers.get('Authorization','')
         if not hmac.compare_digest(supplied.encode(),('Bearer '+token).encode()):
             raise web.HTTPUnauthorized()
+        if request.path=='/wave':
+            raise web.HTTPGone(text='WAVE_RETIRED_USE_MAGI2_INDICATOR_PAPER')
         try:
             payload=await asyncio.to_thread(paths[request.path].read_text,encoding='utf-8')
             json.loads(payload)

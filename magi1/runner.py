@@ -23,7 +23,7 @@ from .timing_quality import pair_resolution_matrix
 from .event_scan import publish_new_events
 from .intelligence import publish_intelligence
 from .intelligence_http import serve as serve_intelligence
-from .wave_analysis import run as run_wave_analysis
+from .retire_wave import retire as retire_wave
 from .universe import discover,get
 from .vpd_join import snapshot
 import aiohttp
@@ -33,9 +33,10 @@ LOG=logging.getLogger('magi1')
 class App:
     def __init__(self,root,assets):
         self.storage=Storage(root)
+        LOG.info('wave_retirement=%s',json.dumps(retire_wave(self.storage,now_ms())))
         self.labels=AddressLabelRegistry(root/'address_labels.jsonl')
         LOG.info('quality_cleanup=%s',json.dumps(cleanup_invalid(self.storage,now_ms())))
-        self.engine=ResearchEngine(self.storage,assets,now_ms());self.assets=assets
+        self.engine=ResearchEngine(self.storage,assets,now_ms(),wave_enabled=False);self.assets=assets
         self.queue=asyncio.Queue(maxsize=20000);self.collector=CollectorSupervisor(assets,self.enqueue)
         self.analysis_started=now_ms()/1000
         self.tick_count=0;self.onchain_status={'received':0};self.derivative_status={}
@@ -65,7 +66,7 @@ class App:
                 except Exception:
                     LOG.exception('intelligence_export_failed')
                 self.last_event_scan_ms=value
-            if value-self.last_summary_ms>=900000:
+            if self.engine.wave_enabled and value-self.last_summary_ms>=900000:
                 try:
                     publish_summary(self.storage,value,LOG)
                 except Exception:
@@ -79,7 +80,7 @@ class App:
                 if self.tick_count%300==0:self.storage.append('diagnostics',diag)
                 LOG.info('feed_diagnostics=%s',json.dumps(diag))
                 cutoff=report_cutoff(datetime.now(KST)).isoformat()
-                if self.storage.restore('last_report')!=cutoff:
+                if self.engine.wave_enabled and self.storage.restore('last_report')!=cutoff:
                     path=build_daily(self.storage);self.storage.checkpoint('last_report',cutoff);LOG.info('daily_report=%s',path)
             if self.tick_count%300==0:self.storage.maintain(int(os.getenv('MAGI1_RAW_RETENTION_DAYS','2')))
     async def consume(self):
@@ -143,7 +144,7 @@ class App:
         self.collector_task=asyncio.create_task(self.collector.run())
         consumer=asyncio.create_task(self.consume())
         tasks=[asyncio.create_task(f()) for f in (self.ticks,self.vpd_loop,self.onchain_loop,self.derivatives_loop,self.universe_loop)]
-        tasks.append(asyncio.create_task(run_wave_analysis(self.storage.root,LOG)))
+        LOG.info('wave_analysis_retired replacement=indicator-paper raw_collection=preserved')
         if os.getenv('MAGI1_INTELLIGENCE_HTTP_ENABLED') == '1':
             tasks.append(asyncio.create_task(serve_intelligence(self.storage.root,LOG)))
         if os.getenv('MAGI1_DRIVE_ARCHIVE_ENABLED') == '1':

@@ -38,14 +38,8 @@ class HttpTests(unittest.IsolatedAsyncioTestCase):
     def test_short_token_rejected(self):
         with self.assertRaises(ValueError): make_app(self.root,'1')
 
-    async def test_wave_snapshot_is_separate_authenticated_and_read_only(self):
+    async def test_retired_wave_is_authenticated_and_gone(self):
         headers={'Authorization':'Bearer '+'t'*32}
         self.assertEqual((await self.client.get('/wave')).status,401)
-        self.assertEqual((await self.client.get('/wave',headers=headers)).status,503)
-        path=self.root/'exports'/'wave_latest.json'
-        path.parent.mkdir()
-        path.write_text(json.dumps({'schema_version':'wave-timeshift-catalog-v1'}))
-        response=await self.client.get('/wave',headers=headers)
-        self.assertEqual((await response.json())['schema_version'],'wave-timeshift-catalog-v1')
+        self.assertEqual((await self.client.get('/wave',headers=headers)).status,410)
         self.assertEqual((await self.client.post('/wave',headers=headers)).status,405)
-        self.assertEqual((await self.client.get('/intelligence',headers=headers)).status,503)

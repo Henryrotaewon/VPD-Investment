@@ -3,9 +3,9 @@ from datetime import datetime
 from magi2.fast_paper import KST
 
 NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='크라켄')
-REASONS = {'TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
+REASONS = {'INDICATOR_WEAKENED':'지표 약화 2회','PROFIT_PROTECTION':'수익 보호','MAX_HOLD_60M':'최대 60분 보유','TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
            'SESSION_10M':'10분 반복 종료','LIMIT_UNFILLED_10M':'10분 매수 미체결','TAKE_PROFIT_12':'+12% 익절','STOP_LOSS_6':'−6% 손절','MANUAL_FAST_CLEAR':'FAST 정리',None:'보유 중'}
-SKIP_REASONS = {'ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
+SKIP_REASONS = {'INDICATOR_WEAKENED':'지표 약화 2회','PROFIT_PROTECTION':'수익 보호','MAX_HOLD_60M':'최대 60분 보유','ENTRY_QUOTE_TIMEOUT':'10초 내 매수 가능한 호가 확보 실패',
                 'ENTRY_LIMIT_UNFILLED':'10초 내 포착가+1틱 이하 체결 가능 물량 없음',
                 'MISSING_CAPTURE_PRICE':'포착가격 확인 불가 · 매수 제외',
                 'ENTRY_TICK_TOO_LARGE':'1틱 등락률이 진입 허용 기준 이상',
@@ -46,6 +46,9 @@ def unit_price(value, quote):
 def position_lines(t, account, now_ms):
     label='매수대기' if t['status']=='ENTRY_PENDING' and not t.get('entry_ms') else '보유중'
     lines=[f'{NAMES[t["venue"]]} · {t["symbol"]} · {label}', f'포착일시 {clock(t["signal_ms"])} KST']
+    if t.get('indicator_score') is not None:
+        flow=t.get('indicator_evidence',{}).get('flow') or {}
+        lines.append(f'포착 근거: 지표 {t["indicator_score"]}/100 · 매수주도 {flow.get("buyer_share_pct",0):.1f}%')
     if t.get('capture_price'):
         cap=t.get('entry_limit_price')
         lines.append('포착가 '+unit_price(t['capture_price'],account['quote'])+
@@ -104,6 +107,9 @@ def portfolio_header(ledger, now_ms):
                      ' / 보유 평가손익 '+money(equity-cash-invested if equity is not None else None,True))
     state=ledger.control() if hasattr(ledger,'control') else {'enabled':True}
     lines.append('포착·매매: '+('진행 중' if state['enabled'] else '정지'))
+    if getattr(ledger,'indicator_strategy',False):
+        lines += ['MACD·RSI·거래량·Williams 가속도 + 수급 확인',
+                  '+12%/−6% · 수익 보호 +6%→2%p · 지표 약화 · 최대 60분']
     if hasattr(ledger,'latest_rank'):
         lines.append('1D 당일시가 대비 TOP 5 · 09:01 기준 5분 갱신 · 이탈 및 −6% 손절')
     tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
@@ -149,7 +155,9 @@ def keyboard():
         [{'text':'포착 리스트','callback_data':'nav:fast_captures'},
          {'text':'모의투자 결과','callback_data':'nav:fast_report'}],
         [{'text':'일괄정리 및 포착정지','callback_data':'nav:fast_clear'}],
-        [{'text':'포착 및 매매 시작','callback_data':'nav:fast_start'}]]}
+        [{'text':'포착 및 매매 시작','callback_data':'nav:fast_start'}],
+        [{'text':'일별 평가','callback_data':'nav:fast_daily'}, {'text':'관측 상태','callback_data':'nav:fast_compare'}],
+        [{'text':'매매 이력','callback_data':'nav:fast_orders'}, {'text':'전략 설명','callback_data':'guide:wave'}]]}
 
 
 def menu(ledger):
@@ -158,6 +166,12 @@ def menu(ledger):
     tick_limit=getattr(ledger,'entry_tick_limit_pct',None)
     tick_filter=f'진입 필터: 1틱 {tick_limit:g}% 이상 매수 제외\n' if tick_limit is not None else ''
     entry_policy='매수: 포착 현재가+1틱 상한 · 10초 대기 · 초과 추격 없음\n' if getattr(ledger,'entry_price_policy',None) else ''
+    if getattr(ledger,'indicator_strategy',False):
+        return ('FAST 지표 가속도 모의투자\n상태: '+status+'\n'
+                'MACD·RSI·거래량·Williams + 매수주도 체결\n'
+                '거래소별 최초 100만원 · 최대 5종목 · 슬롯당 최대 20만원\n'
+                '+12% 익절 / −6% 손절 · 수익 보호 · 지표 약화 · 최대 60분\n'
+                '07:30 일별 집계 · 누적 손익 유지 · 실제 주문 없음\n'+tick_filter+entry_policy,keyboard())
     return ('FAST 모의투자\n상태: '+status+'\n'
             '거래소별 최초 100만원 · 최대 5슬롯 · 슬롯당 최대 20만원\n'
             '당일 기준: 매일 07:30 KST · 자산과 누적 손익은 이어집니다.\n'
