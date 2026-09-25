@@ -137,7 +137,7 @@ class MonitorTests(unittest.TestCase):
             server.handle_callback(callback);self.assertEqual(send.call_count,1)
 
     def test_guide_matches_policy(self):
-        for term in ('MACD','RSI','Williams','일봉','D+1','미확정','신규 모의매수는 중지'):
+        for term in ('MACD','RSI','Williams','일봉','1시간','두 번','초기 보호','추세청산'):
             self.assertIn(term,strategy_text('wave'))
         self.assertNotIn('시작과 확산',validation_text())
 

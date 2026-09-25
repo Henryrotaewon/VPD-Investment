@@ -495,7 +495,7 @@ def handle_command(text,chat_id=None,user_id=None):
                         '신규 포착·매수를 중지하고, 매수 대기를 취소한 뒤 보유분을 시장가로 모의매도합니다.'
                         if cmd=='fast_clear' else
                         '포착 및 매매를 시작하시겠습니까?\n'
-                        '거래소별 신규 포착을 시작하고, 가용 예수금으로 최대 5슬롯·슬롯당 최대 20만원을 투자합니다.\n'
+                        '업비트 원화 전 종목을 관측하고, 가용 예수금을 최대 10개 빈 슬롯에 균등배분합니다.\n'
                         '기존 자산·손익을 이어가며 과거 포착을 소급 매수하지 않습니다.')
                 telegram(prompt+'\n60초 안에 확인 또는 취소를 선택하세요.',
                          CONFIRMATIONS.issue(cmd,chat_id,user_id))
@@ -597,7 +597,7 @@ def handle_callback(callback):
             from magi2.fast_paper_report import keyboard
             if FAST_PAPER:
                 result=FAST_PAPER.clear()
-                telegram(f'🧹 지표가속 일괄정리 및 포착정지 접수\n신규 포착·매수: 정지\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의투자 결과에서 확인하세요. 시세·잔량 부족은 청산 대기로 표시합니다.',keyboard())
+                telegram(f'🧹 지표가속 일괄정리 및 포착정지 접수\n신규 포착·매수: 정지\n보유 {result["positions"]}건 시장가 청산 요청 · 매수 대기 {result["canceled_entries"]}건 취소\n체결 결과는 모의투자 결과에서 확인하세요. 실제 5분봉이 확인될 때까지 청산 대기로 표시합니다.',keyboard())
             else: telegram('지표가속 모의원장 준비 중입니다.')
             return
         if action=='fast_start':
@@ -606,7 +606,7 @@ def handle_callback(callback):
             elif getattr(FAST_PAPER.ledger,'policy_review_required',False):
                 telegram('지표가속 · 일봉 전략 설계 검토 중입니다. 포착·매도 기준 확정 전에는 재개하지 않습니다.',keyboard())
             elif FAST_PAPER.resume():
-                telegram('지표가속 포착 및 매매를 시작했습니다.\n신규 포착부터 가용 예수금으로 투자합니다.\n전일 지표와 새로운 관측 3개를 준비한 뒤 포착을 시작합니다.',keyboard())
+                telegram('지표가속 포착 및 매매를 시작했습니다.\n신규 포착부터 가용 예수금으로 투자합니다.\n같은 일봉에서 1시간 간격으로 두 번 회복을 확인한 새 신호부터 매수합니다.',keyboard())
             else:
                 telegram('일괄정리 청산이 아직 남아 있어 시작하지 않았습니다.\n모의투자 결과에서 청산 상태를 확인한 뒤 다시 시작하세요.',keyboard())
             return
@@ -679,8 +679,8 @@ def main():
     if os.getenv('MAGI1_INTELLIGENCE_URL') or os.getenv('MAGI1_INTELLIGENCE_PATH'):
         log('intelligence_probe: '+signals_text('fast').replace('\n',' | ')[:1200])
     offset=discard_pending_updates(); log(f'MAGI Railway authority started; monitor={INTERVAL}s; Telegram console=ON')
-    from magi2.indicator_monitor import IndicatorMonitor as FastMonitor
-    from magi2.indicator_paper import IndicatorPaperService as PaperService
+    from magi2.hourly_indicator import HourlyMonitor as FastMonitor
+    from magi2.hourly_indicator import HourlyPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
     log('indicator_paper_ready legacy_history_loaded=false live_orders=false')
     FAST_PAPER.start()

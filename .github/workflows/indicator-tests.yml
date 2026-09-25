@@ -19,6 +19,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python -m compileall -q magi2
+      - run: python -m unittest discover -s tests -p 'test_hourly_indicator.py' -v
       - run: python -m unittest discover -s tests -p 'test_daily_indicator_review.py' -v
       - run: python -m unittest discover -s tests -p 'test_indicator_paper.py' -v
       - run: python -m unittest discover -s tests -p 'test_fast_wave*.py' -v

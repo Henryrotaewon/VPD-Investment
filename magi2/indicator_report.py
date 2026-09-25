@@ -5,6 +5,9 @@ from magi2.fast_session import day
 
 
 def view(ledger, now_ms, command):
+    if getattr(ledger,"hourly_strategy",False):
+        from magi2.hourly_indicator_report import view as hourly_view
+        return hourly_view(ledger,now_ms,command)
     if ledger is None: return '지표가속 모의투자 준비 중입니다.',keyboard()
     if command=='fast_daily':
         date=(datetime.fromisoformat(day(now_ms))-timedelta(days=1)).date().isoformat()
@@ -20,6 +23,9 @@ def view(ledger, now_ms, command):
 
 
 def daily_view(ledger, date, now_ms):
+    if getattr(ledger,"hourly_strategy",False):
+        from magi2.hourly_indicator_report import daily_view as hourly_daily
+        return hourly_daily(ledger,date,now_ms)
     # Only accept actual ISO dates; no dynamic SQL identifiers or paths.
     date=datetime.fromisoformat(date).date().isoformat()
     markup=keyboard()
@@ -33,6 +39,9 @@ def daily_view(ledger, date, now_ms):
 
 
 def orders_view(ledger, now_ms, offset=0):
+    if getattr(ledger,"hourly_strategy",False):
+        from magi2.hourly_indicator_report import events_view
+        return events_view(ledger,now_ms,offset)
     import json
     from magi2.fast_paper_report import outcome_lines, position_lines
     size=6

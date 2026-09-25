@@ -125,6 +125,9 @@ def portfolio_header(ledger, now_ms):
 
 
 def positions_page(ledger, now_ms, offset=0):
+    if getattr(ledger,"hourly_strategy",False):
+        from magi2.hourly_indicator_report import positions
+        return positions(ledger,now_ms,offset)
     # One ledger lock gives totals and positions the same accounting instant.
     with ledger.lock:
         lines,accounts=portfolio_header(ledger,now_ms)
@@ -166,6 +169,9 @@ def keyboard():
 
 
 def menu(ledger):
+    if getattr(ledger,"hourly_strategy",False):
+        from magi2.hourly_indicator_report import menu as hourly_menu
+        return hourly_menu(ledger)
     if getattr(ledger,'policy_review_required',False):
         return ('지표가속 모의투자 · 일봉 전략 설계 검토\n'
                 '분 단위 포착·신규 모의매수 중지\n'
