@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 1147838.4016268936,
+  "cash_krw": 1534034.971325141,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -1172,7 +1172,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 6.69,
+      "last_price": 6.71,
       "peak_price": 6.85,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -3492,7 +3492,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1368.0,
+      "last_price": 1366.0,
       "peak_price": 1382.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3674,7 +3674,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1368.0,
+      "last_price": 1367.0,
       "peak_price": 1380.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -5343,7 +5343,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 5840000.0,
+      "last_price": 5838000.0,
       "peak_price": 5915000.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -5604,7 +5604,7 @@
     },
     "TRUMP": {
       "market": "KRW-TRUMP",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-24T07:56:29.679830+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-24-REFILL-0756",
@@ -5625,7 +5625,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2816.0,
+      "last_price": 2800.0,
       "peak_price": 2881.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -5651,7 +5651,14 @@
       "hold_signal_checked_at": "2026-09-25T09:46:50.066671+09:00",
       "hold_state": "PROFIT",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-09-25T16:41:01.958777+09:00",
+      "exit_price": 2800.0,
+      "sell_fee_krw": 193.19488229026885,
+      "net_proceeds_krw": 386196.5696982474,
+      "pnl_krw": 13876.588524800609,
+      "return_pct": 3.7270598481084827,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "PUMP": {
       "market": "KRW-PUMP",
@@ -5828,8 +5835,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 18531.49814997922,
-  "lifetime_realized_pnl_krw": 760822.7588261636,
+  "realized_pnl_krw": 32408.086674779828,
+  "lifetime_realized_pnl_krw": 774699.3473509642,
   "paper_only": true,
   "cohort_id": "2026-09-25-VPD-0944",
   "cohort_date": "2026-09-25",
@@ -5838,7 +5845,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-25T16:10:49.231030+09:00",
+  "updated_at": "2026-09-25T16:41:01.959149+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
