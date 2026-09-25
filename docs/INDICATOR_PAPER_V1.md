@@ -10,7 +10,9 @@ paper cohort, not a validated profitability claim or a live-order integration.
   Price gain is not a universe filter. Existing holdings remain observed.
 - Approximately one minute per scan, independent worker/session per venue.
 - Frozen completed daily history (at least 100 contiguous days) plus forming day,
-  UTC midnight = 09:00 KST. Three intraday observations with 30–180s gaps.
+  Native day boundaries: Bithumb 00:00 KST; other venues UTC midnight = 09:00 KST.
+  Keep actual UTC opening timestamps for elapsed-volume pace and cache rollover.
+  Three intraday observations with 30–180s gaps.
 - MACD histogram (12,26,9) normalized by frozen prior close, Wilder RSI14,
   Williams %R14 and linear elapsed-day volume pace versus prior 20-day median.
 - Three rising, two accelerating, volume rising and score >=65; RSI>=78 or

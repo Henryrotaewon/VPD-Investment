@@ -13,6 +13,16 @@ VENUES = ('upbit', 'bithumb', 'binance', 'kraken')
 KEYS = ('macd_hist_bps', 'rsi', 'williams', 'volume_pace')
 
 
+def day_offset(venue):
+    # Bithumb native daily candles open at 00:00 KST (15:00 UTC).
+    return 15 * 3_600_000 if venue == 'bithumb' else 0
+
+
+def day_start(venue, ts_ms):
+    offset = day_offset(venue)
+    return (ts_ms - offset) // DAY_MS * DAY_MS + offset
+
+
 @dataclass(frozen=True)
 class Candle:
     open_ms: int
@@ -21,8 +31,8 @@ class Candle:
     close: float
     volume: float
 
-    def validate(self):
-        if (not isinstance(self.open_ms, int) or self.open_ms % DAY_MS
+    def validate(self, offset_ms=0):
+        if (not isinstance(self.open_ms, int) or (self.open_ms - offset_ms) % DAY_MS
                 or not all(math.isfinite(x) for x in (self.high, self.low, self.close, self.volume))
                 or not 0 < self.low <= self.close <= self.high or self.volume < 0):
             raise ValueError('INVALID_DAILY_CANDLE')
@@ -89,7 +99,7 @@ def snapshot(completed, current, observed_ms, *, venue, symbol, policy=Policy())
     if len(completed) < max(34, policy.min_history):
         raise ValueError('INSUFFICIENT_COMPLETED_HISTORY')
     for row in [*completed, current]:
-        row.validate()
+        row.validate(day_offset(venue))
     if any(b.open_ms - a.open_ms != DAY_MS for a, b in zip(completed, completed[1:])):
         raise ValueError('NONCONTIGUOUS_OR_DUPLICATE_HISTORY')
     if completed[-1].open_ms + DAY_MS != current.open_ms:
