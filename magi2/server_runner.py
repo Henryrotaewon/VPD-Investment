@@ -10,11 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
-from concurrent.futures import ThreadPoolExecutor
 
 # Support both `python magi2/server_runner.py` and package imports.
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from magi2.latency import TimedExecutor, timed, span, emit, trace
 from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
     scan_keyboard, status_keyboard, vpd_keyboard, shadow_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
 from magi2.strategy_guide import strategy_keyboard, strategy_text
@@ -30,7 +30,7 @@ KST=ZoneInfo('Asia/Seoul')
 INTERVAL=int(os.getenv('MAGI2_MONITOR_INTERVAL_SEC',os.getenv('MAGI2_MONITOR_INTERVAL_SECONDS','60')))
 LONG_POLL_SECONDS=25
 TELEGRAM_HTTP=requests.Session()
-PROBE_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='status-probe')
+PROBE_EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='status-probe')
 BOT_TOKEN=os.getenv('TELEGRAM_BOT_TOKEN','').strip()
 ALLOWED_CHAT_ID=os.getenv('TELEGRAM_CHAT_ID','').strip()
 GITHUB_REPO=os.getenv('MAGI_GITHUB_REPO','Henryrotaewon/VPD-Investment').strip()
@@ -38,9 +38,9 @@ BACKUP_BRANCH=os.getenv('MAGI2_BACKUP_BRANCH','paper-history').strip()
 STATE_DIR=REPO_STATE_DIR
 BOT_USERNAME=''
 CONFIRMATIONS=Confirmations()
-EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='paper-engine')
-SCAN_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='vpd-request-scan')
-REGIME_EXECUTOR=ThreadPoolExecutor(max_workers=1,thread_name_prefix='market-regime-view')
+EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='paper-engine')
+SCAN_EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='vpd-request-scan')
+REGIME_EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='market-regime-view')
 REGIME_JOB=None
 SCAN_JOB=None
 SCAN_CONTEXT=None
@@ -153,11 +153,12 @@ def backup_paper_history():
 
 
 def telegram_api(method,payload):
-    response=TELEGRAM_HTTP.post(f'https://api.telegram.org/bot{BOT_TOKEN}/{method}',json=payload,timeout=15)
-    response.raise_for_status()
-    data=response.json()
-    if not data.get('ok'): raise RuntimeError('TELEGRAM_API_REJECTED')
-    return data.get('result')
+    with span('telegram.ack' if method=='answerCallbackQuery' else 'telegram.send' if method=='sendMessage' else 'telegram.metadata'):
+        response=TELEGRAM_HTTP.post(f'https://api.telegram.org/bot{BOT_TOKEN}/{method}',json=payload,timeout=15)
+        response.raise_for_status()
+        data=response.json()
+        if not data.get('ok'): raise RuntimeError('TELEGRAM_API_REJECTED')
+        return data.get('result')
 
 
 def telegram(text,reply_markup=None):
@@ -233,7 +234,9 @@ def finish_regime_job():
     except Exception as exc:
         log(f'market_regime failed: {type(exc).__name__}')
         message=regime_unavailable()
-    telegram(message,regime_keyboard())
+    token=trace.set(getattr(job, 'latency_trace', 'background'))
+    try: telegram(message,regime_keyboard())
+    finally: trace.reset(token)
     log('market_regime completed: read_only=true')
 
 
@@ -331,7 +334,11 @@ def run_engine(mode,snapshot_asof=None):
     script='magi2/refill_engine.py' if mode=='refill' else 'magi2/paper_engine.py'
     args=[sys.executable,script] if mode=='refill' else [sys.executable,script,mode]
     if mode in ('morning','rebuild','refill') and snapshot_asof: args+=['--snapshot-asof',snapshot_asof]
-    before=state_signature(); p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy(),timeout=300)
+    before=state_signature()
+    child_env=os.environ.copy()
+    child_env['MAGI_LATENCY_TRACE']=trace.get()
+    with span('paper.subprocess'):
+        p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=child_env,timeout=300)
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
     if p.returncode!=0:
@@ -409,6 +416,7 @@ def may_execute(chat_id,user_id):
     return str(user_id)==str(chat_id) and not str(chat_id).startswith('-')
 
 
+@timed('command.total', new_trace=False)
 def handle_command(text,chat_id=None,user_id=None):
     started=time.monotonic()
     cmd=parse_command(text,BOT_USERNAME)
@@ -540,6 +548,7 @@ def send_shadow_orders(until=None,offset=0):
     telegram(text,markup)
 
 
+@timed('callback.total', new_trace=True)
 def handle_callback(callback):
     msg=callback.get('message') or {}
     chat_id=str((msg.get('chat') or {}).get('id',''))
@@ -665,7 +674,10 @@ def poll_updates(offset,timeout=LONG_POLL_SECONDS):
             msg=update.get('message') or {}
             chat_id=str((msg.get('chat') or {}).get('id',''))
             if chat_id!=ALLOWED_CHAT_ID: continue
-            handle_command(msg.get('text') or '',chat_id,str((msg.get('from') or {}).get('id','')))
+            # Message timestamps have one-second precision; callbacks have no click timestamp.
+            if isinstance(msg.get('date'), (int, float)):
+                emit('message.age', max(0, time.time()-msg['date'])*1000)
+            timed('message.total', new_trace=True)(handle_command)(msg.get('text') or '',chat_id,str((msg.get('from') or {}).get('id','')))
     except Exception as e:
         log(f'Telegram polling error: {type(e).__name__}')
         time.sleep(1)  # Back off on failures only; no healthy-path polling sleep.

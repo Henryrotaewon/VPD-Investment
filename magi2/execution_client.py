@@ -1,10 +1,12 @@
 """Telegram read-only MAGI3 views; private service token never enters messages."""
+from magi2.latency import timed
 import os
 import time
 import requests
 from magi3.accounts import render_accounts,money,quantity
 
 
+@timed('magi3.fetch')
 def fetch(path):
     base=os.getenv('MAGI3_SERVICE_URL','').rstrip('/')
     token=os.getenv('MAGI_SERVICE_TOKEN','')
