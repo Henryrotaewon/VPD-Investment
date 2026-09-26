@@ -73,6 +73,15 @@ class ObserveTests(unittest.TestCase):
         self.assertEqual(other.report()['captures'],1)
         other.db.close()
 
+    def test_long_restart_finalizes_overdue_outcomes(self):
+        self.o.db.execute('INSERT INTO captures(ts,symbol,day,price,payload) VALUES(?,?,?,?,?)',
+                          (self.start,'KRW-X',30,100,'{}'))
+        self.o.db.commit()
+        other=Observer(str(Path(self.tmp.name)/'obs.db'),self.start+DAY)
+        self.assertEqual(other.db.execute("SELECT count(*) FROM outcomes WHERE status='MISSING'").fetchone()[0],4)
+        self.assertEqual(len(other.active),0)
+        other.db.close()
+
     def test_missing_history_never_captures(self):
         for t in range(self.start+10000,self.start+900000,10000):
             self.o.advance(t)
