@@ -47,6 +47,9 @@ def view(state_dir, section='fast_paper'):
             s = json.loads(row[0]); policy = s['policy']; now = int(time.time()*1000)
             lines = ['⚡ FAST 모의투자 [PAPER]', '검증 후보: '+policy['version'],
                      f"시작 {clock(s['started_ms'])} · 갱신 {max(0,now-s['updated_ms'])//1000}초 전"]
+            lines.append(f"매수가 상한: 새 포착가 +{policy['entry_cap']*100:g}% · 대기 10초")
+            if policy.get('retry_unfilled'):
+                lines.append('미체결: 새 신호 재시도 · 매수 체결 후 당일 재매수 금지 (09시 기준)')
             if now-s['updated_ms'] > 30000:
                 lines.append('⚠ 원장 갱신 지연 · 아래 평가는 마지막 관측 기준')
             if section == 'fast_paper_orders':

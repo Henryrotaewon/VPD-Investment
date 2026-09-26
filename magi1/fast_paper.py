@@ -1,4 +1,4 @@
-"""Causal FAST candidate-v1 PAPER ledger. Public quotes only; no order client.
+"""Causal FAST PAPER ledger. Public quotes only; no order client.
 
 The signal observer owns this object and its SQLite connection on one thread.
 Account and fill changes commit atomically; never replay historical captures.
@@ -8,13 +8,16 @@ from pathlib import Path
 import sqlite3
 
 DAY = 86_400_000
-POLICY = dict(version='fast-flow-paper-v1', initial=3000000., slots=10,
-              fee=.0005, slip=.0005, entry_cap=.005, entry_wait_ms=10000,
+POLICY = dict(version='fast-flow-paper-v2', initial=3000000., slots=10,
+              fee=.0005, slip=.0005, entry_cap=.015, entry_wait_ms=10000,
               quote_age_ms=2000, no_new_high_ms=180000,
               entry='FLOW_CONFIRMATION_A', protection='PRIOR_60S_LOW',
               flow_exit='TWO_10S_NET_SELL_AND_BELOW_ENTRY_VWAP',
               trail='THREE_COMPLETED_MINUTE_LOWS_RATCHET',
-              gap_exit='FIRST_FRESH_BOOK_AFTER_GAP', same_day_reentry=False)
+              gap_exit='FIRST_FRESH_BOOK_AFTER_GAP', same_day_reentry=False,
+              retry_unfilled=True)
+LEGACY_POLICY = dict(POLICY, version='fast-flow-paper-v1', entry_cap=.005)
+LEGACY_POLICY.pop('retry_unfilled')
 
 
 def walk(levels, *, budget=None, quantity=None):
@@ -46,12 +49,16 @@ class Paper:
           CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY,ts INTEGER,kind TEXT,
             symbol TEXT,payload TEXT);
           CREATE TABLE IF NOT EXISTS daily(day INTEGER PRIMARY KEY,ts INTEGER,payload TEXT);
+          CREATE INDEX IF NOT EXISTS fills_buy_day ON fills(symbol,side,ts);
         ''')
         row = self.db.execute('SELECT payload FROM state WHERE id=1').fetchone()
         self.s = json.loads(row[0]) if row else dict(
             policy=POLICY, started_ms=stamp, updated_ms=stamp, cash=POLICY['initial'],
             realized=0., positions={}, pending={}, closed=0, winning=0)
-        if self.s['policy'] != POLICY:
+        if self.s['policy'] == LEGACY_POLICY:
+            self.event(stamp, 'POLICY_UPDATED', '', dict(previous=self.s['policy'], current=POLICY))
+            self.s['policy'] = dict(POLICY)
+        elif self.s['policy'] != POLICY:
             raise ValueError('FAST_PAPER_POLICY_MISMATCH')
         self.books = {}
         self.trades = {}
@@ -77,11 +84,21 @@ class Paper:
                         (json.dumps(self.s, allow_nan=False),))
         self.db.commit()
 
+    def bought_today(self, symbol, ts):
+        start = ts // DAY * DAY
+        return bool(self.db.execute("SELECT 1 FROM fills WHERE symbol=? AND side='BUY' AND ts>=? AND ts<? LIMIT 1",
+                                    (symbol, start, start+DAY)).fetchone())
+
+    def can_signal(self, symbol, ts):
+        return (symbol not in self.s['positions'] and symbol not in self.s['pending']
+                and not self.bought_today(symbol, ts))
+
     def signal(self, symbol, ts, price, low, features):
         if ts < self.s['started_ms']:
             return
         day = ts // DAY
-        if self.db.execute('SELECT 1 FROM signals WHERE symbol=? AND day=?', (symbol, day)).fetchone():
+        previous = self.db.execute('SELECT ts,status,reason,payload FROM signals WHERE symbol=? AND day=?', (symbol, day)).fetchone()
+        if not self.can_signal(symbol, ts) or (previous and previous[0] >= ts):
             return
         positions, pending = self.s['positions'], self.s['pending']
         vacant = POLICY['slots'] - len(positions) - len(pending)
@@ -90,7 +107,10 @@ class Paper:
         reason = ('ALREADY_HELD' if symbol in positions or symbol in pending else
                   'NO_SLOT' if vacant <= 0 else 'INSUFFICIENT_CASH' if budget < 5000 else
                   'INVALID_PROTECTION' if low is None or low <= 0 or low >= price else '')
-        self.db.execute('INSERT INTO signals VALUES(?,?,?,?,?,?)',
+        if previous:
+            self.event(ts, 'PRIOR_SIGNAL', symbol, dict(ts=previous[0], status=previous[1],
+                       reason=previous[2], payload=json.loads(previous[3])))
+        self.db.execute('INSERT OR REPLACE INTO signals VALUES(?,?,?,?,?,?)',
                         (symbol, day, ts, 'SKIPPED' if reason else 'PENDING', reason,
                          json.dumps(dict(features, reference=price, protection=low, budget=budget))))
         if not reason:
@@ -101,6 +121,7 @@ class Paper:
     def cancel(self, symbol, ts, reason):
         order = self.s['pending'].pop(symbol, None)
         if order:
+            self.event(ts, 'ENTRY_CANCELED', symbol, dict(order, reason=reason))
             self.db.execute("UPDATE signals SET status='SKIPPED',reason=? WHERE symbol=? AND day=?",
                             (reason, symbol, order['day']))
             self.save(ts)
@@ -168,6 +189,9 @@ class Paper:
         if book['bp'] <= order['stop']:
             self.cancel(symbol, ts, 'PROTECTION_ALREADY_BROKEN')
             return
+        if self.bought_today(symbol, ts):
+            self.cancel(symbol, ts, 'ALREADY_BOUGHT_TODAY')
+            return
         raw_budget = order['budget'] / ((1 + POLICY['fee']) * (1 + POLICY['slip']))
         qty, raw, remaining = walk(book['asks'], budget=raw_budget)
         if remaining > 1e-6 or qty <= 0:
@@ -176,6 +200,7 @@ class Paper:
         price = raw / qty * (1 + POLICY['slip'])
         if price > order['reference'] * (1 + POLICY['entry_cap']):
             order['last_reason'] = 'ENTRY_PRICE_CAP'
+            order['last_expected_price'] = price
             return
         cost = order['budget']
         self.s['cash'] -= cost
@@ -261,7 +286,8 @@ class Paper:
         value = sum(p['qty'] * p['mark'] for p in positions.values())
         stale = sum(ts - p['mark_ms'] > 2000 for p in positions.values())
         nav = self.s['cash'] + value
-        return dict(mode='FAST_PAPER_ONLY', policy=POLICY['version'], started_ms=self.s['started_ms'],
+        return dict(mode='FAST_PAPER_ONLY', policy=POLICY['version'], entry_cap=POLICY['entry_cap'],
+                    retry_unfilled=POLICY['retry_unfilled'], same_day_reentry=False, started_ms=self.s['started_ms'],
                     initial=POLICY['initial'], slots=POLICY['slots'], cash=self.s['cash'],
                     reserved=sum(x['budget'] for x in self.s['pending'].values()),
                     positions=len(positions), pending=len(self.s['pending']), equity=nav,
