@@ -1,0 +1,19 @@
+{
+  "mode": "EXPLORATORY_SINGLE_ASSET_TARGET_CASE_REVIEW_NOT_VALIDATION",
+  "targets": [
+    {"buy_labels": ["09/11", "09/12"], "sell_label": "09/14"},
+    {"buy_labels": ["09/18"], "sell_label": "09/20"},
+    {"buy_labels": ["09/22"], "sell_label": "09/26"}
+  ],
+  "requested_at_kst": "2026-09-26T02:45:20+09:00",
+  "data_cutoff_kst": "2026-09-26T02:30:00+09:00",
+  "source": "Reuse archived full-period daily and five-minute public candles. No new market data or other assets are required for this preliminary review.",
+  "time_labels": "Upbit daily labels begin at 09:00 KST. Report actual KST signal/fill times separately. Sep26 daily candle has not started at the cutoff.",
+  "daily_buy_hypothesis": "Previous completed daily RSI and Williams both declined. Current RSI and Williams rise versus that previous day, while MACD histogram second difference is positive. Histogram level and first difference need not be positive.",
+  "intraday_buy_probe": "Apply the same hypothesis to a provisional daily candle reconstructed only from observed trades. Require two consecutive completed one-hour checkpoints on the same daily candle. Use next actual five-minute opening reference after confirmation.",
+  "intraday_sell_probe": "While holding, activate after running high reaches +12% from entry. Require at least two of provisional daily MACD histogram/RSI/Williams to decline in each of the last two hourly intervals (same daily candle), AND current hourly close below the previous hourly low. Use next actual five-minute opening reference. Full exit; no arbitrary target-date scheduling.",
+  "volume": "Descriptive confirmation only in this hypothesis: no 1bn KRW turnover screen and no mandatory prior-volume surge/current-volume-decline gate. This change is explicit because Sep22 contradicts the old volume gate.",
+  "parameters": {"hour_ms": 3600000, "activation_gross_pct": 12, "epsilon": 1e-10},
+  "comparison": "Check all available days, including non-target Sep16 and premature sell dates. Target dates never enter entry/exit predicates.",
+  "caveat": "Formulated after reviewing the same ARK path. Do not optimize thresholds until all target labels match. This is a design probe, not an approved strategy or independent performance evidence. No deployment, no orders, no cross-asset simulation this turn."
+}
