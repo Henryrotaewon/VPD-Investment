@@ -182,14 +182,25 @@ class Collector:
                    if x['quoteAsset']=='USDT' and x['status']=='TRADING'
                    and x.get('isSpotTradingAllowed',False) and x['baseAsset'] not in EXCLUDED
                    and x['baseAsset'] not in {'BTCUP','BTCDOWN','ETHUP','ETHDOWN','BNBUP','BNBDOWN'}}
-        rows = self.fetch(base+'/ticker/tradingDay',{'type':'MINI','timeZone':'0'})
+        server_ts = number(self.fetch(base+'/time')['serverTime'])
+        if abs(server_ts-now*1000)>30000:
+            raise ValueError('EXCHANGE_CLOCK_SKEW')
+        rows = []
+        names = sorted(symbols)
+        for i in range(0,len(names),100):
+            rows.extend(self.fetch(base+'/ticker/tradingDay',
+                                   {'symbols':json.dumps(names[i:i+100],separators=(',',':')),
+                                    'type':'MINI','timeZone':'0'}))
         quotes = {}
         start = int(now//DAY)*DAY*1000
         for x in rows:
             if x.get('symbol') not in symbols: continue
             try:
-                ts = number(x['closeTime'])
-                if not -30000 <= now*1000-ts <= 300000 or int(x['openTime']) != start: continue
+                period_end = number(x['closeTime'])
+                # tradingDay closeTime is the interval end, potentially 23:59:59.999,
+                # NOT the latest trade timestamp. Freshness uses exchange clock + receipt.
+                if int(x['openTime']) != start or not start <= period_end < start+DAY*1000: continue
+                ts = server_ts
                 p,op,hi = [number(x[k],True) for k in ('lastPrice','openPrice','highPrice')]
                 vol = number(x['quoteVolume'])
                 if vol<=0 or hi<p: continue
@@ -202,7 +213,9 @@ class Collector:
             d = self.fetch(base+'/klines',{'symbol':asset+'USDT','interval':'1d','limit':40})
             assets[asset] = asset_metrics([(x[0]//1000,x[4]) for x in h],
                                          [(x[0]//1000,x[4]) for x in d],quotes[asset],now)
-        return classify_venue(quotes,len(symbols),assets['BTC'],assets['ETH'])
+        result = classify_venue(quotes,len(symbols),assets['BTC'],assets['ETH'])
+        result['quote_freshness_basis'] = 'EXCHANGE_CLOCK_AND_HTTP_RECEIPT_NOT_LAST_TRADE'
+        return result
 
     def macro(self, now):
         # Daily economic data remain separate from live crypto directions.
@@ -243,6 +256,8 @@ class Collector:
                 venues[venue] = getattr(self,venue)(now)
             except (requests.RequestException,ValueError,KeyError,TypeError,IndexError,AttributeError) as exc:
                 reason = str(exc) if type(exc) is ValueError else type(exc).__name__
+                if isinstance(exc,requests.HTTPError) and exc.response is not None:
+                    reason += ':'+str(exc.response.status_code)
                 venues[venue] = dict(status='UNAVAILABLE',reason=reason[:80])
         payload = dict(schema_version=SCHEMA,policy_version=POLICY,producer='MAGI1',
                        mode='OBSERVATION_ONLY',execution_eligible=False,
