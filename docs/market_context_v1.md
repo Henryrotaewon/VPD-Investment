@@ -46,3 +46,7 @@ MAGI1은 5분마다 공개 현물 자료를 수집한다. MAGI2의 기존 시장
 - https://fred.stlouisfed.org/series/DGS10
 
 이 자료는 API 의미와 관측 출처의 근거다. 위 수치 기준의 투자 성과를 입증하지 않는다.
+
+## Binance 응답 계약 보완
+
+tradingDay는 symbol 또는 symbols가 필수이며 최대 100종목씩 요청한다. closeTime은 통계 구간의 종료시각(당일 23:59:59.999일 수 있음)으로 마지막 체결 시각이 아니다. UTC 당일 openTime/구간 경계를 검증하고 거래소 서버 시계(30초 오차 한도)와 HTTP 수신으로 조회 신선도를 확인한다. 마지막 체결 신선도까지 확인된 것으로 표시하지 않는다. 업비트는 trade_timestamp를 사용한다.

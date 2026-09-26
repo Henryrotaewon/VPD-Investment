@@ -130,7 +130,7 @@ def render(result):
              f'변동: 30일 연환산 {result.volatility:.1%} · 고변동 기준 {result.threshold:.1%}']
     if result.state != result.observed_state:
         lines.append(f'{LABELS[result.observed_state]} 전환 관측 · 2일 확인 대기')
-    elif result.btc_return * result.eth_return < 0:
+    if result.btc_return * result.eth_return < 0:
         lines.append('BTC·ETH 추세가 엇갈림 · 두 자산의 평균 추세로 판단')
     lines.extend(['Kraken BTC·ETH/USD 가격·변동성 기준',
                   f'일봉 마감 {datetime.fromtimestamp(result.close_time, KST):%m/%d %H:%M} KST'
