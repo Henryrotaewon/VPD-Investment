@@ -1,6 +1,7 @@
 """Read-only current FAST paper balances and KST daily results."""
 from datetime import datetime
 from magi2.fast_paper import KST
+from magi3.accounts import quantity
 
 NAMES = dict(upbit='업비트',bithumb='빗썸',binance='바이낸스',kraken='크라켄')
 REASONS = {'INDICATOR_WEAKENED':'지표 약화 2회','PROFIT_PROTECTION':'수익 보호','MAX_HOLD_60M':'최대 60분 보유','TOP5_EXIT_AND_STOP_6':'TOP 5 이탈 및 −6% 손절','HOLD_5M':'5분 시장가 청산','DEADLINE_10M':'10분 강제청산',
@@ -55,6 +56,7 @@ def position_lines(t, account, now_ms):
                      ' / 매수상한 '+(unit_price(cap,account['quote']) if cap else '포착가+1틱 확인 중'))
     if t['status']=='ENTRY_PENDING' and not t.get('entry_ms'):
         return lines+['상태: 매수 체결 대기 중'+(' · 상한 초과 추격 없음' if t.get('entry_price_policy') else '')]
+    lines.append('수량 '+quantity(t.get('remaining_qty',t.get('entry_qty',0)))+'개')
     average=t.get('buy_average') or (t['entry_cost']/t['entry_qty'] if t.get('entry_qty') else 0)
     lines.append('매수가 '+unit_price(average,account['quote']))
     bid,stamp=t.get('last_bid'),t.get('mark_ms');fx=account.get('fx_krw_per_quote')
@@ -162,6 +164,8 @@ def keyboard():
     return {'inline_keyboard':[
         [{'text':'포착 리스트','callback_data':'nav:fast_captures'},
          {'text':'모의투자 결과','callback_data':'nav:fast_report'}],
+        [{'text':'전량교체','callback_data':'nav:indicator_rebuild'},
+         {'text':'종목 리필','callback_data':'nav:indicator_refill'}],
         [{'text':'일괄정리 및 포착정지','callback_data':'nav:fast_clear'}],
         [{'text':'포착 및 매매 시작','callback_data':'nav:fast_start'}],
         [{'text':'일별 평가','callback_data':'nav:fast_daily'}, {'text':'관측 상태','callback_data':'nav:fast_compare'}],

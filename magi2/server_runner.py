@@ -503,6 +503,17 @@ def handle_command(text,chat_id=None,user_id=None):
             else:
                 from magi2.fast_paper_report import keyboard
                 telegram('지표가속 모의투자 준비 중입니다.',keyboard())
+        elif cmd in ('indicator_rebuild','indicator_refill'):
+            if not may_execute(chat_id,user_id):
+                telegram('실행 권한이 없는 사용자입니다.'); return
+            if not FAST_PAPER or not getattr(FAST_PAPER.ledger,'hourly_strategy',False):
+                telegram('지표가속 모의원장 준비 중입니다.'); return
+            from magi2.indicator_rebalance import plan, preview_text, RebalanceUnavailable
+            try:
+                prepared=plan(FAST_PAPER.ledger,cmd.removeprefix('indicator_'),time.time_ns()//1000000)
+            except RebalanceUnavailable as exc:
+                telegram(str(exc)); return
+            telegram(preview_text(prepared),CONFIRMATIONS.issue(cmd+':'+prepared['fingerprint'],chat_id,user_id))
         elif cmd in ('fast_clear','fast_start'):
             if not may_execute(chat_id,user_id):
                 telegram('실행 권한이 없는 사용자입니다.'); return
@@ -599,7 +610,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -612,6 +623,19 @@ def handle_callback(callback):
                                                    'reply_markup':{'inline_keyboard':[]}})
         except Exception as e: log(f'Keyboard cleanup failed: {type(e).__name__}')
         if prefix=='cancel': telegram('실행을 취소했습니다.'); return
+        if action.startswith(('indicator_rebuild:','indicator_refill:')):
+            from magi2.indicator_rebalance import request, RebalanceUnavailable
+            from magi2.fast_paper_report import keyboard
+            if not FAST_PAPER or not getattr(FAST_PAPER.ledger,'hourly_strategy',False):
+                telegram('지표가속 모의원장 준비 중입니다.'); return
+            command,fingerprint=action.split(':',1)
+            try:
+                result=request(FAST_PAPER.ledger,command.removeprefix('indicator_'),time.time_ns()//1000000,fingerprint)
+                label='전량교체' if result['mode']=='rebuild' else '종목 리필'
+                telegram(f'지표가속 {label} 접수 [PAPER]\n유효 포착 {result["candidates"]}종목 · 편입 예정 {len(result["targets"])}종목\n확정 이후 다음 5분봉으로 순차 모의체결합니다.\n진행 상태는 모의투자 결과에서 확인하세요.',keyboard())
+            except RebalanceUnavailable as exc:
+                telegram(str(exc),keyboard())
+            return
         if action=='fast_clear':
             from magi2.fast_paper_report import keyboard
             if FAST_PAPER:

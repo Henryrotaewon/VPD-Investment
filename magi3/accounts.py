@@ -109,8 +109,8 @@ def pick_strategy(position):
 
 
 def quantity(value):
-    """Display only; preserve tiny positive holdings without showing zero."""
-    return '<0.1' if 0<value<0.1 else f'{value:,.1f}'
+    """Truncate display only; keep sub-unit positive holdings visible."""
+    return '<1' if 0<value<1 else f'{int(value):,}'
 
 
 def render_accounts(report,now_ms=None):
