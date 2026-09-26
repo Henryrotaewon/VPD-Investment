@@ -158,7 +158,8 @@ class RoutingTests(unittest.TestCase):
         self.start.assert_not_called()
         menu=self.send.call_args.args[1]['inline_keyboard']
         self.assertEqual(menu[0][0]['callback_data'],'nav:report')
-        for button,action in zip(menu[1],('morning','refill')):
+        for action in ('morning','refill'):
+            button=next(b for row in menu for b in row if b['callback_data']=='nav:'+action)
             server.handle_callback(self.callback(button['callback_data']))
             self.start.assert_not_called()
             confirm=self.send.call_args.args[1]['inline_keyboard'][0][0]['callback_data']

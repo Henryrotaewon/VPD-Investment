@@ -142,10 +142,15 @@ def unavailable(reason='현재 시세 자료를 조회하지 못했습니다.'):
     return '🧭 시장 국면 · 판단 보류\n' + reason + '\n잠시 후 다시 조회해 주세요.'
 
 
-def view():
+def legacy_view():
     try:
         return render(fetch_regime())
     except DataUnavailable as exc:
         return unavailable(str(exc))
     except (requests.RequestException, ValueError, TypeError):
         return unavailable()
+
+
+def view():
+    from magi2.market_context_view import view as context_view
+    return context_view()

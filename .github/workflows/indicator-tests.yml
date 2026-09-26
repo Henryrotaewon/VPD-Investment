@@ -1,10 +1,10 @@
 name: Indicator Paper Tests
 on:
   pull_request:
-    paths: ['magi2/**', 'tests/**', 'requirements.txt', '.github/workflows/indicator-tests.yml']
+    paths: ['magi1/**', 'magi2/**', 'tests/**', 'requirements.txt', '.github/workflows/indicator-tests.yml']
   push:
     branches: [main]
-    paths: ['magi2/**', 'tests/**', 'requirements.txt', '.github/workflows/indicator-tests.yml']
+    paths: ['magi1/**', 'magi2/**', 'tests/**', 'requirements.txt', '.github/workflows/indicator-tests.yml']
 permissions:
   contents: read
 jobs:
@@ -29,3 +29,4 @@ jobs:
 
       - run: python -m unittest tests.test_fast_observe tests.test_fast_bootstrap tests.test_fast_observe_service tests.test_fast_repair tests.test_fast_flow_paper -v
       - run: python -m unittest tests.test_vpd_refill tests.test_point_in_time_scan -v
+      - run: python -m unittest tests.test_market_context tests.test_market_regime -v
