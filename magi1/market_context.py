@@ -189,7 +189,7 @@ class Collector:
         names = sorted(symbols)
         for i in range(0,len(names),100):
             rows.extend(self.fetch(base+'/ticker/tradingDay',
-                                   {'symbols':json.dumps(names[i:i+100],separators=(',',':')),
+                                   {'symbols':json.dumps(names[i:i+100],ensure_ascii=False,separators=(',',':')),
                                     'type':'MINI','timeZone':'0'}))
         quotes = {}
         start = int(now//DAY)*DAY*1000

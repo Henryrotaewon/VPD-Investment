@@ -134,21 +134,24 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(row['breadth']['alt_count'],30)
 
     def test_binance_requires_symbols_and_day_end_is_not_a_trade_timestamp(self):
-        assets=['BTC','ETH','JUP']+['A'+str(i) for i in range(30)]
+        assets=['BTC','ETH','JUP','币安人生']+['A'+str(i) for i in range(130)]
         def fetch(url,params=None,*args,**kwargs):
             if url.endswith('/time'):return {'serverTime':NOW*1000}
             if url.endswith('/exchangeInfo'):
                 return {'symbols':[dict(symbol=a+'USDT',baseAsset=a,quoteAsset='USDT',status='TRADING',isSpotTradingAllowed=True) for a in assets+['USDE','BTCUP']]}
             if url.endswith('/tradingDay'):
-                self.assertEqual(set(json.loads(params['symbols'])),{a+'USDT' for a in assets})
+                requested=json.loads(params['symbols'])
+                self.assertLessEqual(len(requested),100)
+                self.assertTrue(set(requested).issubset({a+'USDT' for a in assets}))
+                self.assertNotIn('\\u',params['symbols'])
                 return [dict(symbol=a+'USDT',closeTime=(int(NOW//86400)+1)*86400000-1,openTime=int(NOW//86400)*86400000,
-                             lastPrice=102,openPrice=100,highPrice=104,quoteVolume=100) for a in assets]
+                             lastPrice=102,openPrice=100,highPrice=104,quoteVolume=100) for a in assets if a+'USDT' in requested]
             interval=3600 if params['interval']=='1h' else 86400
             end=int(NOW//interval)*interval
             return [[(end-i*interval)*1000,0,0,0,100-i*.1] for i in range(40 if interval==86400 else 30)]
         c=m.Collector()
         with patch.object(c,'fetch',side_effect=fetch): row=c.binance(NOW)
-        self.assertEqual(row['breadth']['eligible'],33)  # JUP is not a leveraged token.
+        self.assertEqual(row['breadth']['eligible'],134)  # JUP is not a leveraged token.
         def future(url,*a,**kw):
             data=fetch(url,*a,**kw)
             if url.endswith('/tradingDay'):
