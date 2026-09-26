@@ -258,7 +258,11 @@ class Collector:
                 reason = str(exc) if type(exc) is ValueError else type(exc).__name__
                 if isinstance(exc,requests.HTTPError) and exc.response is not None:
                     reason += ':'+str(exc.response.status_code)
-                venues[venue] = dict(status='UNAVAILABLE',reason=reason[:80])
+                    try:
+                        detail = exc.response.json()
+                        reason += ':'+str(detail.get('code',''))+':'+str(detail.get('msg',''))
+                    except (ValueError,AttributeError): pass
+                venues[venue] = dict(status='UNAVAILABLE',reason=reason[:180])
         payload = dict(schema_version=SCHEMA,policy_version=POLICY,producer='MAGI1',
                        mode='OBSERVATION_ONLY',execution_eligible=False,
                        observed_ts_ms=int(now*1000),expires_ts_ms=int((now+TTL)*1000),
