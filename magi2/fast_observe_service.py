@@ -40,7 +40,8 @@ class Service:
                     self.save(done=self.data.get('done',0)+1,complete=self.data.get('complete',0)+(value['missing_buckets']==0),
                               incomplete=self.data.get('incomplete',0)+(value['missing_buckets']>0),last_market=value['symbol'])
                 elif 'market_count' in value:self.save(total=value['market_count'])
-                elif value.get('mode')=='PUBLIC_OBSERVE_NO_ORDERS':self.save(observation=value)
+                elif value.get('mode')=='PUBLIC_OBSERVE_NO_ORDERS':self.save(phase='OBSERVING',observation=value,observation_ms=int(time.time()*1000))
+                elif value.get('mode')=='FAST_REPAIR_PROGRESS':self.save(repair=value,done=value['checked'],total=value['total'],complete=value['states'].get('COMPLETE',0),incomplete=value['states'].get('INCOMPLETE_HISTORY',0)+value['states'].get('RETRY_WAIT',0))
                 else:self.save(last_progress=value)
                 self.log('fast_observe '+json.dumps(value))
             except (ValueError,TypeError):
@@ -50,15 +51,9 @@ class Service:
     def run(self):
         while not self.stopped.is_set():
             try:
-                self.save(phase='REPAIRING',detail='초기 적재 또는 누락 보완 중 · 포착 중지')
-                code=self.worker('magi1.fast_bootstrap')
-                if code:raise RuntimeError('BOOTSTRAP_EXIT_'+str(code))
-                if self.stopped.is_set():break
-                self.save(phase='OBSERVING',detail='수급 확인 · 주문 없음')
-                code=self.worker('magi1.fast_observe','--duration','1800')
+                self.save(phase='STARTING',detail='실시간 관측·종목별 보완 시작')
+                code=self.worker('magi1.fast_observe','--continuous','--repair')
                 if code:raise RuntimeError('OBSERVE_EXIT_'+str(code))
-                # Bound missed-candle repair and historical retention; intentionally
-                # stop captures while native REST history is repaired.
             except Exception as exc:
                 self.save(phase='RETRY_WAIT',detail=type(exc).__name__+': '+str(exc))
                 self.log('fast_observe_retry '+str(exc))
@@ -73,11 +68,15 @@ def view(state_dir):
     try:data=json.loads((directory/'status.json').read_text())
     except (OSError,ValueError):return '⚡ FAST 포착·추적\n초기화 대기 · 주문 없음'
     age=max(0,int(time.time()*1000)-data['updated_ms'])//1000
-    phase={'REPAIRING':'기준자료 적재·누락 보완','OBSERVING':'포착·추적 중','RETRY_WAIT':'오류 후 재시도 대기'}.get(data['phase'],data['phase'])
+    phase={'STARTING':'관측·종목별 보완 시작', 'REPAIRING':'기준자료 적재·누락 보완','OBSERVING':'포착·추적 중','RETRY_WAIT':'오류 후 재시도 대기'}.get(data['phase'],data['phase'])
     lines=['⚡ FAST 포착·추적 · 주문 없음',f'상태: {phase} · 갱신 {age}초 전']
     if age>180:lines.append('⚠ 상태 갱신 지연 · 가동 여부 확인 필요')
     done,total=data.get('done',0),data.get('total',0)
     lines.append(f'기준자료 검사 {done}/{total or "확인 중"}종목 · 완비 {data.get("complete",0)} · 미완비 {data.get("incomplete",0)}')
+    observation_age=max(0,int(time.time()*1000)-data.get('observation_ms',0))//1000
+    if data.get('phase')=='OBSERVING' and observation_age>120:lines.append('⚠ 실시간 관측 보고 지연')
+    repair=data.get('repair') or {}
+    if repair:lines.append(f"보완 중 {repair.get('states',{}).get('REPAIRING',0)} · 포착 대기 {repair.get('blocked',0)}종목")
     lines.append('최근 24시간 상세봉 + 직전 10일 동일시간 거래대금')
     try:
         db=sqlite3.connect('file:'+str(directory/'observe.sqlite3')+'?mode=ro',uri=True,timeout=1)
@@ -93,5 +92,5 @@ def view(state_dir):
         lines.append(f'24시간 연결·처리지연 {gaps}건 · 누적 추적 누락 {missing}건')
         db.close()
     except sqlite3.Error:lines.append('원장 조회 대기 · 잠시 후 다시 조회')
-    lines.append('가격변화 관측값 · 체결수익률 아님\n30분 관측 후 누락 보완 동안 포착을 잠시 중지합니다.')
+    lines.append('가격변화 관측값 · 체결수익률 아님\n정상 종목은 계속 관측 · 기준자료가 부족한 종목만 포착 대기')
     return '\n'.join(lines)

@@ -116,7 +116,7 @@ def api_rows(payload,cursor):
     return sorted(rows)
 
 
-def fill(db,symbol,cutoff,client,max_pages=32):
+def missing_plan(db,symbol,cutoff):
     start,end=bounds(cutoff)
     expected=set(range(start,end,FIVE))
     # Recent detailed data is also required; turnover alone is not sufficient.
@@ -124,21 +124,35 @@ def fill(db,symbol,cutoff,client,max_pages=32):
     details={r[0] for r in db.execute('SELECT bucket FROM recent5m WHERE symbol=? AND bucket>=? AND bucket<?',(symbol,end-DAY,end))}
     missing=(expected-known)| (set(range(end-DAY,end,FIVE))-details)
     missing |= {r[0] for r in db.execute("SELECT bucket FROM recent5m WHERE symbol=? AND source='LIVE_RECEIVE_TIME' AND bucket>=? AND bucket<?",(symbol,start,end))}
+    return missing
+
+
+def apply_page(db,symbol,cutoff,rows,cursor,missing):
+    """Apply one validated response on the database owner thread."""
+    if not rows:return set()
+    start,_=bounds(cutoff)
+    lower=max(start,rows[0][0]);native={r[0]:r for r in rows}
+    covered=set()
+    with db:
+        for t in range(lower,cursor,FIVE):
+            if t not in missing:continue
+            if t in native:put(db,symbol,native[t],cutoff,'API')
+            else:
+                db.execute('INSERT OR REPLACE INTO baseline VALUES(?,?,0)',(symbol,t))
+                if t>=cutoff-DAY:
+                    db.execute('INSERT OR REPLACE INTO recent5m VALUES(?,?,NULL,NULL,NULL,NULL,0,0,?)',(symbol,t,'API_NO_TRADE'))
+            covered.add(t)
+    return covered
+
+
+def fill(db,symbol,cutoff,client,max_pages=32):
+    missing=missing_plan(db,symbol,cutoff)
     pages=0
     while missing and pages<max_pages:
         cursor=max(missing)+FIVE
         rows=api_rows(client.candles(symbol,cursor),cursor);pages+=1
         if not rows:break  # Do not invent pre-listing zero history.
-        lower=max(start,rows[0][0]);native={r[0]:r for r in rows}
-        with db:
-            for t in range(lower,cursor,FIVE):
-                if t not in missing:continue
-                if t in native:put(db,symbol,native[t],cutoff,'API')
-                else:
-                    db.execute('INSERT OR REPLACE INTO baseline VALUES(?,?,0)',(symbol,t))
-                    if t>=end-DAY:
-                        db.execute('INSERT OR REPLACE INTO recent5m VALUES(?,?,NULL,NULL,NULL,NULL,0,0,?)',(symbol,t,'API_NO_TRADE'))
-                missing.discard(t)
+        missing.difference_update(apply_page(db,symbol,cutoff,rows,cursor,missing))
         # Next loop jumps over already imported archive ranges.
     return {'symbol':symbol,'pages':pages,'missing_buckets':len(missing),
             'status':'COMPLETE' if not missing else 'INCOMPLETE_HISTORY_OR_PAGE_LIMIT'}
