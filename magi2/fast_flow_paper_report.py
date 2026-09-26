@@ -11,12 +11,26 @@ def clock(stamp):
     return datetime.fromtimestamp(stamp/1000, ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
 
 
-def keyboard():
-    return {'inline_keyboard': [
-        [{'text':'📊 FAST 자산현황','callback_data':'nav:fast_paper'},
-         {'text':'📒 FAST 매매기록','callback_data':'nav:fast_paper_orders'}],
-        [{'text':'📅 FAST 일별평가','callback_data':'nav:fast_paper_daily'},
-         {'text':'🔎 포착·추적','callback_data':'nav:fast_watch'}]]}
+def keyboard(home=False):
+    rows = [
+        [{'text':'📊 자산현황','callback_data':'nav:fast_paper_balance'},
+         {'text':'🔎 포착·추적','callback_data':'nav:fast_watch'}],
+        [{'text':'📒 매매기록','callback_data':'nav:fast_paper_orders'},
+         {'text':'📅 일별평가','callback_data':'nav:fast_paper_daily'}]]
+    back = [{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}]
+    if not home:
+        back.insert(0, {'text':'↩️ FAST 모의투자','callback_data':'nav:fast_paper'})
+    return {'inline_keyboard': rows + [back]}
+
+
+def menu():
+    return ('⚡ FAST 모의투자 [PAPER]\n'
+            '업비트 · 초기 300만원 · 최대 10종목 분할\n\n'
+            '자산현황: 예수금·보유 종목·수익률\n'
+            '포착·추적: 포착 종목과 이후 가격 변화\n'
+            '매매기록: 체결 내역·매수 제외 사유\n'
+            '일별평가: 날짜별 평가금액·누적손익\n\n'
+            '아래에서 확인할 항목을 선택해 주세요.', keyboard(home=True))
 
 
 def view(state_dir, section='fast_paper'):

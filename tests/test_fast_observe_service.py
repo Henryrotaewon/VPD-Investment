@@ -15,7 +15,7 @@ class ServiceTests(unittest.TestCase):
             self.assertIn('2/289',text);self.assertIn('누적 포착 0',text)
             self.assertIn('주문 없음',text)
             self.assertEqual(parse_command('⚡ FAST 포착·추적'),'fast_watch')
-            self.assertIn('⚡ FAST 포착·추적',str(main_keyboard()))
+            self.assertNotIn('⚡ FAST 포착·추적',str(main_keyboard()))
             s.stop()
     def test_not_created(self):
         with tempfile.TemporaryDirectory() as d:

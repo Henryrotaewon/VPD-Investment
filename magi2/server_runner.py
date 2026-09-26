@@ -187,32 +187,30 @@ def setup_telegram_menu():
             except Exception as exc:
                 log(f'MAGI profile update failed: {method} {type(exc).__name__}')
     scope={'type':'chat','chat_id':ALLOWED_CHAT_ID}
-    commands=[{'command':key,'description':desc} for key,desc in COMMANDS]
+    fast_children={'fast_watch','fast_paper_balance','fast_paper_orders','fast_paper_daily'}
+    commands=[{'command':key,'description':desc} for key,desc in COMMANDS if key not in fast_children]
     for language in ('','ko'):
         telegram_api('setMyCommands',{'commands':commands,'scope':scope,'language_code':language})
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v21; indicator_label=지표가속 FAST_separate=true')
+    log('MAGI Telegram menu registered: Korean v22; FAST_top_menu=true')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v21','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v22','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'모의투자 메뉴 이름을 지표가속으로 변경했습니다.\n'
-               '지표가속: 일봉 MACD·RSI·거래량·Williams 전략\n'
-               'FAST: 향후 별도로 설계·운영할 전략\n'
-               '지표가속은 설계 검토 중이며 신규 포착·모의매수 중지 상태입니다.',
+        'text':'최상단의 ⚡ FAST 모의투자에서 자산현황·포착·추적·매매기록·일별평가를 확인하세요.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v21')
+    log('MAGI reply keyboard refreshed: magi-menu-v22')
 
 
 def start_regime_job():
@@ -469,8 +467,12 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram('MAGI1 · 시세·관측 상태\n'+message+'\n개별 거래소 수집기 상태와 전체 데이터 품질은 이 조회만으로 판정하지 않습니다.',status_keyboard())
         elif cmd=='fast_watch':
             from magi2.fast_observe_service import view as fast_watch_view
-            telegram(fast_watch_view(STATE_DIR),{'inline_keyboard':[[{'text':'🔄 FAST 현황 새로고침','callback_data':'nav:fast_watch'}]]})
-        elif cmd in ('fast_paper','fast_paper_orders','fast_paper_daily'):
+            from magi2.fast_flow_paper_report import keyboard as fast_paper_keyboard
+            telegram(fast_watch_view(STATE_DIR),fast_paper_keyboard())
+        elif cmd=='fast_paper':
+            from magi2.fast_flow_paper_report import menu as fast_paper_menu
+            telegram(*fast_paper_menu())
+        elif cmd in ('fast_paper_balance','fast_paper_orders','fast_paper_daily'):
             from magi2.fast_flow_paper_report import view as fast_paper_view
             telegram(*fast_paper_view(STATE_DIR,cmd))
         elif cmd=='status2':
@@ -587,7 +589,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)

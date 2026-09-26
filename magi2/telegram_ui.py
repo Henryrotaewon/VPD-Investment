@@ -12,6 +12,7 @@ BOT_DESCRIPTION = ('MAGI — 코인 시장 분석과 투자 현황을 한곳에�
     '모의투자와 실제 자산을 구분해 확인하세요. /menu로 시작합니다.')
 
 COMMANDS = [
+    ('fast_paper', 'FAST 모의투자 메뉴'),
     ('help', 'MAGI 도움말 · 전체 명령어'), ('about', 'MAGI 소개 · 역할별 메뉴'), ('menu', '버튼 메뉴 열기'),
     ('status', 'MAGI1·2·3 상태 선택'), ('vpd', 'VPD 모의투자 메뉴'), ('report', 'VPD 모의투자 현황'),
     ('assets', '실계좌 자산 · 거래소별 조회'),
@@ -20,7 +21,7 @@ COMMANDS = [
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('indicator', '지표가속 모의투자 메뉴'),
     ('fast_watch', 'FAST 포착·추적 현황 · 주문 없음'),
-    ('fast_paper', 'FAST 모의투자 · 300만원 10분할'),
+    ('fast_paper_balance', 'FAST 모의투자 자산현황 · 300만원 10분할'),
     ('fast_paper_orders', 'FAST 모의 매매기록 · 매수 제외 사유'),
     ('fast_paper_daily', 'FAST 일별 자산평가'),
     ('signals', '지표가속 포착 조회 · 기존 명령'),
@@ -34,18 +35,20 @@ COMMANDS = [
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
 LABELS = {
-    '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
-    '⚡ FAST 포착·추적': 'fast_watch', '🧪 shadows 모의투자': 'shadows', '지표가속 모의투자': 'indicator',
     '⚡ FAST 모의투자': 'fast_paper',
+    '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
+    '🧪 shadows 모의투자': 'shadows', '지표가속 모의투자': 'indicator',
     '🧭 시장 국면': 'regime',
     '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '⚡ fast 포착·추적': 'fast_watch',
+    'fast모의투자': 'fast_paper', '⚡ fast 모의투자': 'fast_paper',
     'fast 관측': 'fast_watch', 'fast 추적': 'fast_watch',
     '지표가속': 'indicator', '지표 가속': 'indicator', '지표가속 모의투자': 'indicator',
     '시장 국면': 'regime', '현재 국면': 'regime', '국면': 'regime', '국면 조회': 'regime',
-    '📊 fast 모의검증 결과':'fast_report', '📊 fast 모의결과': 'fast_report', 'fast 모의투자':'fast', 'fast 전일 결과':'fast_daily',
+    '📊 fast 모의검증 결과':'fast_report', '📊 fast 모의결과': 'fast_report', 'fast 모의투자':'fast_paper', 'fast 전일 결과':'fast_daily',
     '📊 fast 모의투자':'fast_report', 'fast 모의검증 결과':'fast_report', 'fast모의검증 결과':'fast_report',
     'fast 모의결과': 'fast_report', 'fast 보고서': 'fast_report', 'fast report': 'fast_report',
     'fast 정리': 'fast_clear', '🧹 fast 정리': 'fast_clear',
@@ -91,7 +94,8 @@ def parse_command(text, bot_username=''):
 
 
 def main_keyboard():
-    rows = [list(LABELS)[n:n+2] for n in range(0, len(LABELS), 2)]
+    labels = list(LABELS)
+    rows = [labels[:1]] + [labels[n:n+2] for n in range(1, len(labels), 2)]
     return {'keyboard': [[{'text': x} for x in row] for row in rows],
             'resize_keyboard': True, 'is_persistent': True,
             'input_field_placeholder': 'MAGI · 메뉴를 선택하거나 /help를 입력하세요'}
@@ -111,9 +115,9 @@ def role_text():
 
 def role_keyboard():
     groups = [
+        [('⚡ FAST 모의투자','fast_paper')],
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
         [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
-        [('⚡ FAST 모의투자','fast_paper'), ('⚡ FAST 포착·추적','fast_watch')],
         [('🧭 시장 국면 · 투자 참고','regime')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
     ]
@@ -160,6 +164,10 @@ def help_text():
             '/regime — 현재 시장 국면·사유 (BTC·ETH 완료 일봉, 요청 시 조회)\n'
             '/indicator — 지표가속 모의투자 메뉴\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — 전략 검증 기준\n'
             '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
+            '/fast_paper_balance — FAST 자산현황\n'
+            '/fast_watch — FAST 포착·추적\n'
+            '/fast_paper_orders — FAST 매매기록·매수 제외 사유\n'
+            '/fast_paper_daily — FAST 일별평가\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'
