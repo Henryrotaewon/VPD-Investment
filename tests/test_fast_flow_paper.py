@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from magi1.fast_paper import Paper, POLICY, DAY
+from magi1.fast_paper import Paper, POLICY, LEGACY_POLICY, DAY
 from magi1.fast_observe import Observer, FIVE
 from magi2.fast_flow_paper_report import view
 from magi2.telegram_ui import parse_command
@@ -84,6 +84,82 @@ class FastPaperTests(unittest.TestCase):
         self.assertLess(self.p.s['realized'],0)
         self.assertAlmostEqual(self.p.s['cash'],3000000+self.p.s['realized'])
         self.assertEqual(self.p.db.execute("SELECT count(*) FROM fills WHERE side='SELL'").fetchone()[0],2)
+
+    def test_new_cap_and_unfilled_retry_preserve_first_attempt(self):
+        t = self.start+1
+        self.p.signal('KRW-X',t,100,98,{})
+        self.p.on_trade('KRW-X',t+1,100,1,t+1)
+        self.p.on_book('KRW-X',t+2,self.book(t+2,ap=101.5))
+        self.assertEqual(self.p.s['pending']['KRW-X']['last_reason'],'ENTRY_PRICE_CAP')
+        self.p.tick(t+10001)
+        self.assertTrue(self.p.can_signal('KRW-X',t+20000))
+        self.p.signal('KRW-X',t+20000,100,98,{})
+        self.p.on_trade('KRW-X',t+20001,100,1,t+20001)
+        self.p.on_book('KRW-X',t+20002,self.book(t+20002,ap=101))
+        self.assertIn('KRW-X',self.p.s['positions'])
+        self.assertLessEqual(self.p.s['positions']['KRW-X']['entry_price'],101.5)
+        old=json.loads(self.p.db.execute("SELECT payload FROM events WHERE kind='PRIOR_SIGNAL'").fetchone()[0])
+        self.assertEqual((old['ts'],old['reason']),(t,'ENTRY_PRICE_CAP'))
+
+    def test_filled_market_blocked_after_sale_restart_until_utc_day_changes(self):
+        self.buy(); t=self.start+100
+        self.p.request_exit('KRW-X',t,'TEST')
+        self.p.on_book('KRW-X',t+1,self.book(t+1))
+        self.assertFalse(self.p.can_signal('KRW-X',t+2))
+        self.p.close(t+3); self.p=Paper(self.path,t+4)
+        self.p.signal('KRW-X',t+5,100,98,{})
+        self.assertFalse(self.p.s['pending'])
+        self.p.signal('KRW-X',self.start+DAY,100,98,{})
+        self.assertIn('KRW-X',self.p.s['pending'])
+
+    def test_buy_day_is_fill_day_when_pending_crosses_09_kst(self):
+        t=self.start+DAY-1000
+        self.p.signal('KRW-X',t,100,98,{})
+        self.p.on_trade('KRW-X',t+1001,100,1,t+1001)
+        self.p.on_book('KRW-X',t+1002,self.book(t+1002))
+        self.p.request_exit('KRW-X',t+1003,'TEST')
+        self.p.on_book('KRW-X',t+1004,self.book(t+1004))
+        self.assertFalse(self.p.can_signal('KRW-X',t+1005))
+
+    def test_policy_upgrade_preserves_money_history_and_is_idempotent(self):
+        self.buy();t=self.start+100
+        self.p.request_exit('KRW-X',t,'TEST')
+        self.p.on_book('KRW-X',t+1,self.book(t+1,bp=105,ap=105.1))
+        self.p.s['policy']=dict(LEGACY_POLICY); self.p.close(t+2)
+        before={k:self.p.s[k] for k in ('cash','realized','closed','winning','started_ms')}
+        self.p=Paper(self.path,t+3)
+        self.assertEqual(before,{k:self.p.s[k] for k in before})
+        self.assertEqual(self.p.s['policy'],POLICY)
+        self.assertEqual(self.p.db.execute('SELECT count(*) FROM fills').fetchone()[0],2)
+        self.assertFalse(self.p.can_signal('KRW-X',t+4))
+        self.p.close(t+5); self.p=Paper(self.path,t+6)
+        self.assertEqual(self.p.db.execute("SELECT count(*) FROM events WHERE kind='POLICY_UPDATED'").fetchone()[0],1)
+
+    def test_observer_retries_only_after_signal_reset_and_two_fresh_windows(self):
+        o=Observer(Path(self.tmp.name)/'retry-obs.db',self.start);o.paper=self.p
+        o.connected('a',['KRW-X'],self.start)
+        for k in range(1,11):o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-X',self.start-k*DAY,100))
+        o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-X',self.start,300))
+        o.current=self.start+FIVE+60000
+        for i in range(6):o.bars['KRW-X'].append(dict(t=o.current-60000+i*10000,value=1,buy=1,count=1,ofi=1,l=98))
+        def window(amount):
+            o.bar('KRW-X').update(value=amount,buy=amount,count=20,ofi=1,l=98)
+            end=o.current+10000
+            o.books['KRW-X']=dict(ts=end-1,bp=99.99,ap=100)
+            o.last_price['KRW-X']=(end-1,100,end-1)
+            o.advance(end+1)
+        window(30);window(90)
+        first=self.p.s['pending']['KRW-X']['ts']
+        self.p.cancel('KRW-X',first+1,'ENTRY_PRICE_CAP')
+        window(1000);window(10000)
+        self.assertFalse(self.p.s['pending'])
+        window(0);window(100000)
+        self.assertFalse(self.p.s['pending'])
+        window(1000000)
+        self.assertGreater(self.p.s['pending']['KRW-X']['ts'],first)
+        self.assertEqual(o.db.execute('SELECT count(*) FROM captures').fetchone()[0],1)
+        self.assertEqual(o.db.execute("SELECT count(*) FROM events WHERE kind='PAPER_RETRY'").fetchone()[0],1)
+        o.db.close()
 
     def test_restart_preserves_account_cancels_pending_and_exits_after_fresh_quote(self):
         self.buy()

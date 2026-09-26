@@ -66,6 +66,7 @@ class Observer:
         self.active = {}; self.started = int(start); self.stale_logged = {}
         self.repair=None;self.repair_blocked=set();self.symbol_since={}
         self.paper = None
+        self.paper_retry_armed = {}
         self.received_ms = int(start)
         # A long outage may outlive every horizon. Finalize overdue rows even
         # when the capture is too old to restore into the active tracker.
@@ -260,6 +261,8 @@ class Observer:
                              f['trades'] >= 20 and f['ofi'] > 0)
             old = self.previous.get(s)
             self.previous[s] = (end, qualifies)
+            if not qualifies:
+                self.paper_retry_armed[s] = True
             if qualifies and old == (end-TEN, True):
                 candidates.append((s, f, quote[1], book))
             if end % FIVE == 0:
@@ -268,20 +271,26 @@ class Observer:
         candidates.sort(key=lambda x: (-x[1]['relative_value'], -x[1]['net_buy'], x[0]))
         selected = 0
         for s, f, price, book in candidates:
-            if self.db.execute('SELECT 1 FROM captures WHERE symbol=? AND day=?', (s, end//DAY)).fetchone():
+            captured = self.db.execute('SELECT 1 FROM captures WHERE symbol=? AND day=?', (s, end//DAY)).fetchone()
+            stamp = max(end, self.received_ms)
+            if captured and not (self.paper and self.paper_retry_armed.get(s, False)
+                                 and self.paper.can_signal(s, stamp)):
                 continue
-            if len(self.active) >= POLICY['top_n']:
+            if not captured and len(self.active) >= POLICY['top_n']:
                 self.event(end, 'NOT_SELECTED', s, {'reason': 'MAX5_ACTIVE_TRACKS'})
                 continue
-            cur = self.db.execute('INSERT INTO captures(ts,symbol,day,price,payload) VALUES(?,?,?,?,?)',
-                                  (end, s, end//DAY, price, json.dumps(dict(f, best_bid=book['bp'], best_ask=book['ap'], mode='NO_ORDER'))))
-            self.active[cur.lastrowid] = (end, s, price); selected += 1
-            self.event(end, 'CAPTURE', s, dict(f, reference_price=price))
+            if not captured:
+                cur = self.db.execute('INSERT INTO captures(ts,symbol,day,price,payload) VALUES(?,?,?,?,?)',
+                                      (end, s, end//DAY, price, json.dumps(dict(f, best_bid=book['bp'], best_ask=book['ap'], mode='NO_ORDER'))))
+                self.active[cur.lastrowid] = (end, s, price); selected += 1
+                self.event(end, 'CAPTURE', s, dict(f, reference_price=price))
             if self.paper:
                 recent = [b for b in self.bars[s] if end-60000 <= b['t'] < end]
                 lows = [b['l'] for b in recent if b.get('l') is not None]
                 low = min(lows) if len(recent) == 6 and lows else None
-                self.paper.signal(s, max(end, self.received_ms), price, low, f)
+                self.paper_retry_armed[s] = False
+                self.paper.signal(s, stamp, price, low, f)
+                if captured:self.event(end, 'PAPER_RETRY', s, dict(f, reference_price=price))
         if end % FIVE == 0:
             self.db.execute('DELETE FROM baseline WHERE bucket<?', (end//DAY*DAY-10*DAY,))
             self.db.execute('DELETE FROM recent5m WHERE bucket<?', (end-DAY,))
@@ -304,6 +313,13 @@ async def run(args):
     if getattr(args, 'paper_db', None):
         from magi1.fast_paper import Paper
         observer.paper = Paper(args.paper_db, now_ms())
+        # Bounded, read-only startup evidence: preserve original capture times
+        # while allowing operators to audit old exclusions after a policy update.
+        for ts,symbol,price in observer.db.execute('SELECT ts,symbol,price FROM captures ORDER BY ts DESC LIMIT 30'):
+            print(json.dumps(dict(mode='FAST_CAPTURE_AUDIT', ts=ts, symbol=symbol, price=price)), flush=True)
+        for symbol,ts,status,reason,payload in observer.paper.db.execute('SELECT symbol,ts,status,reason,payload FROM signals ORDER BY ts DESC LIMIT 30'):
+            print(json.dumps(dict(mode='FAST_SIGNAL_AUDIT', symbol=symbol, ts=ts, status=status, reason=reason,
+                                  evidence=json.loads(payload))), flush=True)
     async with aiohttp.ClientSession() as session:
         async with session.get('https://api.upbit.com/v1/market/all', params={'is_details': 'true'}, timeout=aiohttp.ClientTimeout(total=15)) as response:
             response.raise_for_status(); rows = await response.json()
