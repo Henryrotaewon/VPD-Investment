@@ -4,7 +4,7 @@ import time
 from magi3.accounts import quantity
 
 BOT_NAME = 'MAGI'
-BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · 지표가속 · FAST(별도 준비)'
+BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · 지표가속 · FAST 모의투자'
 BOT_DESCRIPTION = ('MAGI — 코인 시장 분석과 투자 현황을 한곳에서.\n'
     'MAGI1: 시장 데이터·수급 관측\n'
     'MAGI2: VPD 분석·모의투자·전략 검증\n'
@@ -20,6 +20,9 @@ COMMANDS = [
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('indicator', '지표가속 모의투자 메뉴'),
     ('fast_watch', 'FAST 포착·추적 현황 · 주문 없음'),
+    ('fast_paper', 'FAST 모의투자 · 300만원 10분할'),
+    ('fast_paper_orders', 'FAST 모의 매매기록 · 매수 제외 사유'),
+    ('fast_paper_daily', 'FAST 일별 자산평가'),
     ('signals', '지표가속 포착 조회 · 기존 명령'),
     ('fast', '지표가속 메뉴 · 기존 명령 호환'), ('fast_captures', '지표가속 당일 포착 리스트'), ('fast_start', '지표가속 시작 · 현재 설계 검토로 중지'), ('fast_report', '지표가속 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', '지표가속 모의 거래 상세'),
     ('fast_balance', '지표가속 모의투자 · 거래소별 잔고·손익'),
@@ -33,6 +36,7 @@ COMMANDS = [
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
     '⚡ FAST 포착·추적': 'fast_watch', '🧪 shadows 모의투자': 'shadows', '지표가속 모의투자': 'indicator',
+    '⚡ FAST 모의투자': 'fast_paper',
     '🧭 시장 국면': 'regime',
     '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
@@ -99,7 +103,7 @@ def role_text():
             '온체인 관측은 참고 자료이며 새 지표 전략의 매수 신호와 구분합니다.\n\n'
             'MAGI2 · 전략 검증\nVPD 분석과 PAPER 모의투자를 수행합니다. '
             '지표가속은 일봉 회복을 1시간 간격으로 두 번 확인해 진입하고, 추세청산·초기 보호선으로 매도하는 PAPER 전략입니다. '
-            'FAST는 향후 별도로 설계·운영할 전략입니다.\n\n'
+            'FAST는 단기 수급 신호로 진입하고 보호선·수급 약화로 청산하는 별도 PAPER 후보 전략입니다. 초기 300만원을 최대 10종목에 배분합니다.\n\n'
             'MAGI3 · 자산·실행 관리\n실계좌 잔고와 Shadow 모의 체결을 구분합니다. '
             '실거래 활성화 여부는 시스템 상태에서 확인하세요.\n\n'
             '아래 조회 메뉴는 매매를 시작하지 않습니다.')
@@ -109,7 +113,7 @@ def role_keyboard():
     groups = [
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
         [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
-        [('⚡ FAST 포착·추적','fast_watch')],
+        [('⚡ FAST 모의투자','fast_paper'), ('⚡ FAST 포착·추적','fast_watch')],
         [('🧭 시장 국면 · 투자 참고','regime')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
     ]
@@ -155,7 +159,7 @@ def help_text():
             '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 현재 시장 국면·사유 (BTC·ETH 완료 일봉, 요청 시 조회)\n'
             '/indicator — 지표가속 모의투자 메뉴\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — 전략 검증 기준\n'
-            '지표가속과 FAST는 별도 전략입니다. FAST는 향후 별도로 설계·운영합니다.\n'
+            '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
             '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
             '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
             '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'
@@ -212,7 +216,7 @@ def magi3_status():
 def validation_text():
     return ('🧭 전략검증\n\n'
             '⚡ 지표가속: 일봉 회복 1시간 간격 2회 확인 → 진입 · 추세청산/초기 보호선\n'
-            'FAST: 향후 별도로 설계·운영할 전략\n'
+            'FAST: 단기 수급 확인 진입 · 보호선/수급 약화/시간 청산을 검증하는 300만원·10분할 PAPER 후보 전략\n'
             '📊 VPD: 상위 후보 분산 모의투자\n'
             '지표가속 메뉴에서 업비트 전 종목의 포착·보유 현황·매매 이력·일별 평가를 확인합니다.\n\n'
             '기존 WAVE 전파 전략은 종료했습니다. 신규 전략은 별도 원장으로 검증하며 VPD 성과와 합산하지 않습니다. '
