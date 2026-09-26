@@ -350,26 +350,10 @@ def full_rebalance(st,expected_asof=None):
     send_current_status(st,'📊 전량 교체 후 VPD 모의투자 현황'); return True
 
 
-def refill(st):
-    loaded=load_today_snapshot()
-    if not loaded: raise RuntimeError("Today's VPD snapshot is unavailable. Refill aborted.")
-    snap,asof=loaded; today=now_dt().date().isoformat(); slot=derive_daily_equal_buy(st,today)
-    if not slot: raise RuntimeError("Today's daily_equal_buy_krw is unavailable. No OPEN-position average exists.")
-    top_n=int(CFG.get('session',{}).get('top_n',10)); active={c:p for c,p in st.get('positions',{}).items() if p.get('status')=='OPEN'}; vacant=max(0,top_n-len(active)); cash=float(st.get('cash_krw',0)); count=min(vacant,int((cash+1e-9)//slot))
-    if count<=0: telegram(f'ℹ️ MAGI2 REFILL\n빈자리 {vacant} / 예수금 {cash:,.0f}원 / 당일 균등매수원가 {slot:,.0f}원\n리필 가능한 슬롯이 없습니다.\nPAPER ONLY'); send_current_status(st); return False
-    raw_rows=[r for r in snap.get('top10',[])[:top_n] if r['coin'] not in active]
-    ranked=rank_entry_candidates(raw_rows,CFG)
-    rows=[(r,a) for r,a,_ in ranked if a['eligible']][:count]
-    if not rows:
-        rejected=', '.join(f'{r["coin"]} {a["score"]:.1f}' for r,a,_ in ranked[:5]) or '-'
-        telegram(f'ℹ️ MAGI2 REFILL\n현재 VPD TOP10에 EntryScore 통과 신규 후보가 없습니다.\n상위 제외: {rejected}\nPAPER ONLY'); send_current_status(st); return False
-    prices=get_prices([r['market'] for r,a in rows]); sid=f'{today}-REFILL-{now_dt().strftime("%H%M")}'; bought=[]
-    for row,entry_assessment in rows:
-        buy_row=dict(row); buy_row['_entry_assessment']=entry_assessment
-        if buy_position(st,buy_row,prices.get(row['market']),slot,'REFILL',sid,today): bought.append(row['coin'])
-    if not bought: raise RuntimeError('Refill candidates existed, but no PAPER buy could be executed.')
-    st['last_refill_at']=now_iso(); st['last_refill_session_id']=sid; st['source_refill_snapshot_asof_kst']=snap.get('asof_kst',asof.isoformat()); save_state(st)
-    details='\n'.join(f'{i+1}. {c} | 매수금액 {slot:,.0f}원' for i,c in enumerate(bought)); telegram(f'♻️ MAGI2 REFILL 완료\n{sid}\nBUY {len(bought)}\n{details}\n당일 균등매수원가 {slot:,.0f}원\n잔여 예수금 {float(st["cash_krw"]):,.0f}원\n※ 기존 보유 종목 매도 없음 · PAPER ONLY'); send_current_status(st,'📊 REFILL 후 VPD 모의투자 현황 [PAPER]'); return True
+def refill(st, expected_asof=None):
+    from magi2.refill_engine import refill as refill_current
+    return refill_current(st, expected_asof)
+
 
 def report(st):
     active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))
@@ -377,14 +361,14 @@ def report(st):
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','rebuild','refill','report'])
     ap.add_argument('--snapshot-asof'); args=ap.parse_args(); mode=args.mode
-    if mode in ('morning','rebuild') and not args.snapshot_asof:
+    if mode in ('morning','rebuild','refill') and not args.snapshot_asof:
         snapshot=build_snapshot(STATE_PATH.resolve().with_name('vpd_rebalance.json'),now_dt())
         args.snapshot_asof=snapshot['asof']
     st=load_state(); migrate_state(st)
     if mode=='monitor': monitor_once(st)
     elif mode=='morning': morning_rebalance(st,args.snapshot_asof)
     elif mode=='rebuild': full_rebalance(st,args.snapshot_asof)
-    elif mode=='refill': refill(st)
+    elif mode=='refill': refill(st,args.snapshot_asof)
     else: report(st)
 
 if __name__=='__main__': main()
