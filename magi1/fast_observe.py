@@ -64,6 +64,12 @@ class Observer:
         self.previous = {}; self.last_price = {}; self.groups = {}; self.symbol_group = {}
         self.current = int(start) // TEN * TEN
         self.active = {}; self.started = int(start); self.stale_logged = {}
+        # A long outage may outlive every horizon. Finalize overdue rows even
+        # when the capture is too old to restore into the active tracker.
+        for horizon in POLICY['horizons_seconds']:
+            self.db.execute('INSERT OR IGNORE INTO outcomes(capture_id,horizon,status,ts,price,return_pct) '
+                            "SELECT id,?,'MISSING',?,NULL,NULL FROM captures WHERE ts+?+10000<?",
+                            (horizon,start,horizon*1000,start))
         for ident, ts, symbol, price in self.db.execute('SELECT id,ts,symbol,price FROM captures WHERE ts+900000+10000>=?', (start,)):
             self.active[ident] = (ts, symbol, price)
         self.event(start, 'START', '', {'mode': 'PUBLIC_OBSERVE', 'policy': POLICY})
