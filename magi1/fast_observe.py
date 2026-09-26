@@ -64,6 +64,7 @@ class Observer:
         self.previous = {}; self.last_price = {}; self.groups = {}; self.symbol_group = {}
         self.current = int(start) // TEN * TEN
         self.active = {}; self.started = int(start); self.stale_logged = {}
+        self.repair=None;self.repair_blocked=set();self.symbol_since={}
         # A long outage may outlive every horizon. Finalize overdue rows even
         # when the capture is too old to restore into the active tracker.
         for horizon in POLICY['horizons_seconds']:
@@ -83,6 +84,7 @@ class Observer:
         self.groups[group] = ts
         for s in symbols:
             self.symbol_group[s] = group
+            self.symbol_since[s] = ts
             self.bars.pop(s, None); self.books.pop(s, None); self.previous.pop(s, None)
         self.event(ts, 'CONNECTED', group, {'symbols': len(symbols)})
 
@@ -94,6 +96,14 @@ class Observer:
                 self.last_price.pop(s, None)
         self.event(ts, 'GAP', group, {'reason': reason})
         self.db.commit()
+
+    def invalid_symbol(self,symbol,ts):
+        self.symbol_since[symbol]=ts
+        self.bars.pop(symbol,None);self.books.pop(symbol,None)
+        self.previous.pop(symbol,None);self.last_price.pop(symbol,None)
+        if ts-self.stale_logged.get(symbol,0)>=60000:
+            self.event(ts,'INVALID_SYMBOL_MESSAGE',symbol,{})
+            self.stale_logged[symbol]=ts
 
     def bar(self, symbol):
         q = self.bars[symbol]
@@ -186,6 +196,7 @@ class Observer:
         candidates = []
         for s, g in self.symbol_group.items():
             connected = self.groups.get(g)
+            if connected is not None:connected=max(connected,self.symbol_since.get(s,connected))
             if connected is None:
                 continue
             b = self.bar(s)
@@ -218,7 +229,7 @@ class Observer:
             f = dict(relative_value=rvalue, baseline_days=same_n, burst=b['value']/baseline10 if baseline10 else None,
                      buy_share=b['buy']/b['value'] if b['value'] else 0, trades=b['count'], ofi=b['ofi'],
                      net_buy=b['buy']*2-b['value'], five_minute_start=full)
-            qualifies = bool(enough and fresh and rvalue is not None and rvalue >= 2 and
+            qualifies = bool(s not in self.repair_blocked and enough and fresh and rvalue is not None and rvalue >= 2 and
                              f['burst'] is not None and f['burst'] >= 3 and f['buy_share'] >= .65 and
                              f['trades'] >= 20 and f['ofi'] > 0)
             old = self.previous.get(s)
@@ -251,7 +262,9 @@ class Observer:
                 'connected_groups': len(self.groups), 'symbols': len(self.symbol_group),
                 'captures': self.db.execute('SELECT count(*) FROM captures').fetchone()[0],
                 'outcomes': dict(self.db.execute('SELECT status,count(*) FROM outcomes GROUP BY status')),
-                'baseline_rows': self.db.execute('SELECT count(*) FROM baseline').fetchone()[0]}
+                'baseline_rows': self.db.execute('SELECT count(*) FROM baseline').fetchone()[0],
+                'repair':self.repair.report() if self.repair else None,
+                'blocked_symbols':len(self.repair_blocked)}
 
 
 async def run(args):
@@ -277,21 +290,32 @@ async def run(args):
                             body = json.loads(msg.data)
                             if 'error' in body:
                                 raise ValueError('SUBSCRIPTION_ERROR')
-                            observer.ingest(body, now_ms())
+                            try:
+                                observer.ingest(body, now_ms())
+                            except (ValueError,TypeError,KeyError,IndexError):
+                                if body.get('code') not in names:raise
+                                observer.invalid_symbol(body['code'],now_ms())
                         raise ConnectionError('CLOSED')
                 except asyncio.CancelledError:
                     raise
                 except Exception as exc:
                     observer.gap(group, now_ms(), type(exc).__name__)
                     await asyncio.sleep(backoff); backoff = min(30, backoff*2)
-        tasks = []
+        tasks = [];repair_task=None
         try:
+            if getattr(args,'repair',False):
+                from magi1.fast_repair import Repair
+                repair_task=asyncio.create_task(Repair(observer,symbols,args.db).run())
+                tasks.append(repair_task)
             for i in range(0, len(symbols), 100):
                 tasks.append(asyncio.create_task(stream(str(i), symbols[i:i+100])))
                 await asyncio.sleep(.3)
             stop = time.monotonic() + args.duration
             last_report = 0
-            while time.monotonic() < stop:
+            while getattr(args,'continuous',False) or time.monotonic() < stop:
+                if repair_task and repair_task.done():
+                    repair_task.result()
+                    raise RuntimeError('REPAIR_WORKER_STOPPED')
                 if time.monotonic()-last_report>=60 and shutil.disk_usage(Path(args.db).parent).free < 64*1024*1024:
                     raise RuntimeError('DISK_RESERVE_STOP')
                 observer.advance(now_ms())
@@ -310,6 +334,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--db', required=True)
     parser.add_argument('--duration', type=int, default=3600)
+    parser.add_argument('--continuous',action='store_true')
+    parser.add_argument('--repair',action='store_true')
     args = parser.parse_args()
     if not 1 <= args.duration <= 86400:
         parser.error('duration must be 1..86400 seconds')
