@@ -145,7 +145,9 @@ class EngineTests(unittest.TestCase):
 
     def test_same_day_reentry_blocked_and_duplicate_scan_idempotent(self):
         state={'cash_krw':100,'positions':{'X':{'status':'CLOSED','exit_at':(ASOF-timedelta(minutes=30)).isoformat()}}}
-        with patch.object(engine,'now_dt',return_value=NOW),patch.object(engine,'load_morning_snapshot',return_value=(bundle(),ASOF)),patch.object(engine,'get_prices',return_value={'KRW-X':100}),patch.object(engine,'save_state'),patch.object(engine,'log_event'),patch.object(engine,'telegram'),patch.object(engine,'send_current_status'),patch.object(engine,'buy_position') as buy:
+        snapshot=bundle()
+        snapshot['top10'][0].update(VPD=90,VPDVelocity=40,momentum='↑↑',**{'Giveback%p':1,'TodayValue/10':10,'IntraAccel':12})
+        with patch.object(engine,'now_dt',return_value=NOW),patch.object(engine,'load_morning_snapshot',return_value=(snapshot,ASOF)),patch.object(engine,'get_prices',return_value={'KRW-X':100}),patch.object(engine,'save_state'),patch.object(engine,'log_event'),patch.object(engine,'telegram'),patch.object(engine,'send_current_status'),patch.object(engine,'buy_position') as buy:
             self.assertTrue(engine.morning_rebalance(state))
             buy.assert_not_called()
             self.assertIn('재진입 유예',state['last_rebalance_decisions'][0])
@@ -179,6 +181,15 @@ class BackgroundTests(unittest.TestCase):
         server.start_engine('morning');self.future.set_result(bundle())
         server.finish_scan_job();server.finish_scan_job()
         self.worker.submit.assert_called_once_with(server.run_engine,'morning',ASOF.isoformat())
+
+    def test_refill_scans_then_uses_the_exact_snapshot_after_monitor(self):
+        server.ENGINE_JOB=Future();server.ENGINE_MODE='monitor'
+        self.assertTrue(server.start_engine('refill'))
+        self.assertFalse(server.start_engine('refill'))
+        self.future.set_result(bundle());server.finish_scan_job()
+        self.worker.submit.assert_not_called()
+        server.ENGINE_JOB.set_result(None);server.finish_scan_job()
+        self.worker.submit.assert_called_once_with(server.run_engine,'refill',ASOF.isoformat())
 
     def test_full_rebuild_resumes_its_own_mode_and_blocks_other_rebalances(self):
         self.worker.submit.return_value=Future()

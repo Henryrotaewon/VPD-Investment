@@ -240,8 +240,8 @@ def finish_regime_job():
 def start_engine(mode,request_id=None):
     global ENGINE_JOB, ENGINE_MODE, SCAN_JOB, SCAN_CONTEXT
     if ENGINE_JOB is None or ENGINE_JOB.done(): finish_engine_job()
-    if mode in ('morning','rebuild','rescan'):
-        if SCAN_JOB is not None or (ENGINE_JOB is not None and ENGINE_MODE in ('morning','rebuild')): return False
+    if mode in ('morning','rebuild','rescan','refill'):
+        if SCAN_JOB is not None or (ENGINE_JOB is not None and ENGINE_MODE in ('morning','rebuild','refill')): return False
         now=datetime.now(KST)
         SCAN_CONTEXT={'asof':cutoff_for(now).isoformat(),'request_id':request_id,'mode':mode}
         SCAN_JOB=SCAN_EXECUTOR.submit(build_vpd,STATE_DIR/'vpd_rebalance.json',now)
@@ -249,13 +249,12 @@ def start_engine(mode,request_id=None):
         if mode=='rescan':
             telegram(f'🧪 VPD 재스캔을 시작했습니다.\n기준: {cutoff_for(now):%m/%d %H:%M} KST까지 완료된 분봉\n전 종목을 같은 시각 기준으로 다시 분석합니다. 매매·보유판정·포트폴리오 변경은 수행하지 않습니다.')
         else:
-            action='전량 교체' if mode=='rebuild' else '리밸런싱'
+            action={'rebuild':'전량 교체','refill':'종목 리필'}.get(mode,'리밸런싱')
             telegram(f'🔎 VPD {action} 자료를 새로 조회하고 있습니다.\n'
                      f'기준: {cutoff_for(now):%m/%d %H:%M} KST까지 완료된 분봉\n'
                      f'전 종목을 같은 시각 기준으로 분석한 뒤 요청한 모의 {action} 작업을 실행합니다. 기존 보유분 모니터는 계속 작동합니다.')
         return True
     if ENGINE_JOB is not None and not ENGINE_JOB.done(): return False
-    if mode=='refill' and SCAN_JOB is not None: return False
     ENGINE_MODE=mode
     ENGINE_JOB=EXECUTOR.submit(run_engine,mode)
     return True
@@ -286,7 +285,8 @@ def finish_scan_job():
         if mode=='rescan':
             telegram('VPD 재스캔을 완료하지 못했습니다. 포트폴리오와 매매이력은 변경하지 않았습니다.')
         else:
-            telegram('VPD 자료를 완성하지 못해 리밸런싱을 보류했습니다.\n잠시 후 리밸런싱을 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
+            action='종목 리필' if mode=='refill' else '리밸런싱'
+            telegram(f'VPD 자료를 완성하지 못해 {action}을 보류했습니다.\n잠시 후 다시 요청하세요. 이번 요청으로 매매하지 않았습니다.')
         return
     if ENGINE_JOB is not None and not ENGINE_JOB.done(): return
     finish_engine_job()
@@ -305,7 +305,7 @@ def finish_scan_job():
     if (snapshot.get('asof')!=context['asof'] or
             read_vpd(STATE_DIR/'vpd_rebalance.json',datetime.now(KST),context['asof']) is None):
         record_request(context.get('request_id'),'scan_expired')
-        telegram('스캔 기준 시각이 오래됐거나 달라져 리밸런싱을 보류했습니다. 다시 요청하면 새 자료를 생성합니다.'); return
+        telegram('스캔 기준 시각이 오래됐거나 달라져 요청한 VPD 매매를 보류했습니다. 다시 요청하면 새 자료를 생성합니다.'); return
     log(f'VPD scan ready: asof={snapshot["asof"]} markets={snapshot.get("market_count")} analysed={snapshot.get("analysed_count")}')
     ENGINE_MODE=context['mode']; ENGINE_REQUEST_ID=context.get('request_id')
     record_request(ENGINE_REQUEST_ID,'executing',asof=snapshot['asof'])
@@ -330,7 +330,7 @@ def finish_engine_job():
 def run_engine(mode,snapshot_asof=None):
     script='magi2/refill_engine.py' if mode=='refill' else 'magi2/paper_engine.py'
     args=[sys.executable,script] if mode=='refill' else [sys.executable,script,mode]
-    if mode in ('morning','rebuild') and snapshot_asof: args+=['--snapshot-asof',snapshot_asof]
+    if mode in ('morning','rebuild','refill') and snapshot_asof: args+=['--snapshot-asof',snapshot_asof]
     before=state_signature(); p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True,env=os.environ.copy(),timeout=300)
     if p.stdout: print(p.stdout,end='',flush=True)
     if p.stderr: print(p.stderr,end='',flush=True)
@@ -352,7 +352,8 @@ def consume_startup_rebalance():
     raw=os.getenv('MAGI2_REBALANCE_ONCE','').strip()
     if not raw: return
     try:
-        request=json.loads(raw); ident=request['id']
+        request=json.loads(raw); ident=request['id']; mode=request.get('mode','morning')
+        if mode not in ('morning','refill'): raise ValueError('Invalid PAPER request mode')
         expires=datetime.fromisoformat(request['expires_at'])
         if not isinstance(ident,str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,80}',ident): raise ValueError('Invalid request ID')
         if expires.tzinfo is None or not 0<(expires-datetime.now(KST)).total_seconds()<=86400:
@@ -361,8 +362,8 @@ def consume_startup_rebalance():
         marker=STATE_DIR/'rebalance_requests.json'
         if marker.exists() and ident in load_json(marker):
             log(f'VPD one-shot already consumed: {ident}'); return
-        record_request(ident,'claimed',expires_at=expires.isoformat())
-        if not start_engine('morning',request_id=ident): record_request(ident,'not_started_busy')
+        record_request(ident,'claimed',expires_at=expires.isoformat(),mode=mode)
+        if not start_engine(mode,request_id=ident): record_request(ident,'not_started_busy')
     except (OSError,ValueError,KeyError,TypeError) as e:
         log(f'VPD one-shot rejected: {type(e).__name__}')
 

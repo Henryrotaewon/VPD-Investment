@@ -190,7 +190,7 @@ class WorkerTests(unittest.TestCase):
         with patch.object(server,'ENGINE_JOB',job), patch.object(server,'ENGINE_MODE','monitor'), \
              patch.object(server,'EXECUTOR') as executor:
             job.done.return_value=False
-            self.assertFalse(server.start_engine('refill'))
+            self.assertFalse(server.start_engine('report'))
             executor.submit.assert_not_called()
             job.done.return_value=True
             self.assertTrue(server.start_engine('report'))
