@@ -1,4 +1,5 @@
 """Authenticated MAGI1 context consumer; contains no portfolio mutations."""
+from magi2.latency import timed
 import json
 import math
 import os
@@ -46,6 +47,7 @@ def validate(payload, now):
     return payload
 
 
+@timed('market_context.fetch')
 def fetch(now=None):
     now = time.time() if now is None else now
     path = os.getenv('MAGI1_MARKET_CONTEXT_PATH','').strip()

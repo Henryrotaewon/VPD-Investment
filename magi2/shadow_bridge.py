@@ -70,6 +70,12 @@ def fetch_latest(repo):
     return max(results,key=lambda x:x[0])[1]
 
 
+def source_error_reason(exc):
+    # Never expose arbitrary exception text (HTTP errors can include credentials).
+    allowed = {'NOT_UPBIT_KRW', 'MISSING_SOURCE_TIMEZONE', 'STALE_VPD_SNAPSHOT', 'VPD_SOURCE_UNAVAILABLE'}
+    return str(exc) if isinstance(exc, ValueError) and str(exc) in allowed else 'SOURCE_VALIDATION_OR_FETCH_FAILED'
+
+
 async def run(root,repo,log):
     outbox=Outbox(root)
     app=make_app(os.getenv('MAGI_SERVICE_TOKEN',''),{'/signals':outbox.report})
@@ -83,8 +89,8 @@ async def run(root,repo,log):
                 outbox.update(snapshot,time.time_ns()//1000000)
             except Exception as exc:
                 old=outbox.store.get('source_status',{})
-                outbox.store.put('source_status',{**old,'status':'SOURCE_UNAVAILABLE_OR_STALE','error_type':type(exc).__name__})
-                log('shadow_bridge_source_unavailable type='+type(exc).__name__)
+                outbox.store.put('source_status',{**old,'status':'SOURCE_UNAVAILABLE_OR_STALE','error_type':type(exc).__name__,'reason':source_error_reason(exc)})
+                log('shadow_bridge_source_unavailable reason='+source_error_reason(exc))
             await asyncio.sleep(60)
     finally:await runner.cleanup();outbox.store.close()
 

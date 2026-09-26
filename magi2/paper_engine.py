@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 import requests
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from magi2.latency import timed, span
 from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
 from magi2.point_in_time_scan import read_snapshot, build_snapshot, cutoff_for, SCHEMA, MAX_AGE_SECONDS
 from magi2.full_rebalance import plan_rebuild, commit_rebuild, recover_rebuild
@@ -23,8 +24,11 @@ def now_iso(): return now_dt().isoformat()
 def telegram(text):
     token=os.getenv('TELEGRAM_BOT_TOKEN'); chat=os.getenv('TELEGRAM_CHAT_ID')
     if not token or not chat: return
-    try: requests.post(f'https://api.telegram.org/bot{token}/sendMessage',json={'chat_id':chat,'text':text},timeout=15).raise_for_status()
-    except Exception as e: print(f'Telegram error: {e}')
+    try:
+        with span('paper.telegram.send'):
+            response=requests.post(f'https://api.telegram.org/bot{token}/sendMessage',json={'chat_id':chat,'text':text},timeout=15)
+            response.raise_for_status()
+    except Exception as e: print(f'Telegram error: {type(e).__name__}')
 
 def save_state(st):
     STATE_PATH.parent.mkdir(parents=True,exist_ok=True); st['updated_at']=now_iso(); STATE_PATH.write_text(json.dumps(st,ensure_ascii=False,indent=2),encoding='utf-8')
@@ -39,6 +43,7 @@ def log_event(e):
     EVENTS_PATH.parent.mkdir(parents=True,exist_ok=True)
     with EVENTS_PATH.open('a',encoding='utf-8') as f: f.write(json.dumps(e,ensure_ascii=False)+'\n')
 
+@timed('paper.prices')
 def get_prices(markets):
     markets=list(dict.fromkeys(m for m in markets if m)); out={}
     for i in range(0,len(markets),100):
