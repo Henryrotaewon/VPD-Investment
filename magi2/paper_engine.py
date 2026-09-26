@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 import requests
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from magi3.accounts import quantity
 from magi2.latency import timed, span
 from magi2.hold_policy import POLICY, assess_hold, decision_text, protection
 from magi2.point_in_time_scan import read_snapshot, build_snapshot, cutoff_for, SCHEMA, MAX_AGE_SECONDS
@@ -73,7 +74,7 @@ def portfolio_status(st,prices,title='📊 VPD 모의투자 현황 [PAPER]'):
     if slot>0: lines.append(f'당일 균등매수원가 {slot:,.0f}원')
     for c,r,net,s,cost,tp,sl,entry,px in sorted(rows,key=lambda x:x[1],reverse=True):
         tag=' REFILL' if s=='REFILL' else (' PM' if s=='PM_REFILL' else '')
-        lines.append(f'{c}{tag} | 원금 {cost:,.0f}원 | 매수가 {entry:g} | 현재가 {px:g} | {r:+.2f}% | 순손익 {net:+.2f}% | TP +{tp:.1f}% / SL {sl:.1f}%')
+        lines.append(f'{c}{tag} | {quantity(st["positions"][c]["qty"])}개 | 원금 {cost:,.0f}원 | 매수가 {entry:g} | 현재가 {px:g} | {r:+.2f}% | 순손익 {net:+.2f}% | TP +{tp:.1f}% / SL {sl:.1f}%')
     lines += [f"금일 실현손익 {float(st.get('realized_pnl_krw',0)):+,.0f}원",'수익률=매수가 대비 현재가 · 순손익=슬리피지+매수/매도 수수료 반영 · PAPER ONLY']
     return '\n'.join(lines)
 

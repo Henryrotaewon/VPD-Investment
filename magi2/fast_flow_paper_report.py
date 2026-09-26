@@ -1,6 +1,7 @@
 """Read-only views of the independent FAST PAPER ledger."""
 from datetime import datetime
 import json
+from magi3.accounts import quantity
 from pathlib import Path
 import sqlite3
 import time
@@ -51,7 +52,7 @@ def view(state_dir, section='fast_paper'):
             if section == 'fast_paper_orders':
                 rows = db.execute('SELECT ts,symbol,side,quantity,price,pnl,reason FROM fills ORDER BY id DESC LIMIT 12').fetchall()
                 for ts, symbol, side, qty, price, pnl, reason in rows:
-                    lines.append(f'{clock(ts)} {symbol} {side}\n{qty:.8g}개 × {price:g}원 · 실현 {pnl:+,.0f}원\n{reason}')
+                    lines.append(f'{clock(ts)} {symbol} {side}\n{quantity(qty)}개 × {price:g}원 · 실현 {pnl:+,.0f}원\n{reason}')
                 if not rows: lines.append('체결 기록 없음 · 시작 후 새 포착 대기')
                 skips = db.execute("SELECT symbol,reason FROM signals WHERE status='SKIPPED' ORDER BY ts DESC LIMIT 5").fetchall()
                 if skips:
@@ -79,7 +80,7 @@ def view(state_dir, section='fast_paper'):
                     ret = (p['qty']*p['mark']/p['cost']-1)*100
                     suffix = ' · 시세 지연' if now-p['mark_ms']>2000 else ''
                     if p.get('exit'): suffix += ' · 매도 대기'
-                    lines.append(f"{symbol} | 원가 {p['cost']:,.0f}원 | 순평가 {ret:+.2f}% | 보호 {p['stop']:g}{suffix}")
+                    lines.append(f"{symbol} | {quantity(p['qty'])}개 | 원가 {p['cost']:,.0f}원 | 순평가 {ret:+.2f}% | 보호 {p['stop']:g}{suffix}")
                 if not positions and not pending: lines.append('새 신호 대기 · 10종목 강제 매수 없음')
             lines.append('공개 호가 모의체결 · 수수료/슬리피지 각 편도 0.05% 가정 · 실제 주문 없음')
             return '\n'.join(lines), keyboard()

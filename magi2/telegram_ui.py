@@ -1,7 +1,6 @@
 """Korean Telegram navigation and actor-bound, one-use PAPER confirmations."""
 import secrets
 import time
-from magi3.accounts import quantity
 
 BOT_NAME = 'MAGI'
 BOT_SHORT_DESCRIPTION = 'MAGI | 코인 시장 관측·전략 검증·자산 관리. VPD · 지표가속 · FAST 모의투자'
@@ -20,6 +19,8 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'), ('rescan', '현재 시점 VPD 재스캔 · 매매 없음'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('indicator', '지표가속 모의투자 메뉴'),
+    ('indicator_rebuild', '지표가속 전량교체 · 유효 포착 10종목 이상'),
+    ('indicator_refill', '지표가속 종목 리필 · 유효 포착 10종목 이상'),
     ('fast_watch', 'FAST 포착·추적 현황 · 주문 없음'),
     ('fast_paper_balance', 'FAST 모의투자 자산현황 · 300만원 10분할'),
     ('fast_paper_orders', 'FAST 모의 매매기록 · 매수 제외 사유'),
@@ -47,6 +48,8 @@ ALIASES = {
     'fast모의투자': 'fast_paper', '⚡ fast 모의투자': 'fast_paper',
     'fast 관측': 'fast_watch', 'fast 추적': 'fast_watch',
     '지표가속': 'indicator', '지표 가속': 'indicator', '지표가속 모의투자': 'indicator',
+    '지표가속 전량교체':'indicator_rebuild', '지표가속 전량 교체':'indicator_rebuild',
+    '지표가속 리필':'indicator_refill', '지표가속 종목 리필':'indicator_refill',
     '시장 국면': 'regime', '현재 국면': 'regime', '국면': 'regime', '국면 조회': 'regime',
     '📊 fast 모의검증 결과':'fast_report', '📊 fast 모의결과': 'fast_report', 'fast 모의투자':'fast_paper', 'fast 전일 결과':'fast_daily',
     '📊 fast 모의투자':'fast_report', 'fast 모의검증 결과':'fast_report', 'fast모의검증 결과':'fast_report',
@@ -162,7 +165,7 @@ def help_text():
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 시장 방향·메이저/알트 확산·거시 참고 (MAGI1, 5분 갱신)\n'
-            '/indicator — 지표가속 모의투자 메뉴\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — 전략 검증 기준\n'
+            '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 포착 10종목 이상 전량교체\n/indicator_refill — 유효 포착 10종목 이상 빈자리 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — 전략 검증 기준\n'
             '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
             '/fast_paper_balance — FAST 자산현황\n'
             '/fast_watch — FAST 포착·추적\n'
@@ -203,7 +206,7 @@ def observation_text(rows,view='signals'):
                 f'{len(whale)}건 중 최근 {min(15,len(whale))}건']
         for r in whale[-15:]:
             e=r.get('evidence',{});amount=e.get('amount')
-            amount_text=f"{quantity(amount)} {r['asset']}" if isinstance(amount,(int,float)) else '전송량 미확인'
+            amount_text=(('<0.1' if 0<amount<0.1 else f'{amount:,.1f}')+f" {r['asset']}") if isinstance(amount,(int,float)) else '전송량 미확인'
             raw=e.get('classification')=='unclassified_public_raw' or (e.get('transaction') or {}).get('raw_provider')=='blockchain-info-public-ws'
             amount_label='거래 출력 합계' if raw else '관측 수량'
             status=(e.get('transaction') or {}).get('confirmation_status')
@@ -242,7 +245,7 @@ class Confirmations:
         self.pending = {k:v for k,v in self.pending.items() if now < v[3]}
         token = secrets.token_hex(8)
         self.pending[token] = (action, str(chat_id), str(user_id), now+60)
-        label = '✅ 확인 · 일괄정리 및 포착정지' if action=='fast_clear' else '✅ 확인 · 포착 및 매매 시작' if action=='fast_start' else '🔴 전량 매도 후 재매수' if action=='rebuild' else '✅ PAPER 실행'
+        label = '✅ 확인 · 일괄정리 및 포착정지' if action=='fast_clear' else '✅ 확인 · 포착 및 매매 시작' if action=='fast_start' else '🔴 전량 매도 후 재매수' if action=='rebuild' or action.startswith('indicator_rebuild:') else '✅ 종목 리필' if action.startswith('indicator_refill:') else '✅ PAPER 실행'
         return {'inline_keyboard': [[{'text': label, 'callback_data': 'confirm:'+token},
                                     {'text': '취소', 'callback_data': 'cancel:'+token}]]}
 

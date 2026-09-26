@@ -10,6 +10,7 @@ import sqlite3
 import time
 import requests
 from magi2.fast_wave_indicator import Candle, indicators
+from magi2.indicator_rebalance import advance as advance_rebalance, cancel_entry, restore_confirmed
 
 DAY=86400000
 HOUR=3600000
@@ -25,6 +26,7 @@ GUIDE=('지표가속 · 일봉 회복 2회 확인 [PAPER]\n'
        '초기 보호: 포착 당시 당일 저가 고정, 이후 시간구간 종가 이탈 시 청산\n'
        '300만원·최대 10종목, 가용현금/빈 슬롯 균등배분 · 미충족은 현금\n'
        '완전 청산 후 새 신호로 재진입 · 고정 익절/손절률·60분 제한 없음\n'
+       '수동 전량교체·리필: 최신 유효 포착 10종목 이상 · 확인 후 실행\n'
        '수수료·슬리피지 각 편도 0.05% · 실주문 없음')
 
 
@@ -147,6 +149,7 @@ class HourlyLedger:
                     removed.append(old.name)
             self.s['reset_done']=True;self.save()
             log('indicator_reset '+json.dumps(dict(cohort=COHORT,removed=removed,initial=self.s['initial'],slots=self.s['slots'],vpd_untouched=True)))
+        restore_confirmed(self,stamp)
     def save(self):
         with self.db:self.db.execute('INSERT OR REPLACE INTO state VALUES(1,?)',(json.dumps(self.s,allow_nan=False),))
     def event(self,stamp,kind,symbol,payload):
@@ -171,6 +174,9 @@ class HourlyLedger:
                         'HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE' if point['close']<pos['initial_stop'] else None)
                 if reason:self.schedule_exit(symbol,stamp,reason,point['boundary'])
             confirmed=bool(old and old['boundary']+HOUR==point['boundary'] and old['day']==point['day'] and old['qualifies'] and point['qualifies'])
+            pool=self.s.setdefault('confirmed',{})
+            if confirmed:pool[symbol]=point
+            else:pool.pop(symbol,None)
             if confirmed and self.s['used_day'].get(symbol)!=point['day']:
                 self.s['used_day'][symbol]=point['day'];reason='ACCEPTED'
                 if pos or symbol in self.s['pending']:reason='HOLDING_OR_PENDING'
@@ -178,6 +184,7 @@ class HourlyLedger:
                 vacant=self.s['slots']-len(self.s['positions'])-sum(o['side']=='BUY' for o in self.s['pending'].values())
                 reserved=sum(o.get('budget',0) for o in self.s['pending'].values())
                 if reason=='ACCEPTED' and vacant<=0:reason='ALL_SLOTS_USED'
+                if reason=='ACCEPTED' and self.s.get('rebalance',{}).get('phase') in ('SELLING','BUYING'):reason='MANUAL_REBALANCE_BUSY'
                 budget=(self.s['cash']-reserved)/vacant if vacant>0 else 0
                 if reason=='ACCEPTED' and budget<5000:reason='INSUFFICIENT_CASH'
                 if reason=='ACCEPTED':
@@ -197,11 +204,17 @@ class HourlyLedger:
             fee=self.s['fee'];slip=self.s['slip']
             if order['side']=='BUY':
                 if not self.s['enabled'] or order['generation']!=self.s['generation']:return False
+                if order.get('manual_request'):
+                    if stamp>=order['expires_ms'] or price<order['initial_stop']:
+                        cancel_entry(self,symbol,order,stamp,'MANUAL_SIGNAL_EXPIRED' if stamp>=order['expires_ms'] else 'BELOW_INITIAL_STOP')
+                        return False
                 cost=order['budget'];qty=cost/(price*(1+slip)*(1+fee))
                 if cost>self.s['cash']+1e-7 or len(self.s['positions'])>=self.s['slots']:raise ValueError('CAPITAL_INVARIANT')
                 self.s['cash']-=cost
                 self.s['positions'][symbol]=dict(entry_ms=bar[0],cost=cost,qty=qty,reference=price,initial_stop=order['initial_stop'])
                 payload=dict(order,reference=price,fill=price*(1+slip),qty=qty,cost=cost,fill_ms=bar[0],recorded_ms=stamp)
+                if order.get('manual_request')==self.s.get('rebalance',{}).get('fingerprint') and order.get('manual_request'):
+                    self.s['rebalance']['bought'].append(symbol)
             else:
                 pos=self.s['positions'].pop(symbol);proceeds=pos['qty']*price*(1-slip)*(1-fee);pnl=proceeds-pos['cost']
                 self.s['cash']+=proceeds;self.s['realized']+=pnl;self.s['last_exit'][symbol]=bar[0]
@@ -233,12 +246,13 @@ class HourlyLedger:
             buys=[s for s,o in self.s['pending'].items() if o['side']=='BUY']
             for s in buys:del self.s['pending'][s]
             for s in self.s['positions']:self.schedule_exit(s,stamp,'MANUAL_CLEAR',stamp)
+            advance_rebalance(self,stamp)
             self.save();return dict(positions=len(self.s['positions']),canceled_entries=len(buys))
     def resume(self,stamp):
         with self.lock:
             if any(o['side']=='SELL' for o in self.s['pending'].values()):return False
             if self.s['enabled']:return True
-            self.s.update(enabled=True,generation=self.s['generation']+1,resumed_ms=stamp,previous={})
+            self.s.update(enabled=True,generation=self.s['generation']+1,resumed_ms=stamp,previous={},confirmed={})
             self.save();return True
     def performance(self):
         with self.lock:
@@ -291,15 +305,18 @@ class HourlyMonitor:
                             key=type(exc).__name__+':'+str(exc)[:90];errors[key]=errors.get(key,0)+1
                         if i%20==0:self.update(checked=i+1,ready=ready,errors=errors)
                     self.update(status='MONITORING' if ready else 'DATA_UNAVAILABLE',checked=len(names),ready=ready,errors=errors,last_scan_ms=self.clock(),bootstrap=bootstrap)
-                    self.log('indicator_hourly_scan '+json.dumps(dict(boundary=clock(boundary),universe=len(names),ready=ready,errors=errors,bootstrap=bootstrap)))
+                    from magi2.indicator_rebalance import candidates
+                    with self.ledger.lock:eligible=len(candidates(self.ledger,self.clock()))
+                    self.log('indicator_hourly_scan '+json.dumps(dict(boundary=clock(boundary),universe=len(names),ready=ready,errors=errors,bootstrap=bootstrap,eligible=eligible)))
+                advance_rebalance(self.ledger,self.clock())
                 # Pending orders use an actual candle that starts AFTER the observed decision.
                 for symbol,order in sorted(self.ledger.pending().items(),key=lambda x:(x[1]['side']=='BUY',x[1]['signal_ms'],x[0])):
                     ts=self.clock()
                     if ts<=order['earliest']:continue
-                    if order['side']=='BUY' and ts-order['decision_ms']>HOUR:
+                    if order['side']=='BUY' and (ts-order['decision_ms']>HOUR or ts>=order.get('expires_ms',float('inf'))):
                         with self.ledger.lock,self.ledger.db:
                             if self.ledger.s['pending'].get(symbol)==order:
-                                del self.ledger.s['pending'][symbol];self.ledger.event(ts,'CANCEL',symbol,dict(order,reason='STALE_UNFILLED'));self.ledger.save()
+                                cancel_entry(self.ledger,symbol,order,ts,'STALE_UNFILLED')
                         continue
                     try:
                         bar=market.fills(symbol,order['earliest'],ts)
@@ -307,6 +324,7 @@ class HourlyMonitor:
                     except PublicPauseError:
                         raise
                     except Exception as exc:self.log(f'indicator_fill_error market={symbol} type={type(exc).__name__}')
+                advance_rebalance(self.ledger,self.clock())
                 if self.clock()-last_mark>=60000:
                     with self.ledger.lock:symbols=list(self.ledger.s['positions'])
                     prices=market.prices(symbols) if symbols else {}
