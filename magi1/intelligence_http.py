@@ -11,7 +11,8 @@ def make_app(root, token):
     if len(token) < 32:
         raise ValueError('INTELLIGENCE_TOKEN_TOO_SHORT')
     paths={'/intelligence': Path(root)/'exports'/'intelligence_latest.json',
-           '/wave': Path(root)/'exports'/'wave_latest.json'}
+           '/wave': Path(root)/'exports'/'wave_latest.json',
+           '/market-context': Path(root)/'exports'/'market_context_latest.json'}
 
     async def get_snapshot(request):
         supplied=request.headers.get('Authorization','')
@@ -30,6 +31,7 @@ def make_app(root, token):
     app=web.Application()
     app.router.add_get('/intelligence',get_snapshot)
     app.router.add_get('/wave',get_snapshot)
+    app.router.add_get('/market-context',get_snapshot)
     return app
 
 

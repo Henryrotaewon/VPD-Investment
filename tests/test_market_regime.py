@@ -75,7 +75,7 @@ class DataTests(unittest.TestCase):
         for error in (requests.Timeout(), ValueError('secret internal text'),
                       regime.DataUnavailable('최신 완료 일봉이 없습니다.')):
             with patch.object(regime, 'fetch_regime', side_effect=error):
-                text = regime.view()
+                text = regime.legacy_view()
             self.assertIn('판단 보류', text)
             self.assertNotIn('secret', text)
 
