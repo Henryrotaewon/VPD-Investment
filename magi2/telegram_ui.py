@@ -19,6 +19,7 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'), ('rescan', '현재 시점 VPD 재스캔 · 매매 없음'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('indicator', '지표가속 모의투자 메뉴'),
+    ('fast_watch', 'FAST 포착·추적 현황 · 주문 없음'),
     ('signals', '지표가속 포착 조회 · 기존 명령'),
     ('fast', '지표가속 메뉴 · 기존 명령 호환'), ('fast_captures', '지표가속 당일 포착 리스트'), ('fast_start', '지표가속 시작 · 현재 설계 검토로 중지'), ('fast_report', '지표가속 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', '지표가속 모의 거래 상세'),
     ('fast_balance', '지표가속 모의투자 · 거래소별 잔고·손익'),
@@ -31,12 +32,13 @@ COMMANDS = [
 ]
 LABELS = {
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
-    '🧪 shadows 모의투자': 'shadows', '지표가속 모의투자': 'indicator',
+    '⚡ FAST 포착·추적': 'fast_watch', '🧪 shadows 모의투자': 'shadows', '지표가속 모의투자': 'indicator',
     '🧭 시장 국면': 'regime',
     '🧭 전략검증': 'strategies', '🤖 시스템 상태': 'status',
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    'fast 관측': 'fast_watch', 'fast 추적': 'fast_watch',
     '지표가속': 'indicator', '지표 가속': 'indicator', '지표가속 모의투자': 'indicator',
     '시장 국면': 'regime', '현재 국면': 'regime', '국면': 'regime', '국면 조회': 'regime',
     '📊 fast 모의검증 결과':'fast_report', '📊 fast 모의결과': 'fast_report', 'fast 모의투자':'fast', 'fast 전일 결과':'fast_daily',
@@ -107,6 +109,7 @@ def role_keyboard():
     groups = [
         [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
         [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
+        [('⚡ FAST 포착·추적','fast_watch')],
         [('🧭 시장 국면 · 투자 참고','regime')],
         [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
     ]

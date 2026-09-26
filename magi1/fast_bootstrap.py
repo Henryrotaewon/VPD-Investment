@@ -85,7 +85,7 @@ class Public:
     def get(self,path,params=None):
         for attempt in range(3):
             time.sleep(max(0,self.next-time.monotonic()))
-            self.next=time.monotonic()+.22; self.calls+=1
+            self.next=time.monotonic()+.4; self.calls+=1
             r=self.session.get('https://api.upbit.com/v1/'+path,params=params,timeout=10)
             if r.status_code==418:
                 raise RuntimeError('API_BLOCKED_STOP')
@@ -122,6 +122,7 @@ def fill(db,symbol,cutoff,client,max_pages=32):
     known={r[0] for r in db.execute('SELECT bucket FROM baseline WHERE symbol=? AND bucket>=? AND bucket<?',(symbol,start,end))}
     details={r[0] for r in db.execute('SELECT bucket FROM recent5m WHERE symbol=? AND bucket>=? AND bucket<?',(symbol,end-DAY,end))}
     missing=(expected-known)| (set(range(end-DAY,end,FIVE))-details)
+    missing |= {r[0] for r in db.execute("SELECT bucket FROM recent5m WHERE symbol=? AND source='LIVE_RECEIVE_TIME' AND bucket>=? AND bucket<?",(symbol,start,end))}
     pages=0
     while missing and pages<max_pages:
         cursor=max(missing)+FIVE
@@ -145,8 +146,8 @@ def fill(db,symbol,cutoff,client,max_pages=32):
 def prune(db,cutoff):
     start,end=bounds(cutoff)
     with db:
-        db.execute('DELETE FROM baseline WHERE bucket<? OR bucket>=?',(start,end))
-        db.execute('DELETE FROM recent5m WHERE bucket<? OR bucket>=?',(end-DAY,end))
+        db.execute('DELETE FROM baseline WHERE bucket<?',(start,))
+        db.execute('DELETE FROM recent5m WHERE bucket<?',(end-DAY,))
         db.execute('DELETE FROM imports WHERE cutoff<?',(end-11*DAY,))
     db.execute('PRAGMA wal_checkpoint(TRUNCATE)')
 
@@ -179,6 +180,7 @@ def main():
             markets=client.get('market/all',{'is_details':'false'})
             symbols=sorted({x['market'] for x in markets if x['market'].startswith('KRW-')})
             if not symbols:raise ValueError('EMPTY_UNIVERSE')
+            print(json.dumps({'market_count':len(symbols)}),flush=True)
             for symbol in symbols:
                 print(json.dumps(fill(db,symbol,cutoff,client,args.max_pages)),flush=True)
         prune(db,cutoff)

@@ -26,3 +26,5 @@ jobs:
       - run: python -m unittest discover -s tests -p 'test_fast_session.py' -v
       - run: python -m unittest discover -s tests -p 'test_trade_plan.py' -v
       - run: python -m unittest discover -s tests -p 'test_wave_view.py' -v
+
+      - run: python -m unittest tests.test_fast_observe tests.test_fast_bootstrap tests.test_fast_observe_service -v

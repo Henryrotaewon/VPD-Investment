@@ -62,7 +62,7 @@ class Observer:
         self.books = {}; self.ids = defaultdict(set); self.id_queue = defaultdict(deque)
         self.previous = {}; self.last_price = {}; self.groups = {}; self.symbol_group = {}
         self.current = int(start) // TEN * TEN
-        self.active = {}; self.started = int(start)
+        self.active = {}; self.started = int(start); self.stale_logged = {}
         for ident, ts, symbol, price in self.db.execute('SELECT id,ts,symbol,price FROM captures WHERE ts+900000+10000>=?', (start,)):
             self.active[ident] = (ts, symbol, price)
         self.event(start, 'START', '', {'mode': 'PUBLIC_OBSERVE', 'policy': POLICY})
@@ -101,7 +101,9 @@ class Observer:
             return
         stamp = int(message.get('trade_timestamp', message.get('timestamp', 0)))
         if not 0 <= received - stamp <= POLICY['max_feed_age_ms']:
-            self.event(received, 'STALE_MESSAGE', s, {})
+            if received-self.stale_logged.get(s,0)>=60000:
+                self.event(received, 'STALE_MESSAGE', s, {})
+                self.stale_logged[s]=received
             self.previous.pop(s, None)
             return
         if message['type'] == 'orderbook':

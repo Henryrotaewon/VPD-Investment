@@ -47,6 +47,7 @@ SCAN_CONTEXT=None
 ENGINE_JOB=None
 ENGINE_MODE=None
 ENGINE_REQUEST_ID=None
+FAST_OBSERVE_SERVICE=None
 FAST_MONITOR=None
 FAST_PAPER=None
 WAVE_CLIENT=None
@@ -466,6 +467,9 @@ def handle_command(text,chat_id=None,user_id=None):
             except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
                 message='최신 관측 인터페이스: 확인 불가 (연결·만료·형식 점검 필요)'
             telegram('MAGI1 · 시세·관측 상태\n'+message+'\n개별 거래소 수집기 상태와 전체 데이터 품질은 이 조회만으로 판정하지 않습니다.',status_keyboard())
+        elif cmd=='fast_watch':
+            from magi2.fast_observe_service import view as fast_watch_view
+            telegram(fast_watch_view(STATE_DIR),{'inline_keyboard':[[{'text':'🔄 FAST 현황 새로고침','callback_data':'nav:fast_watch'}]]})
         elif cmd=='status2':
             running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
             if SCAN_JOB is not None: running=f'VPD 스캔 중 ({SCAN_CONTEXT["asof"]}) / '+str(running)
@@ -580,7 +584,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -663,8 +667,10 @@ def poll_updates(offset,timeout=LONG_POLL_SECONDS):
 
 
 def main():
-    global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT
+    global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT,FAST_OBSERVE_SERVICE
     prepare_persistent_state()
+    from magi2.fast_observe_service import Service as ObserveService
+    FAST_OBSERVE_SERVICE=ObserveService(STATE_DIR,log).start()
     from magi2.fast_reset import reset_once
     reset_once(STATE_DIR,log)
     WAVE_CLIENT=None  # Retired propagation view; old buttons route to indicator guide.
