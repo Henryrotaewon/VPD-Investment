@@ -9,6 +9,7 @@ import json
 import math
 from pathlib import Path
 import sqlite3
+import shutil
 import time
 import uuid
 
@@ -237,7 +238,7 @@ class Observer:
             self.db.execute('DELETE FROM baseline WHERE bucket<?', (end//DAY*DAY-10*DAY,))
             self.db.execute('DELETE FROM recent5m WHERE bucket<?', (end-DAY,))
             self.db.execute("DELETE FROM events WHERE kind='WINDOW' AND ts<?", (end-FIVE,))
-            self.db.execute("DELETE FROM events WHERE kind!='CAPTURE' AND ts<?", (end-7*DAY,))
+            self.db.execute("DELETE FROM events WHERE kind!='CAPTURE' AND ts<?", (end-DAY,))
 
     def report(self):
         return {'mode': 'PUBLIC_OBSERVE_NO_ORDERS', 'asof_ms': self.current,
@@ -285,6 +286,8 @@ async def run(args):
             stop = time.monotonic() + args.duration
             last_report = 0
             while time.monotonic() < stop:
+                if time.monotonic()-last_report>=60 and shutil.disk_usage(Path(args.db).parent).free < 64*1024*1024:
+                    raise RuntimeError('DISK_RESERVE_STOP')
                 observer.advance(now_ms())
                 if time.monotonic() - last_report >= 60:
                     print(json.dumps(observer.report()), flush=True); last_report = time.monotonic()

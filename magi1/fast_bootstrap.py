@@ -9,6 +9,7 @@ import gzip
 import hashlib
 import json
 import math
+import shutil
 from pathlib import Path
 import time
 
@@ -182,6 +183,8 @@ def main():
             if not symbols:raise ValueError('EMPTY_UNIVERSE')
             print(json.dumps({'market_count':len(symbols)}),flush=True)
             for symbol in symbols:
+                if shutil.disk_usage(Path(args.db).parent).free < 64*1024*1024:
+                    raise RuntimeError('DISK_RESERVE_STOP')
                 print(json.dumps(fill(db,symbol,cutoff,client,args.max_pages)),flush=True)
         prune(db,cutoff)
         print(json.dumps({'baseline_rows':db.execute('SELECT count(*) FROM baseline').fetchone()[0],
