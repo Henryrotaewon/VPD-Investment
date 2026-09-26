@@ -43,6 +43,8 @@ class Observer:
           CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY,value TEXT);
           CREATE TABLE IF NOT EXISTS baseline(symbol TEXT,bucket INTEGER,value REAL,
             PRIMARY KEY(symbol,bucket));
+          CREATE TABLE IF NOT EXISTS recent5m(symbol TEXT,bucket INTEGER,o REAL,h REAL,l REAL,
+            c REAL,volume REAL,value REAL,source TEXT,PRIMARY KEY(symbol,bucket));
           CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY,ts INTEGER,kind TEXT,
             symbol TEXT,payload TEXT);
           CREATE INDEX IF NOT EXISTS events_lookup ON events(kind,symbol,ts);
@@ -89,7 +91,7 @@ class Observer:
     def bar(self, symbol):
         q = self.bars[symbol]
         if not q or q[-1]['t'] != self.current:
-            q.append(dict(t=self.current, value=0., buy=0., count=0, ofi=0.))
+            q.append(dict(t=self.current, value=0., buy=0., count=0, ofi=0., o=None,h=None,l=None,c=None,volume=0.))
         return q[-1]
 
     def ingest(self, message, received):
@@ -127,6 +129,8 @@ class Observer:
             if message['ask_bid'] not in ('ASK', 'BID'):
                 raise ValueError('INVALID_SIDE')
             b = self.bar(s); b['value'] += price * qty; b['count'] += 1
+            b['o'] = price if b['o'] is None else b['o']; b['h'] = max(b['h'] or price,price)
+            b['l'] = min(b['l'] or price,price); b['c'] = price; b['volume'] += qty
             b['buy'] += price * qty if message['ask_bid'] == 'BID' else 0
             old = self.last_price.get(s)
             if not old or stamp >= old[2]:
@@ -185,9 +189,13 @@ class Observer:
             rvalue = None; same_n = 0
             if end % FIVE == 0:
                 values = self.db.execute("SELECT payload FROM events WHERE kind='WINDOW' AND symbol=? AND ts>? AND ts<=?", (s, bucket, end)).fetchall()
-                total = sum(json.loads(x[0])['value'] for x in values)
+                windows = [json.loads(x[0]) for x in values]
+                total = sum(x['value'] for x in windows)
                 if connected <= bucket and len(values) == 30:
                     self.db.execute('INSERT OR IGNORE INTO baseline VALUES(?,?,?)', (s, bucket, total))
+                    traded = [x for x in windows if x.get('o') is not None]
+                    ohlcv = ([traded[0]['o'],max(x['h'] for x in traded),min(x['l'] for x in traded),traded[-1]['c'],sum(x.get('volume',0) for x in traded)] if traded else [None,None,None,None,0])
+                    self.db.execute('INSERT OR IGNORE INTO recent5m VALUES(?,?,?,?,?,?,?,?,?)',(s,bucket,*ohlcv,total,'LIVE_RECEIVE_TIME'))
             # Use latest completed five-minute window only (no future partial baseline).
             full = end // FIVE * FIVE - FIVE
             present = self.db.execute('SELECT value FROM baseline WHERE symbol=? AND bucket=?', (s, full)).fetchone()
@@ -224,7 +232,8 @@ class Observer:
             self.active[cur.lastrowid] = (end, s, price); selected += 1
             self.event(end, 'CAPTURE', s, dict(f, reference_price=price))
         if end % FIVE == 0:
-            self.db.execute('DELETE FROM baseline WHERE bucket<?', (end-11*DAY,))
+            self.db.execute('DELETE FROM baseline WHERE bucket<?', (end//DAY*DAY-10*DAY,))
+            self.db.execute('DELETE FROM recent5m WHERE bucket<?', (end-DAY,))
             self.db.execute("DELETE FROM events WHERE kind='WINDOW' AND ts<?", (end-FIVE,))
             self.db.execute("DELETE FROM events WHERE kind!='CAPTURE' AND ts<?", (end-7*DAY,))
 
