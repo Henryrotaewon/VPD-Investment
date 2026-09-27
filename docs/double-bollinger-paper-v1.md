@@ -72,6 +72,15 @@ use account NAV including holdings. Missing valuations are explicit. Status
 shows ready markets, warmup, insufficient candles, history retry, squeeze
 watches, holdings and pending entries. Four strategy buttons use two rows.
 
+The results page's **매매이력** button (also `/bollinger_orders`) shows five
+round trips per page, most recent execution first, with KST timestamps,
+entry/exit prices, cash amounts, quantity, net realized PnL and Korean reasons.
+Partial exits show weighted average price, final exit time and remaining
+quantity. Each BUY identifies a separate round trip, including same-day
+reentries. A fill-ID cutoff freezes the pages until refresh so new fills do
+not shift previously requested pages. Views open SQLite read-only and neither
+create nor reset accounts or invoke the trading engine.
+
 ## Verification
 
 `python -m unittest tests.test_bollinger_paper -v` checks independent indicator

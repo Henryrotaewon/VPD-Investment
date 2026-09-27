@@ -497,6 +497,9 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='strategies':
             from magi2.paper_performance import view as performance_view
             telegram(*performance_view(STATE_DIR,time.time_ns()//1000000))
+        elif cmd=='bollinger_orders':
+            from magi2.bollinger_report import view as bollinger_orders_view
+            telegram(*bollinger_orders_view(STATE_DIR,time.time_ns()//1000000))
         elif cmd=='regime': start_regime_job()
         elif cmd=='wave': send_wave()
         elif cmd in ('indicator','fast'):
@@ -581,6 +584,14 @@ def handle_callback(callback):
         except ValueError:return
         if key in NAMES and 0<=offset<=100000:
             telegram(*performance_view(STATE_DIR,time.time_ns()//1000000,key,offset))
+    elif data.startswith('bollinger_orders:'):
+        from magi2.bollinger_report import view as bollinger_orders_view
+        try:
+            _,anchor,offset=data.split(':')
+            anchor,offset=int(anchor),int(offset)
+        except ValueError:return
+        if 0<=anchor<=9223372036854775807 and 0<=offset<=1000000:
+            telegram(*bollinger_orders_view(STATE_DIR,time.time_ns()//1000000,anchor,offset))
     elif data.startswith('indicator_daily:') and FAST_PAPER:
         from magi2.indicator_report import daily_view
         try:telegram(*daily_view(FAST_PAPER.ledger,data.split(':',1)[1],time.time_ns()//1000000))
@@ -622,7 +633,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime'):
+        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
