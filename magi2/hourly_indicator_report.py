@@ -5,6 +5,25 @@ from magi2.hourly_indicator import GUIDE,clock,date,DAY
 from magi2.fast_paper_report import keyboard
 from magi3.accounts import quantity
 from magi2.indicator_rebalance import candidates, MIN_CANDIDATES
+from magi2.indicator_protection import effective_stop, net_return
+
+
+def protection_lines(pos, state):
+    p=pos.get('protection',{})
+    peak=p.get('peak_net_pct');floor=p.get('floor_net_pct');gap=p.get('allowed_giveback_pp')
+    stop=effective_stop(pos,state)
+    stage='초기 보호' if floor is None else '본전 보호' if floor==0 else '수익 추적'
+    if stop==pos['initial_stop']:stage='초기 보호'
+    result=[('최고 순수익률 '+f'{peak:+.2f}%' if peak is not None else '최고 순수익률: 완료 시간봉 대기'),
+            f'현재 보호선 {stop:g}원 ({net_return(pos,state,stop):+.2f}%) · {stage}']
+    if peak is None or peak<15-1e-10:
+        result.append('허용 반납폭: 추적 대기 · 최고 순익 +15%부터')
+    elif gap is None:
+        result.append('허용 반납폭: ATR 자료 대기 · 기존 보호선 유지')
+    else:
+        actual=max(0.,peak-net_return(pos,state,stop))
+        result.append(f'허용 반납폭 {gap:.2f}%p · 최고→보호선 {actual:.2f}%p')
+    return result
 
 
 def menu(ledger):
@@ -28,22 +47,33 @@ def positions(ledger,stamp,offset=0):
         lines += [f'Cohort {s["cohort"]}',f'최초원금 {s["initial"]:,.0f}원',
                   f'매수원금 {b["invested"]:,.0f}원 / 예수금 {b["cash"]:,.0f}원']
         lines += [f'누적 실현손익 {b["realized"]:+,.0f}원',f'보유 {b["positions"]}/{s["slots"]} · 주문대기 {b["pending"]}',
-                  '포착·매매: '+('진행 중' if s['enabled'] else '정지'),'일봉 회복 1시간 간격 2회 · 추세청산/초기 보호선',
+                  '포착·매매: '+('진행 중' if s['enabled'] else '정지'),'매도: 일봉 추세청산 / 초기·본전·수익 보호선',
                   f'교체·리필 기준: 최신 유효 포착 {len(candidates(ledger,stamp))}/10종목','']
         op=s.get('rebalance',{})
         if op:
             phase={'SELLING':'전량 매도 대기','BUYING':'편입 매수 대기','DONE':'처리 완료','CANCELED':'종료 · 미편입금 현금 유지'}.get(op['phase'],op['phase'])
             lines.append(f'최근 수동 실행: {phase} · 매수 {len(op["bought"])} · 미편입 {len(op["canceled"])}')
-        for symbol,p in s['positions'].items():
+        holdings=list(s['positions'].items());size=5;count=len(holdings)
+        offset=min(max(0,offset)//size*size,max(0,(count-1)//size*size))
+        lines += [f'보유 상세 {offset//size+1}/{max(1,(count+size-1)//size)}페이지',
+                  '최고 순익: 저장된 매수 후 완료 시간봉 종가 기준',
+                  '보호선: 종가 1회 이탈 → 다음 5분봉 모의매도 · 체결 수익 보장 아님','']
+        for symbol,p in holdings[offset:offset+size]:
             quote=s['prices'].get(symbol,{})
             px=quote.get('price',p['reference']);fresh=0<=stamp-quote.get('ts',0)<=300000
             ret=(p['qty']*px*(1-s['fee'])*(1-s['slip'])/p['cost']-1)*100
             lines += [f'{names.get(symbol,symbol)} · {symbol}',f'매수 {clock(p["entry_ms"])} · {p["reference"]:g}원 · 원금 {p["cost"]:,.0f}원',
-                      f'수량 {quantity(p["qty"])}개 · 현재 {px:g}원 · 순손익 {ret:+.2f}%'+('' if fresh else ' · 최근 관측값(갱신 대기)'),f'초기 보호선 {p["initial_stop"]:g}원','']
+                      f'수량 {quantity(p["qty"])}개 · 현재 {px:g}원 · 순손익 {ret:+.2f}%'+('' if fresh else ' · 최근 관측값(갱신 대기)')]
+            lines += protection_lines(p,s)+['']
         for symbol,o in s['pending'].items():lines.append(f'{symbol} · {"매수" if o["side"]=="BUY" else "매도"} 대기 · {clock(o["earliest"])} 이후 실제 5분봉')
         if not s['positions'] and not s['pending']:lines.append('새 신호 대기 · 현금 보유')
         lines.append('가용현금/빈 슬롯 균등배분 · 매매 편도 수수료·슬리피지 각 0.05%')
-    return '\n'.join(lines),keyboard()
+    markup=keyboard();nav=[]
+    if offset:nav.append(dict(text='◀ 이전',callback_data=f'fast_results:{offset-size}'))
+    nav.append(dict(text='새로고침',callback_data=f'fast_results:{offset}'))
+    if offset+size<count:nav.append(dict(text='다음 ▶',callback_data=f'fast_results:{offset+size}'))
+    markup['inline_keyboard'].insert(0,nav)
+    return '\n'.join(lines),markup
 
 
 def events_view(ledger,stamp,offset=0,kind=None):
@@ -59,7 +89,7 @@ def events_view(ledger,stamp,offset=0,kind=None):
         if k=='SIGNAL':lines.append(labels.get(p['decision'],p['decision'])+f' · 초기 보호선 {p["low"]:g}원')
         elif k in ('BUY','SELL'):
             lines.append(f'수량 {quantity(p["qty"])}개 · 기준가격 {p["reference"]:g}원 · 체결봉 {clock(p["fill_ms"])}')
-            if k=='SELL':lines.append(f'실현손익 {p["pnl"]:+,.0f}원 · '+{'DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK':'일봉 추세청산','HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE':'초기 보호선 이탈','MANUAL_CLEAR':'일괄정리','MANUAL_INDICATOR_REBUILD':'수동 전량교체'}.get(p['reason'],p['reason']))
+            if k=='SELL':lines.append(f'실현손익 {p["pnl"]:+,.0f}원 · '+{'DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK':'일봉 추세청산','HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE':'초기 보호선 이탈','HOURLY_BREAKEVEN_PROTECTION':'본전 보호선 이탈','HOURLY_PROFIT_TRAILING':'수익 추적 보호선 이탈','MANUAL_CLEAR':'일괄정리','MANUAL_INDICATOR_REBUILD':'수동 전량교체'}.get(p['reason'],p['reason']))
         lines.append('')
     if not rows:lines.append('아직 기록이 없습니다.')
     mark=keyboard();prefix='captures:' if kind else 'indicator_orders:';nav=[]

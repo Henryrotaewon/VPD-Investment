@@ -1,6 +1,7 @@
 """Confirmed, resumable manual portfolio actions for the hourly PAPER ledger."""
 import hashlib
 import json
+from magi2.indicator_protection import effective_stop
 
 HOUR = 3600000
 DAY = 86400000
@@ -45,7 +46,7 @@ def candidates(ledger, stamp):
     for symbol, point in sorted(s.get('confirmed', {}).items()):
         current = s['previous'].get(symbol, {})
         pos = s['positions'].get(symbol, {})
-        stop = max(point['low'], pos.get('initial_stop', 0))
+        stop = max(point['low'], effective_stop(pos,s) if pos else 0)
         if (symbol in scan.get('names', {}) and point['boundary'] == boundary and
                 current == point and point['day'] == stamp // DAY * DAY and
                 point['qualifies'] and not point['trend_exit'] and point['close'] >= stop and

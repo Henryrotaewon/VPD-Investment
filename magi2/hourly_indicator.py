@@ -11,6 +11,7 @@ import time
 import requests
 from magi2.fast_wave_indicator import Candle, indicators
 from magi2.indicator_rebalance import advance as advance_rebalance, cancel_entry, restore_confirmed
+from magi2 import indicator_protection as protection
 
 DAY=86400000
 HOUR=3600000
@@ -24,6 +25,9 @@ GUIDE=('지표가속 · 일봉 회복 2회 확인 [PAPER]\n'
        '같은 일봉에서 1시간 간격 두 번 확인 → 확인 이후 다음 5분봉 시가로 모의매수\n'
        '추세청산: 일봉 지표 3개 중 2개 하락 + 종가가 전일 저가 이탈\n'
        '초기 보호: 포착 당시 당일 저가 고정, 이후 시간구간 종가 이탈 시 청산\n'
+       '최고 순수익 +6%부터 비용 포함 본전 보호 · +15%부터 수익 추적 보호\n'
+       '허용 반납폭: max(6%p, 완료 1시간봉 ATR14×3의 순수익률 환산값)\n'
+       '최고 수익·보호선은 완료 시간봉 기준 · 보호선 하향 없음 · 종가 1회 이탈 시 전량 청산\n'
        '300만원·최대 10종목, 가용현금/빈 슬롯 균등배분 · 미충족은 현금\n'
        '완전 청산 후 새 신호로 재진입 · 고정 익절/손절률·60분 제한 없음\n'
        '수동 전량교체·리필: 최신 유효 포착 10종목 이상 · 확인 후 실행\n'
@@ -68,6 +72,7 @@ def recovery_point(daily,hours,boundary):
     qualifies=(all(previous[k]-before[k]<-EPS and velocity[k]>EPS for k in ('rsi','williams')) and accel['macd_hist']>EPS)
     return dict(boundary=boundary,day=day,qualifies=qualifies,close=current.close,low=current.low,
                 values=values,velocity=velocity,acceleration=accel,history=len(complete),
+                atr_1h=protection.hourly_atr(hours,boundary),
                 trend_exit=boundary%DAY==0 and sum(v<-EPS for v in velocity.values())>=2 and current.close<complete[-1][3])
 
 
@@ -94,7 +99,7 @@ class PublicCandles:
         if self.cache.get(symbol,{}).get('day')!=day:
             rows=normalized(self.get('candles/days',{'market':symbol,'to':iso(day),'count':200}))
             self.cache[symbol]=dict(day=day,rows=rows)
-        hours=normalized(self.get('candles/minutes/60',{'market':symbol,'to':iso(boundary),'count':24}))
+        hours=normalized(self.get('candles/minutes/60',{'market':symbol,'to':iso(boundary),'count':200}))
         return recovery_point(self.cache[symbol]['rows'],hours,boundary)
     def fills(self,symbol,earliest,stamp):
         rows=normalized(self.get('candles/minutes/5',{'market':symbol,'to':iso(stamp),'count':200}))
@@ -150,6 +155,7 @@ class HourlyLedger:
             self.s['reset_done']=True;self.save()
             log('indicator_reset '+json.dumps(dict(cohort=COHORT,removed=removed,initial=self.s['initial'],slots=self.s['slots'],vpd_untouched=True)))
         restore_confirmed(self,stamp)
+        protection.restore(self,stamp)
     def save(self):
         with self.db:self.db.execute('INSERT OR REPLACE INTO state VALUES(1,?)',(json.dumps(self.s,allow_nan=False),))
     def event(self,stamp,kind,symbol,payload):
@@ -170,8 +176,9 @@ class HourlyLedger:
             self.event(stamp,'OBSERVATION',symbol,point)
             pos=self.s['positions'].get(symbol)
             if pos and point['boundary']>pos['entry_ms']:
+                protection.update(pos,self.s,point)
                 reason=('DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK' if point['trend_exit'] else
-                        'HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE' if point['close']<pos['initial_stop'] else None)
+                        protection.exit_reason(pos,self.s,point['close']))
                 if reason:self.schedule_exit(symbol,stamp,reason,point['boundary'])
             confirmed=bool(old and old['boundary']+HOUR==point['boundary'] and old['day']==point['day'] and old['qualifies'] and point['qualifies'])
             pool=self.s.setdefault('confirmed',{})
@@ -212,6 +219,7 @@ class HourlyLedger:
                 if cost>self.s['cash']+1e-7 or len(self.s['positions'])>=self.s['slots']:raise ValueError('CAPITAL_INVARIANT')
                 self.s['cash']-=cost
                 self.s['positions'][symbol]=dict(entry_ms=bar[0],cost=cost,qty=qty,reference=price,initial_stop=order['initial_stop'])
+                protection.initialize(self.s['positions'][symbol])
                 payload=dict(order,reference=price,fill=price*(1+slip),qty=qty,cost=cost,fill_ms=bar[0],recorded_ms=stamp)
                 if order.get('manual_request')==self.s.get('rebalance',{}).get('fingerprint') and order.get('manual_request'):
                     self.s['rebalance']['bought'].append(symbol)
@@ -265,7 +273,7 @@ class HourlyLedger:
 
 class HourlyPaperService:
     def __init__(self,root,log,clock=now):self.clock=clock;self.log=log;self.ledger=HourlyLedger(root,clock(),log)
-    def start(self):self.log(f'indicator_paper_started cohort={COHORT} initial={self.ledger.s["initial"]} slots={self.ledger.s["slots"]} enabled={self.ledger.s["enabled"]} live_orders=false')
+    def start(self):self.log(f'indicator_paper_started cohort={COHORT} initial={self.ledger.s["initial"]} slots={self.ledger.s["slots"]} enabled={self.ledger.s["enabled"]} profit_protection=v{protection.VERSION} live_orders=false')
     def clear(self):return self.ledger.clear(self.clock())
     def resume(self):return self.ledger.resume(self.clock())
     def daily(self,send):pass  # Hourly monitor persists actual 5-minute marks; UI reads them.
