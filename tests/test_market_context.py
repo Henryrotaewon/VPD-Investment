@@ -63,7 +63,7 @@ class ContextTests(unittest.TestCase):
             p=bundle();p['venues']['upbit']=row
             text=v.render(p,NOW)
             self.assertIn('국내 BTC: 오늘 상승',text)
-            self.assertIn('국내 자료 부족',text)
+            self.assertIn('국내 자료 없음',text)
             row['btc']['return_7d']=float('nan')
             with self.assertRaises(ValueError):v.validate(p,NOW)
         with self.assertRaisesRegex(ValueError,'MISSING_MAJOR'):
@@ -111,7 +111,7 @@ class ContextTests(unittest.TestCase):
         text = v.render(p, NOW)
         summary, details = text.split('📊 근거 데이터')
         self.assertIn('국내 BTC: 오늘 상승 · 중기 상승 · 단기 상승', summary)
-        self.assertIn('메인·알트: 국내 알트장 · 해외 알트장', summary)
+        self.assertIn('BTC 도미넌스: 국내 자료 없음 · 해외(글로벌) 자료 없음', summary)
         self.assertIn('미국 금리 상승', summary)
         self.assertIn('미국 주식 상승', summary)
         self.assertIn('달러 상승(과거 공표) · 유가 하락', summary)
@@ -128,7 +128,7 @@ class ContextTests(unittest.TestCase):
 
     def test_failed_refresh_cannot_republish_old_classification(self):
         c=m.Collector()
-        with patch.object(c,'upbit',side_effect=ValueError('MISSING_COMPLETED_CANDLES')),patch.object(c,'binance',return_value=bundle()['venues']['binance']),patch.object(c,'macro',return_value={}):
+        with patch.object(c,'upbit',side_effect=ValueError('MISSING_COMPLETED_CANDLES')),patch.object(c,'binance',return_value=bundle()['venues']['binance']),patch.object(c,'macro',return_value={}),patch.object(m.dominance,'collect',return_value={}):
             p=c.collect(NOW,previous=bundle(NOW-300))
         self.assertEqual(p['venues']['upbit']['status'],'UNAVAILABLE')
         self.assertNotIn('direction',p['venues']['upbit'])
