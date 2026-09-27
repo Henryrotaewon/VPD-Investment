@@ -29,7 +29,7 @@ COMMANDS = [
     ('fast', '지표가속 메뉴 · 기존 명령 호환'), ('fast_captures', '지표가속 당일 포착 리스트'), ('fast_start', '지표가속 시작 · 현재 설계 검토로 중지'), ('fast_report', '지표가속 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', '지표가속 모의 거래 상세'),
     ('fast_balance', '지표가속 모의투자 · 거래소별 잔고·손익'),
     ('fast_clear', '지표가속 일괄정리 및 포착정지 · 재확인'), ('fast_daily', '지표가속 전일 모의투자 결과'), ('fast_replay', 'FAST 과거 재생검증'), ('fast_compare', '지표가속 관측 상태'),
-    ('wave', 'MACD·RSI·거래량·Williams 전략 설명'), ('strategies', '세 전략 누적·일별 승률과 수익률'),
+    ('wave', 'MACD·RSI·거래량·Williams 전략 설명'), ('strategies', '네 전략 누적·일별 승률과 수익률'),
     ('regime', '현재 시장 국면 · 투자 참고'),
     ('morning', 'PAPER 리밸런싱 · 확인 후 실행'),
     ('rebuild', 'PAPER 전량 교체 · 최신 VPD로 재구성'),
@@ -165,7 +165,7 @@ def help_text():
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 시장 방향·메이저/알트 확산·거시 참고 (MAGI1, 5분 갱신)\n'
-            '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 포착 10종목 이상 전량교체\n/indicator_refill — 유효 포착 10종목 이상 빈자리 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속 누적·일별 승률과 수익률\n'
+            '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 포착 10종목 이상 전량교체\n/indicator_refill — 유효 포착 10종목 이상 빈자리 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속·더블볼린저 누적·일별 승률과 수익률\n'
             '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
             '/fast_paper_balance — FAST 자산현황\n'
             '/fast_watch — FAST 포착·추적\n'
@@ -229,6 +229,12 @@ def validation_text():
             '⚡ 지표가속: 일봉 회복 1시간 간격 2회 확인 → 진입 · 추세청산/초기 보호선\n'
             'FAST: 단기 수급 확인 진입 · 보호선/수급 약화/시간 청산을 검증하는 300만원·10분할 PAPER 후보 전략\n'
             '📊 VPD: 상위 후보 분산 모의투자\n'
+            '더블볼린저·CCI: 완료 5분봉 BB(20,2)·BB(60,2) + CCI(10) · 별도 300만원·10종목 PAPER\n'
+            '장기 밴드폭이 직전 288봉 하위 20%면 6봉 관찰 → 단기 상단 돌파·폭 확대·장기 중심선 상승/유지·CCI>100·거래대금 1.5배 확인\n'
+            '신호 확인 후 10초 동안 종가 +0.3% 이내 호가 체결 · 최근 6봉 저점까지 거리 3% 초과면 제외\n'
+            '6봉 저점 이탈 또는 단기 중심선 아래 종가와 CCI<0이면 다음 유효 호가로 청산 · 새 수축 뒤 재진입\n'
+            '시세 연결이 끊기면 매수를 취소하고 보유분은 연결 복구 후 유효 호가로 청산합니다.\n'
+            '전략검증에서 네 전략의 누적·일별 승률과 수익률을 조회합니다.\n'
             '지표가속 메뉴에서 업비트 전 종목의 포착·보유 현황·매매 이력·일별 평가를 확인합니다.\n\n'
             '기존 WAVE 전파 전략은 종료했습니다. 신규 전략은 별도 원장으로 검증하며 VPD 성과와 합산하지 않습니다. '
             '설명 조회로 매매가 시작되지는 않습니다. 실주문 없음.')

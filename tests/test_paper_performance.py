@@ -178,7 +178,7 @@ class RoutingTests(unittest.TestCase):
              patch.object(server,'telegram') as send,patch.object(server,'telegram_api'), \
              patch.object(server,'start_engine') as trade:
             server.handle_command('strategies','7','7')
-            for key in ('vpd','fast','indicator'):
+            for key in ('vpd','fast','indicator','bollinger'):
                 server.handle_callback(dict(id='1',data=f'performance:{key}:0',
                     message=dict(chat=dict(id='7')),**{'from':dict(id='7')}))
                 self.assertTrue(send.call_args.args[0].startswith('• 누적 승률'))

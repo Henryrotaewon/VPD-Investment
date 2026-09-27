@@ -69,6 +69,7 @@ class Observer:
         self.reference_status = {}; self.decision_reasons = {}; self.assessed_ms = None
         self.paper = None
         self.experiment = None
+        self.bollinger = None
         self.paper_retry_armed = {}
         self.received_ms = int(start)
         # A long outage may outlive every horizon. Finalize overdue rows even
@@ -84,7 +85,9 @@ class Observer:
 
     @property
     def papers(self):
-        return ([self.paper] if self.paper else []) + (list(self.experiment.accounts.values()) if self.experiment else [])
+        return (([self.paper] if self.paper else []) +
+                (list(self.experiment.accounts.values()) if self.experiment else []) +
+                ([self.bollinger] if self.bollinger else []))
 
     def event(self, ts, kind, symbol, payload):
         self.db.execute('INSERT INTO events(ts,kind,symbol,payload) VALUES(?,?,?,?)',
@@ -92,6 +95,8 @@ class Observer:
 
     def connected(self, group, symbols, ts):
         self.groups[group] = ts
+        if self.bollinger:
+            self.bollinger.connected(symbols, ts)
         for s in symbols:
             self.symbol_group[s] = group
             self.symbol_since[s] = ts
@@ -132,6 +137,8 @@ class Observer:
             return
         stamp = int(message.get('trade_timestamp', message.get('timestamp', 0)))
         if not 0 <= received - stamp <= POLICY['max_feed_age_ms']:
+            if self.bollinger and message.get('type') == 'trade' and message.get('stream_type') != 'SNAPSHOT':
+                self.bollinger.invalidate_candles(s, received)
             for paper in self.papers:
                 if s in paper.s['pending'] or (s in paper.s['positions'] and not paper.s['positions'][s]['uncertain']):
                     paper.gap([s], received, 'STALE_FEED')
@@ -160,7 +167,7 @@ class Observer:
                 if any(a[0] <= b[0] for a,b in zip(bids,bids[1:])) or any(a[0] >= b[0] for a,b in zip(asks,asks[1:])):
                     raise ValueError('UNSORTED_BOOK')
                 for paper in self.papers:
-                    if s in self.repair_blocked:
+                    if s in self.repair_blocked and paper is not self.bollinger:
                         paper.cancel(s, received, 'BASELINE_NOT_READY')
                     paper.on_book(s, received, dict(self.books[s], bids=bids, asks=asks))
         elif message['type'] == 'trade' and message.get('stream_type') != 'SNAPSHOT':
@@ -173,6 +180,8 @@ class Observer:
             price, qty = valid(message['trade_price']), valid(message['trade_volume'])
             if message['ask_bid'] not in ('ASK', 'BID'):
                 raise ValueError('INVALID_SIDE')
+            if self.bollinger:
+                self.bollinger.candle_trade(s, received, price, qty, stamp, ident)
             b = self.bar(s); b['value'] += price * qty; b['count'] += 1
             b['o'] = price if b['o'] is None else b['o']; b['h'] = max(b['h'] or price,price)
             b['l'] = min(b['l'] or price,price); b['c'] = price; b['volume'] += qty
@@ -353,6 +362,7 @@ class Observer:
                 'baseline_rows': self.db.execute('SELECT count(*) FROM baseline').fetchone()[0],
                 'repair':self.repair.report() if self.repair else None,
                 'paper':self.paper.report(self.received_ms) if self.paper else None,
+                'bollinger':self.bollinger.report(self.received_ms) if self.bollinger else None,
                 'experiment':self.experiment.report(self.received_ms) if self.experiment else None,
                 'blocked_symbols':len(self.repair_blocked)}
 
@@ -372,6 +382,10 @@ async def run(args):
     if getattr(args, 'experiment_dir', None):
         from magi1.fast_experiment import Experiment
         observer.experiment = Experiment(args.experiment_dir, now_ms())
+    if getattr(args, 'bollinger_db', None):
+        from magi1.bollinger_paper import BollingerPaper
+        observer.bollinger = BollingerPaper(args.bollinger_db, now_ms())
+        print(json.dumps(observer.bollinger.report(now_ms())), flush=True)
     async with aiohttp.ClientSession() as session:
         async with session.get('https://api.upbit.com/v1/market/all', params={'is_details': 'true'}, timeout=aiohttp.ClientTimeout(total=15)) as response:
             response.raise_for_status(); rows = await response.json()
@@ -404,12 +418,16 @@ async def run(args):
                 except Exception as exc:
                     observer.gap(group, now_ms(), type(exc).__name__)
                     await asyncio.sleep(backoff); backoff = min(30, backoff*2)
-        tasks = [];repair_task=None
+        tasks = [];repair_task=None;bollinger_task=None
         try:
             if getattr(args,'repair',False):
                 from magi1.fast_repair import Repair
                 repair_task=asyncio.create_task(Repair(observer,symbols,args.db).run())
                 tasks.append(repair_task)
+            if observer.bollinger:
+                from magi1.bollinger_paper import warm_history
+                bollinger_task = asyncio.create_task(warm_history(observer.bollinger, symbols, now_ms))
+                tasks.append(bollinger_task)
             for i in range(0, len(symbols), 100):
                 tasks.append(asyncio.create_task(stream(str(i), symbols[i:i+100])))
                 await asyncio.sleep(.3)
@@ -419,6 +437,9 @@ async def run(args):
                 if repair_task and repair_task.done():
                     repair_task.result()
                     raise RuntimeError('REPAIR_WORKER_STOPPED')
+                if bollinger_task and bollinger_task.done():
+                    bollinger_task.result()
+                    raise RuntimeError('BOLLINGER_HISTORY_WORKER_STOPPED')
                 if time.monotonic()-last_report>=60 and shutil.disk_usage(Path(args.db).parent).free < 64*1024*1024:
                     raise RuntimeError('DISK_RESERVE_STOP')
                 observer.advance(now_ms())
@@ -443,6 +464,7 @@ def main():
     parser.add_argument('--repair',action='store_true')
     parser.add_argument('--experiment-dir', help='Isolated paired early-entry PAPER ledgers')
     parser.add_argument('--paper-db', help='Separate candidate-v1 PAPER ledger; no real order API')
+    parser.add_argument('--bollinger-db', help='Separate Double Bollinger + CCI PAPER ledger')
     args = parser.parse_args()
     if not 1 <= args.duration <= 86400:
         parser.error('duration must be 1..86400 seconds')
