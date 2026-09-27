@@ -6,6 +6,11 @@
   "fee_rate": 0.0005,
   "slippage_rate": 0.001,
   "paper_strategy": "VPD_TOP10_EQUAL_WEIGHT",
+  "daily_rebalance": {
+    "enabled": true,
+    "hour": 7,
+    "minute": 20
+  },
   "session": {
     "rebalance_basis": "POINT_IN_TIME",
     "top_n": 10,

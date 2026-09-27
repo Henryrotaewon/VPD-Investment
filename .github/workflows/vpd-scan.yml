@@ -1,10 +1,7 @@
 name: MAGI1 Scan
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/vpd-trigger.txt'
+  # Administrative/manual scan only. Daily PAPER runs inside MAGI2 at 07:20 KST.
   workflow_dispatch:
     inputs:
       session:

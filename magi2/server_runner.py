@@ -240,12 +240,12 @@ def finish_regime_job():
     log('market_regime completed: read_only=true')
 
 
-def start_engine(mode,request_id=None):
+def start_engine(mode,request_id=None,scan_at=None):
     global ENGINE_JOB, ENGINE_MODE, SCAN_JOB, SCAN_CONTEXT
     if ENGINE_JOB is None or ENGINE_JOB.done(): finish_engine_job()
     if mode in ('morning','rebuild','rescan','refill'):
         if SCAN_JOB is not None or (ENGINE_JOB is not None and ENGINE_MODE in ('morning','rebuild','refill')): return False
-        now=datetime.now(KST)
+        now=scan_at or datetime.now(KST)
         SCAN_CONTEXT={'asof':cutoff_for(now).isoformat(),'request_id':request_id,'mode':mode}
         SCAN_JOB=SCAN_EXECUTOR.submit(build_vpd,STATE_DIR/'vpd_rebalance.json',now)
         log(f'VPD scan started: mode={mode} asof={SCAN_CONTEXT["asof"]} request={request_id or "telegram"}')
@@ -310,6 +310,16 @@ def finish_scan_job():
         record_request(context.get('request_id'),'scan_expired')
         telegram('스캔 기준 시각이 오래됐거나 달라져 요청한 VPD 매매를 보류했습니다. 다시 요청하면 새 자료를 생성합니다.'); return
     log(f'VPD scan ready: asof={snapshot["asof"]} markets={snapshot.get("market_count")} analysed={snapshot.get("analysed_count")}')
+    if (context.get('request_id') or '').startswith('scheduled-vpd-'):
+        # A stored morning view and audit record use the same accepted snapshot
+        # as the automatic rebalance, not the retired GitHub morning scanner.
+        try:
+            target=STATE_DIR/'vpd_scheduled_snapshot.json'
+            temporary=target.with_suffix('.tmp')
+            temporary.write_text(json.dumps(snapshot,ensure_ascii=False),encoding='utf-8');temporary.replace(target)
+            log('VPD scheduled snapshot '+json.dumps(dict(request_id=context['request_id'],asof=snapshot['asof'],
+                scanner=snapshot.get('scanner'),top10=snapshot.get('top10',[])),ensure_ascii=False))
+        except OSError as exc:log(f'VPD scheduled snapshot mirror failed: {type(exc).__name__}')
     ENGINE_MODE=context['mode']; ENGINE_REQUEST_ID=context.get('request_id')
     record_request(ENGINE_REQUEST_ID,'executing',asof=snapshot['asof'])
     ENGINE_JOB=EXECUTOR.submit(run_engine,ENGINE_MODE,snapshot['asof'])
@@ -382,11 +392,16 @@ def num(v,d=0):
 
 def return_magi1_state(session):
     """Return the last stored automatic scan. Never starts a new scan."""
-    url=f'https://raw.githubusercontent.com/{GITHUB_REPO}/main/data/magi1_upbit_{session}_state.json'
-    r=requests.get(url,timeout=20)
-    if r.status_code==404:
-        telegram(f'ℹ️ MAGI1 {session.upper()} SCAN\n저장된 세션 스캔본이 아직 없습니다.'); return
-    r.raise_for_status(); d=r.json(); top=(d.get('top10') or [])[:10]; asof=d.get('asof_kst') or d.get('asof') or '-'
+    scheduled=STATE_DIR/'vpd_scheduled_snapshot.json'
+    if session=='morning' and scheduled.exists():
+        d=load_json(scheduled)
+    else:
+        url=f'https://raw.githubusercontent.com/{GITHUB_REPO}/main/data/magi1_upbit_{session}_state.json'
+        r=requests.get(url,timeout=20)
+        if r.status_code==404:
+            telegram(f'ℹ️ MAGI1 {session.upper()} SCAN\n저장된 세션 스캔본이 아직 없습니다.'); return
+        r.raise_for_status(); d=r.json()
+    top=(d.get('top10') or [])[:10]; asof=d.get('asof_kst') or d.get('asof') or '-'
     title='🌅 오전 VPD 조회' if session=='morning' else '🌙 저녁 VPD 조회'
     lines=[title,f'저장 스캔: {asof}','', '📊 VPD TOP10']
     for i,x in enumerate(top,1):
@@ -734,6 +749,9 @@ def main():
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
+    from magi2.daily_rebalance import DailyRebalance
+    schedule=DailyRebalance(STATE_DIR,load_json(ROOT/'magi2/config.json'),log,telegram)
+    log(f'vpd_schedule_ready enabled={schedule.enabled} timezone=Asia/Seoul time={schedule.hour:02d}:{schedule.minute:02d} next={schedule.next_run(datetime.now(KST)).isoformat()} retry=false catch_up=false')
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
     probe_job=None
@@ -749,6 +767,7 @@ def main():
         finish_engine_job()
         finish_scan_job()
         finish_regime_job()
+        schedule.tick(datetime.now(KST),lambda ident,at: start_engine('morning',request_id=ident,scan_at=at))
         if time.monotonic()>=next_monitor:
             next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
         timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)
