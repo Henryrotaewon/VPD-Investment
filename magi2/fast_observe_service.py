@@ -78,6 +78,19 @@ def view(state_dir):
     if data.get('phase')=='OBSERVING' and observation_age>120:lines.append('⚠ 실시간 관측 보고 지연')
     repair=data.get('repair') or {}
     if repair:lines.append(f"보완 중 {repair.get('states',{}).get('REPAIRING',0)} · 포착 대기 {repair.get('blocked',0)}종목")
+    obs=data.get('observation') or {}
+    if obs.get('reference_policy'):
+        lines.append(f"실시간 연결 {obs.get('connected_groups',0)}개 · 감시 {obs.get('symbols',0)}종목")
+        blocked=obs.get('blocked_symbols',0)
+        lines.append(f"기준자료 준비 {max(0,obs.get('symbols',0)-blocked)} · 자료 대기 {blocked}")
+        labels={'CURRENT_BAR_MISSING':'현재 완료봉 부족','HISTORY_INCOMPLETE':'과거 동일시간 자료 부족',
+                'HISTORY_ZERO_VALUE':'과거 거래대금 0'}
+        for reason,count in obs.get('reference_block_reasons',{}).items():
+            if count:lines.append(f"  {labels.get(reason,reason)} {count}종목")
+        checks=obs.get('decision_reasons') or {}
+        for reason,label in [('DISCONNECTED','연결 끊김'),('LIVE_WARMUP','재연결·시작 후 실시간 자료 축적'),('STALE_FEED','체결·호가 최신성 미충족')]:
+            if checks.get(reason):lines.append(f"  {label} {checks[reason]}종목")
+        lines.append('현재 판단봉과 과거 비교자료 분리 · 매 10초 준비 상태 재판정')
     lines.append('최근 24시간 상세봉 + 직전 10일 동일시간 거래대금')
     try:
         db=sqlite3.connect('file:'+str(directory/'observe.sqlite3')+'?mode=ro',uri=True,timeout=1)

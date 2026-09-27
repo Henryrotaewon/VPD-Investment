@@ -26,6 +26,7 @@ class RepairTests(unittest.IsolatedAsyncioTestCase):
         # Just the exact signal references; older unrelated history remains absent.
         for k in range(11):
             self.o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-OK',self.start-FIVE-k*DAY,100 if k else 300))
+        self.o.db.execute('INSERT INTO recent5m VALUES(?,?,100,100,100,100,3,300,?)',('KRW-OK',self.start-FIVE,'API'))
         self.o.db.commit()
     def tearDown(self):self.o.db.close();self.tmp.cleanup()
 
@@ -75,6 +76,7 @@ class RepairTests(unittest.IsolatedAsyncioTestCase):
         r.gate('KRW-BAD')
         self.o.previous['KRW-BAD']=(self.start-10000,True)
         for k in range(11):self.o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-BAD',self.start-FIVE-k*DAY,100))
+        self.o.db.execute('INSERT INTO recent5m VALUES(?,?,100,100,100,100,1,100,?)',('KRW-BAD',self.start-FIVE,'API'))
         self.assertTrue(r.gate('KRW-BAD'))
         self.assertNotIn('KRW-BAD',self.o.previous)
 

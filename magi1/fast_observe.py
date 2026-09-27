@@ -8,6 +8,7 @@ from collections import defaultdict, deque
 import json
 import math
 from pathlib import Path
+from magi1.fast_reference import bounds as reference_bounds, reference_state
 import sqlite3
 import shutil
 import time
@@ -65,6 +66,7 @@ class Observer:
         self.current = int(start) // TEN * TEN
         self.active = {}; self.started = int(start); self.stale_logged = {}
         self.repair=None;self.repair_blocked=set();self.symbol_since={}
+        self.reference_status = {}; self.decision_reasons = {}; self.assessed_ms = None
         self.paper = None
         self.paper_retry_armed = {}
         self.received_ms = int(start)
@@ -219,10 +221,12 @@ class Observer:
 
     def evaluate(self, end):
         candidates = []
+        diagnostics = defaultdict(int)
         for s, g in self.symbol_group.items():
             connected = self.groups.get(g)
             if connected is not None:connected=max(connected,self.symbol_since.get(s,connected))
             if connected is None:
+                diagnostics['DISCONNECTED'] += 1
                 continue
             b = self.bar(s)
             if self.paper:
@@ -245,20 +249,29 @@ class Observer:
                     self.db.execute('INSERT OR IGNORE INTO recent5m VALUES(?,?,?,?,?,?,?,?,?)',(s,bucket,*ohlcv,total,'LIVE_RECEIVE_TIME'))
             # Use latest completed five-minute window only (no future partial baseline).
             full = end // FIVE * FIVE - FIVE
-            present = self.db.execute('SELECT value FROM baseline WHERE symbol=? AND bucket=?', (s, full)).fetchone()
-            past = self.db.execute('SELECT value FROM baseline WHERE symbol=? AND bucket>=? AND bucket<? AND bucket % ?=? ORDER BY bucket DESC LIMIT 10',
-                                   (s, full - 10 * DAY, full, DAY, full % DAY)).fetchall()
-            same_n = len(past)
-            if present and same_n == 10 and sum(x[0] for x in past) > 0:
-                rvalue = present[0] / (sum(x[0] for x in past) / 10)
+            # Re-evaluate readiness on EVERY decision, after closing the live bar.
+            # A stale repair-worker gate must not stall healthy symbols for 5 min.
+            ref = self.refresh_reference(s, end)
+            same_n = ref['baseline_days']; rvalue = ref['relative_value']
             book = self.books.get(s); quote = self.last_price.get(s)
             fresh = bool(book and quote and 0 <= end-book['ts'] <= 2000 and 0 <= end-quote[0] <= 2000)
             f = dict(relative_value=rvalue, baseline_days=same_n, burst=b['value']/baseline10 if baseline10 else None,
                      buy_share=b['buy']/b['value'] if b['value'] else 0, trades=b['count'], ofi=b['ofi'],
-                     net_buy=b['buy']*2-b['value'], five_minute_start=full)
+                     net_buy=b['buy']*2-b['value'], five_minute_start=full,
+                     current_source=ref['current_source'], reference_reasons=ref['reasons'])
             qualifies = bool(s not in self.repair_blocked and enough and fresh and rvalue is not None and rvalue >= 2 and
                              f['burst'] is not None and f['burst'] >= 3 and f['buy_share'] >= .65 and
                              f['trades'] >= 20 and f['ofi'] > 0)
+            reasons = list(ref['reasons'])
+            if not enough: reasons.append('LIVE_WARMUP')
+            if not fresh: reasons.append('STALE_FEED')
+            if rvalue is not None and rvalue < 2: reasons.append('RELATIVE_VALUE_LOW')
+            if f['burst'] is None or f['burst'] < 3: reasons.append('BURST_LOW')
+            if f['buy_share'] < .65: reasons.append('BUY_SHARE_LOW')
+            if f['trades'] < 20: reasons.append('TRADE_COUNT_LOW')
+            if f['ofi'] <= 0: reasons.append('OFI_NONPOSITIVE')
+            for reason in reasons: diagnostics[reason] += 1
+            if qualifies: diagnostics['QUALIFIED_WINDOW'] += 1
             old = self.previous.get(s)
             self.previous[s] = (end, qualifies)
             if not qualifies:
@@ -267,7 +280,9 @@ class Observer:
                 candidates.append((s, f, quote[1], book))
             if end % FIVE == 0:
                 self.event(end, 'ASSESSMENT', s, dict(f, qualifies=qualifies,
+                           enough=enough, fresh=fresh, reasons=reasons,
                            status='BASELINE_WARMUP' if rvalue is None else 'READY'))
+        self.decision_reasons = dict(diagnostics); self.assessed_ms = end
         candidates.sort(key=lambda x: (-x[1]['relative_value'], -x[1]['net_buy'], x[0]))
         selected = 0
         for s, f, price, book in candidates:
@@ -292,13 +307,33 @@ class Observer:
                 self.paper.signal(s, stamp, price, low, f)
                 if captured:self.event(end, 'PAPER_RETRY', s, dict(f, reference_price=price))
         if end % FIVE == 0:
-            self.db.execute('DELETE FROM baseline WHERE bucket<?', (end//DAY*DAY-10*DAY,))
+            self.db.execute('DELETE FROM baseline WHERE bucket<?', (reference_bounds(end)[0],))
             self.db.execute('DELETE FROM recent5m WHERE bucket<?', (end-DAY,))
             self.db.execute("DELETE FROM events WHERE kind='WINDOW' AND ts<?", (end-FIVE,))
             self.db.execute("DELETE FROM events WHERE kind!='CAPTURE' AND ts<?", (end-DAY,))
 
+    def refresh_reference(self, symbol, cutoff):
+        ref = reference_state(self.db, symbol, cutoff)
+        was_blocked = symbol in self.repair_blocked
+        if ref['ready']:
+            self.repair_blocked.discard(symbol)
+        else:
+            self.repair_blocked.add(symbol)
+        if was_blocked != (not ref['ready']):
+            self.previous.pop(symbol, None)
+            self.event(cutoff, 'REFERENCE_GATE', symbol, ref)
+        self.reference_status[symbol] = ref
+        return ref
+
     def report(self):
+        reasons = defaultdict(int)
+        for ref in getattr(self, 'reference_status', {}).values():
+            for reason in ref['reasons']:
+                reasons[reason] += 1
         return {'mode': 'PUBLIC_OBSERVE_NO_ORDERS', 'asof_ms': self.current,
+                'reference_policy': 'SEPARATE_CURRENT_HISTORY_V2',
+                'reference_block_reasons': dict(reasons),
+                'decision_reasons': self.decision_reasons, 'assessed_ms': self.assessed_ms,
                 'connected_groups': len(self.groups), 'symbols': len(self.symbol_group),
                 'captures': self.db.execute('SELECT count(*) FROM captures').fetchone()[0],
                 'outcomes': dict(self.db.execute('SELECT status,count(*) FROM outcomes GROUP BY status')),
