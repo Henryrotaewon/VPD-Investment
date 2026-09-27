@@ -41,9 +41,12 @@ and trading decisions share the feed event loop. This work is additional to
 the existing FAST baseline repair and is capped at one request per second.
 Rate limits pause history loading while WebSocket monitoring continues.
 
-Warmup and restart never replay historical signals. After history is loaded,
-only a complete new live candle may arm a squeeze. A startup/reconnect partial
-candle is excluded. Every accepted unique trade contributes to its exchange-time
+Warmup and restart never replay historical signals. Only a live candle that
+closes after history is loaded may arm a squeeze. A startup/reconnect partial
+candle cannot trigger a signal: REST loading waits for that candle to close,
+then includes it in history, bridging to the first fully observed live candle.
+Loading does not discard an already continuously observed current live candle.
+Every accepted unique trade contributes to its exchange-time
 bucket, including out-of-order trades; time and trade ID determine open/close.
 The observer rejects trades over two seconds late and invalidates the affected
 indicator stream. Five-minute decisions wait 2.5 seconds for accepted boundary

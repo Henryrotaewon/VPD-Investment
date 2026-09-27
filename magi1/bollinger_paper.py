@@ -81,6 +81,7 @@ class BollingerPaper(Paper):
         self.history = defaultdict(list)
         self.live = defaultdict(dict)
         self.active_since = {}
+        self.ready_since = {}
         self.watch = {}
         self.states = {}
         self.loaded = set()
@@ -123,6 +124,7 @@ class BollingerPaper(Paper):
         self.watch.pop(symbol, None)
         self.active_since[symbol] = (ts+FIVE-1)//FIVE*FIVE
         self.loaded.discard(symbol)
+        self.ready_since.pop(symbol, None)
         self.needs_history.add(symbol)
         self.states[symbol] = 'HISTORY_WARMUP'
 
@@ -151,7 +153,10 @@ class BollingerPaper(Paper):
         self.needs_history.discard(symbol)
         # History can never arm a watch or replay a previous breakout.
         self.watch.pop(symbol, None)
-        self.active_since[symbol] = max(self.active_since.get(symbol, 0), (ts+FIVE-1)//FIVE*FIVE)
+        # Keep collecting the current bar if its start was continuously observed.
+        # Resetting active_since here would create a permanent hole between the
+        # REST history and the next live bar (a false 29-hour warmup).
+        self.ready_since[symbol] = ts
         self.states[symbol] = 'LIVE_BAR_WARMUP'
         self.history_updated = ts
         self.db.commit()
@@ -222,7 +227,8 @@ class BollingerPaper(Paper):
                 b = self.live[symbol].get(bucket)
                 if b and bucket >= self.active_since[symbol]:
                     self.store_rows(symbol, [b['row']])
-                    if symbol in self.loaded and 0 <= ts-end <= 10000:
+                    if (symbol in self.loaded and end > self.ready_since[symbol]
+                            and 0 <= ts-end <= 10000):
                         self.assess(symbol, bucket, ts)
                 elif bucket >= self.active_since[symbol]:
                     self.watch.pop(symbol, None)
@@ -251,6 +257,10 @@ async def warm_history(paper, symbols, clock, client=None):
     while True:
         for symbol in symbols:
             if symbol not in paper.needs_history or clock() < retries.get(symbol, 0):
+                continue
+            # Fetch AFTER the partial connection/reconnection candle closes.
+            # REST bridges that excluded candle to the first full live candle.
+            if clock() < paper.active_since.get(symbol, clock()) + SETTLE:
                 continue
             cutoff = clock()//FIVE*FIVE
             cursor, collected = cutoff, []

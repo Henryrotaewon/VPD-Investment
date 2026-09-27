@@ -225,6 +225,23 @@ class StrategyTests(unittest.TestCase):
         self.assertFalse(self.p.s['positions'])
         self.assertEqual(self.p.s['closed'], 1)
 
+    def test_mid_bar_history_load_preserves_live_bridge_and_never_replays_closed_bar(self):
+        self.p.connected([S], T-1000)  # The connection's partial candle is excluded.
+        self.p.candle_trade(S, T+1000, 100.01, 1000, T+1000, 1)
+        self.p.seed(S, history(), T+2000)
+        self.assertEqual(self.p.active_since[S], T)
+        self.p.tick(T+FIVE+2500)
+        self.assertEqual(self.p.states[S], 'READY')
+        self.assertEqual(self.p.watch[S], T)
+        self.p.watch.clear()
+        self.p.candle_trade(S, T+FIVE+3000, 100.3, 3000, T+FIVE+3000, 2)
+        # History finishes just after close but before the settlement timer.
+        self.p.seed(S, [], T+2*FIVE+1000)
+        self.p.tick(T+2*FIVE+2500)
+        self.assertFalse(self.p.watch)
+        self.assertFalse(self.p.s['pending'])
+        self.assertEqual(self.p.history[S][-1][0], T+FIVE)
+
     def test_readonly_results_button_status_and_daily_anchor(self):
         self.p.tick(T+10000)
         text, keyboard = view(self.root, T+10001, 'bollinger')
@@ -276,7 +293,7 @@ class IntegrationTests(unittest.TestCase):
                     self.calls += 1
                     return history(cursor, 200)
             client = Client()
-            task = asyncio.create_task(warm_history(p, [S], lambda:T, client))
+            task = asyncio.create_task(warm_history(p, [S], lambda:T+2500, client))
             # api_rows parsing is independently tested against real API fixtures.
             with patch('magi1.bollinger_paper.api_rows', side_effect=lambda payload,cursor:payload):
                 for _ in range(300):
