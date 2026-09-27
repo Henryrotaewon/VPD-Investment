@@ -19,7 +19,7 @@ from datetime import datetime, timezone, timedelta
 import requests
 
 SCHEMA = 'magi1-market-context-v1'
-POLICY = 'regime-observation-v1'
+POLICY = 'regime-observation-v2-macro'
 INTERVAL = 300
 TTL = 600
 DAY = 86400
@@ -79,8 +79,19 @@ def classify_venue(quotes, expected, btc, eth):
     valid = len(quotes)
     alts = [q for a,q in quotes.items() if a not in MAJORS]
     coverage = valid/expected if expected else 0
-    if coverage < .8 or len(alts) < 20 or not MAJORS.issubset(quotes):
-        raise ValueError('INSUFFICIENT_MARKET_COVERAGE')
+    if not MAJORS.issubset(quotes):
+        raise ValueError('MISSING_MAJOR_QUOTES')
+    if coverage < .8 or len(alts) < 20:
+        # Market breadth must not suppress valid BTC trends.
+        return dict(status='PARTIAL', direction=direction(btc['day_return'], 0),
+                    participation='UNAVAILABLE', confirmation='PENDING',
+                    medium_direction=direction(btc['return_7d'], 0),
+                    short_direction=direction(btc['return_4h'], 0),
+                    today_direction=direction(btc['day_return'], 0),
+                    risk='HIGH' if btc['realized_vol_24h'] >= .04 or btc['day_drawdown'] <= -.03 else 'NORMAL',
+                    btc=btc, eth=eth, breadth=None,
+                    coverage=dict(valid=valid, eligible=expected),
+                    reason='INSUFFICIENT_MARKET_COVERAGE')
     total = sum(q['turnover'] for q in quotes.values())
     if total <= 0:
         raise ValueError('NO_TURNOVER')
@@ -93,14 +104,14 @@ def classify_venue(quotes, expected, btc, eth):
                          btc['day_return'] > 0 and relative < .4 and median < btc['day_return'])
                      else 'BROAD_WEAKNESS' if breadth <= .35 and median < -.002
                      else 'MIXED')
-    votes = [direction(btc['day_return'], .003), direction(btc['return_1h'], .0025),
-             direction(btc['return_4h'], .005)]
+    votes = [direction(btc['day_return'], 0), direction(btc['return_1h'], 0),
+             direction(btc['return_4h'], 0)]
     trend = 'UP' if votes.count('UP') >= 2 else 'DOWN' if votes.count('DOWN') >= 2 else 'MIXED'
     risk = 'HIGH' if btc['realized_vol_24h'] >= .04 or btc['day_drawdown'] <= -.03 else 'NORMAL'
     return dict(status='OK', direction=trend, participation=participation, risk=risk,
-                medium_direction=direction(btc['return_7d'], .01),
-                today_direction=direction(btc['day_return'], .003),
-                short_direction=direction(btc['return_4h'], .005),
+                medium_direction=direction(btc['return_7d'], 0),
+                today_direction=direction(btc['day_return'], 0),
+                short_direction=direction(btc['return_4h'], 0),
                 btc=btc, eth=eth,
                 breadth=dict(eligible=expected, valid=valid, alt_count=len(alts), coverage=coverage,
                              advancing_ratio=breadth, outperform_btc_ratio=relative,
@@ -113,9 +124,9 @@ def classify_venue(quotes, expected, btc, eth):
 
 def confirm(current, previous, now):
     """Two separate >=4 minute observations; never confirm across a stale gap."""
-    recent = previous and 240 <= now-previous.get('observed_ts_ms',0)/1000 <= TTL
+    recent = previous and previous.get('policy_version') == current.get('policy_version') and 240 <= now-previous.get('observed_ts_ms',0)/1000 <= TTL
     for venue, row in current['venues'].items():
-        if row['status'] != 'OK':
+        if row['status'] not in ('OK', 'PARTIAL'):
             continue
         raw = row['direction']+'/'+row['participation']
         prior = (previous or {}).get('venues',{}).get(venue,{}) if recent else {}
@@ -157,12 +168,14 @@ class Collector:
                 try:
                     a = symbols[x['market']]
                     ts = number(x['trade_timestamp'])
-                    if not -30000 <= now*1000-ts <= 300000:
+                    # A fresh REST snapshot may contain an old last trade.
+                    # Keep inactive assets in macro breadth; reject future trades.
+                    if ts <= 0 or ts > now*1000+30000:
                         continue
                     p, op, hi = [number(x[k],True) for k in ('trade_price','opening_price','high_price')]
                     vol = number(x['acc_trade_price'])
                     if vol < 0 or hi < p: continue
-                    quotes[a] = dict(price=p,return_=p/op-1, high=hi,turnover=vol,ts_ms=ts)
+                    quotes[a] = dict(price=p,return_=p/op-1, high=hi,turnover=vol,ts_ms=ts,received_ts_ms=int(now*1000))
                     quotes[a]['return'] = quotes[a].pop('return_')
                 except (KeyError,ValueError,TypeError):
                     continue
@@ -204,7 +217,7 @@ class Collector:
                 p,op,hi = [number(x[k],True) for k in ('lastPrice','openPrice','highPrice')]
                 vol = number(x['quoteVolume'])
                 if vol<=0 or hi<p: continue
-                quotes[symbols[x['symbol']]] = dict(price=p,high=hi,turnover=vol,ts_ms=ts)
+                quotes[symbols[x['symbol']]] = dict(price=p,high=hi,turnover=vol,ts_ms=ts,received_ts_ms=int(now*1000))
                 quotes[symbols[x['symbol']]]['return'] = p/op-1
             except (KeyError,TypeError,ValueError): continue
         assets = {}
