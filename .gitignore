@@ -1,2 +1,3 @@
 __pycache__/
 *.py[cod]
+magi2/state/paper_performance.sqlite3*
