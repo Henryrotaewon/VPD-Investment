@@ -1,4 +1,4 @@
-"""Read-only, comparable PAPER results from the three authoritative ledgers.
+"""Read-only, comparable PAPER results from authoritative strategy ledgers.
 
 Wins are completed positions, never individual partial fills. Returns are NAV
 returns, not averages of trade returns. A trading date starts at 09:00 KST
@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 DAY = 86_400_000
 KST = ZoneInfo('Asia/Seoul')
-NAMES = {'vpd': 'VPD', 'fast': 'FAST', 'indicator': '지표가속'}
+NAMES = {'vpd': 'VPD', 'fast': 'FAST', 'indicator': '지표가속', 'bollinger': '더블볼린저·CCI'}
 PAGE_SIZE = 7
 BOUNDARY_TOLERANCE = 10 * 60_000
 
@@ -229,10 +229,18 @@ def fast_trades(rows, positions):
 
 
 def fast_results(root, now):
-    db = readonly(Path(root) / 'fast-observe' / 'paper-v1.sqlite3')
+    return public_paper_results(Path(root) / 'fast-observe' / 'paper-v1.sqlite3', 'fast', now)
+
+
+def bollinger_results(root, now):
+    return public_paper_results(Path(root) / 'bollinger-paper' / 'v1.sqlite3', 'bollinger', now)
+
+
+def public_paper_results(path, key, now):
+    db = readonly(path)
     try:
         state = json.loads(db.execute('SELECT payload FROM state WHERE id=1').fetchone()[0])
-        result = Results('fast', initial=number(state['policy']['initial']), started=state['started_ms'])
+        result = Results(key, initial=number(state['policy']['initial']), started=state['started_ms'])
         rows = db.execute('SELECT * FROM fills WHERE ts>=? AND ts<=? ORDER BY id', (result.started, now))
         result.trades, result.wins_complete = fast_trades(rows, state['positions'])
         result.wins_complete &= (len(result.trades) == state['closed'] and
@@ -245,7 +253,19 @@ def fast_results(root, now):
         fresh = now-state['updated_ms'] <= 30_000 and all(
             0 <= now-p['mark_ms'] <= 2000 and not p['uncertain'] for p in state['positions'].values())
         result.current = Mark(state['updated_ms'], equity, fresh)
-        result.notes.append('현재 FAST 원장 전체 · 이전 정책으로 체결한 기록도 포함')
+        if key == 'fast':
+            result.notes.append('현재 FAST 원장 전체 · 이전 정책으로 체결한 기록도 포함')
+        else:
+            o = state.get('observation', {})
+            counts = o.get('states', {})
+            ready = counts.get('READY', 0)
+            result.notes += [
+                f"신호 준비 {ready}/{o.get('symbols',0)}종목 · 수축 관찰 {o.get('watches',0)}종목",
+                f"과거봉 준비 {counts.get('HISTORY_WARMUP',0)} · 새 완료봉 대기 {counts.get('LIVE_BAR_WARMUP',0)} · 봉 부족 {counts.get('INCOMPLETE_CANDLES',0)} · 재시도 {counts.get('HISTORY_RETRY',0)}",
+                f"보유 {len(state['positions'])}종목 · 매수 대기 {len(state['pending'])}종목",
+                '독립 모의자금 300만원 · 최대 10종목 · 매수·매도 각각 수수료 0.05% + 슬리피지 0.05%',
+                '완료 5분봉 BB(20,2)·BB(60,2) + CCI(10) · 과거 신호 소급매수 없음',
+                '현재 모의 운용 결과 · 과거 백테스트 결과가 아닙니다.']
         return result
     finally:
         db.close()
@@ -287,7 +307,8 @@ def indicator_results(root, now):
 
 def load_results(root, key, now):
     try:
-        r = {'vpd': vpd_results, 'fast': fast_results, 'indicator': indicator_results}[key](root, now)
+        r = {'vpd': vpd_results, 'fast': fast_results, 'indicator': indicator_results,
+             'bollinger': bollinger_results}[key](root, now)
         if r.initial is None or r.initial <= 0:
             raise ValueError('INVALID_INITIAL_CAPITAL')
         if not r.wins_complete:
@@ -346,7 +367,8 @@ def daily_rows(result, now):
 
 
 def results_keyboard(key=None, offset=0, total=0):
-    rows = [[dict(text=NAMES[k]+' 결과', callback_data=f'performance:{k}:0') for k in NAMES]]
+    buttons = [dict(text=NAMES[k]+' 결과', callback_data=f'performance:{k}:0') for k in NAMES]
+    rows = [buttons[i:i+2] for i in range(0, len(buttons), 2)]
     if key:
         navigation = []
         if offset:

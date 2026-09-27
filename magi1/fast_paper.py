@@ -173,7 +173,8 @@ class Paper:
             p['mark_ms'] = ts
             if book['bp'] <= p['stop']:
                 self.request_exit(symbol, ts, 'PROTECTION')
-            if not p.get('exit') and ts - p['peak_ms'] >= self.policy['no_new_high_ms']:
+            timeout = self.policy['no_new_high_ms']
+            if timeout is not None and not p.get('exit') and ts - p['peak_ms'] >= timeout:
                 if p['qty'] * p['mark'] <= p['cost']:
                     self.request_exit(symbol, ts, 'NO_NEW_HIGH_3M_NONPOSITIVE')
             self.execute_exit(symbol, ts, book)
@@ -203,6 +204,10 @@ class Paper:
             order['last_reason'] = 'ENTRY_PRICE_CAP'
             order['last_expected_price'] = price
             return
+        rejection = self.entry_rejection(order, price)
+        if rejection:
+            self.cancel(symbol, ts, rejection)
+            return
         cost = order['budget']
         self.s['cash'] -= cost
         self.s['positions'][symbol] = dict(qty=qty, cost=cost, original_cost=cost,
@@ -215,6 +220,10 @@ class Paper:
         self.db.execute("UPDATE signals SET status='BOUGHT',reason='' WHERE symbol=? AND day=?", (symbol, order['day']))
         del self.s['pending'][symbol]
         self.save(ts)
+
+    def entry_rejection(self, order, price):
+        """Optional strategy-specific check on the depth-weighted fill price."""
+        return ''
 
     def execute_exit(self, symbol, ts, book):
         p = self.s['positions'][symbol]

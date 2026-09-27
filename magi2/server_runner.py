@@ -743,7 +743,7 @@ def main():
     from magi2.hourly_indicator import HourlyPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
     log('indicator_paper_ready legacy_history_loaded=false live_orders=false')
-    log('paper_performance_views_ready strategies=vpd,fast,indicator day_start=09:00KST read_only=true')
+    log('paper_performance_views_ready strategies=vpd,fast,indicator,bollinger day_start=09:00KST read_only=true')
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
