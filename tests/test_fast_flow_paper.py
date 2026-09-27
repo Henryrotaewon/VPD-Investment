@@ -221,6 +221,25 @@ class FastPaperTests(unittest.TestCase):
         self.assertEqual(parse_command('⚡ FAST 모의투자'),'fast_paper')
         self.assertEqual(parse_command('/fast'),'fast')  # legacy indicator alias stays intact
 
+    def test_report_pairs_partial_exits_and_separates_next_day_buy(self):
+        self.buy(); t=self.start+100
+        self.p.request_exit('KRW-X',t,'PROTECTION')
+        self.p.on_book('KRW-X',t+1,self.book(t+1,bp=105,ap=105.1,size=100))
+        text,_=view(self.tmp.name,'fast_paper_orders')
+        self.assertIn('일부 매도·보유 중',text)
+        self.assertNotIn('매도완료',text)
+        self.p.on_book('KRW-X',t+2,self.book(t+2,bp=106,ap=106.1))
+        self.buy(t=self.start+DAY+1)
+        before=self.p.db.execute('SELECT count(*) FROM fills').fetchone()[0]
+        text,_=view(self.tmp.name,'fast_paper_orders')
+        self.assertIn('최근 거래 2건',text)
+        self.assertEqual(text.count('매도완료'),1)
+        self.assertIn('매도 평균',text)
+        self.assertIn('보호선 도달',text)
+        self.assertLess(text.index('보유 중'),text.index('매도완료'))
+        self.assertEqual(self.p.db.execute('SELECT count(*) FROM fills').fetchone()[0],before)
+        self.assertLess(len(text),4096)
+
     def test_observer_only_hands_off_new_capture_with_full_protection_history(self):
         o = Observer(Path(self.tmp.name)/'obs.db',self.start)
         o.paper = self.p
