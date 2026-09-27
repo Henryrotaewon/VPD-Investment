@@ -86,4 +86,32 @@ class RepairTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.o.previous['KRW-OK'],(self.start,True))
         self.assertIn('healthy',self.o.groups)
 
+    async def test_missing_current_wakes_idle_repair_once_per_bar(self):
+        r=Repair(self.o,['KRW-OK'],self.path,clock=lambda:self.clock,emit=lambda x:None)
+        self.o.db.execute('DELETE FROM recent5m WHERE symbol=?',('KRW-OK',))
+        self.o.refresh_reference('KRW-OK',self.clock)
+        self.assertTrue(r.wake.is_set())
+        self.assertIn('KRW-OK',r.current_priority)
+        r.wake.clear()
+        self.o.refresh_reference('KRW-OK',self.clock+10000)
+        self.assertFalse(r.wake.is_set())  # no busy retry storm
+        r.request_current('KRW-OK',self.start)
+        self.assertTrue(r.wake.is_set())
+
+    async def test_complete_current_does_not_wake_background_repair(self):
+        r=Repair(self.o,['KRW-OK'],self.path,clock=lambda:self.clock,emit=lambda x:None)
+        self.assertTrue(self.o.refresh_reference('KRW-OK',self.clock)['ready'])
+        self.assertFalse(r.wake.is_set())
+
+    async def test_missing_current_is_prioritized_before_unrelated_history(self):
+        seen=[]
+        r=Repair(self.o,['KRW-BAD','KRW-OK'],self.path,clock=lambda:self.clock,emit=lambda x:None)
+        self.o.db.execute('DELETE FROM recent5m WHERE symbol=?',('KRW-OK',))
+        async def record(symbol,cutoff):
+            seen.append(symbol)
+            if len(seen)==2:raise asyncio.CancelledError()
+        r.repair_symbol=record
+        with self.assertRaises(asyncio.CancelledError):await r.run()
+        self.assertEqual(seen,['KRW-OK','KRW-BAD'])
+
 if __name__=='__main__':unittest.main()
