@@ -17,10 +17,16 @@ def menu(ledger):
 def positions(ledger,stamp,offset=0):
     with ledger.lock:
         b=ledger.balance(stamp);s=ledger.s;names=s['scan'].get('names',{})
-        lines=['📊 지표가속 모의투자 [PAPER]',f'조회 {clock(stamp)} KST',f'Cohort {s["cohort"]}',
-               f'최초원금 {s["initial"]:,.0f}원',f'매수원금 {b["invested"]:,.0f}원 / 예수금 {b["cash"]:,.0f}원']
-        if b['equity'] is not None:lines.append(f'평가 {b["equity"]:,.0f}원 / 누적 {(b["equity"]/b["initial"]-1)*100:+.2f}%')
-        else:lines.append('최신 평가 대기: '+', '.join(b['unknown']))
+        equity=b['equity'] if b['equity'] is not None else b['last_known_equity']
+        lines=['📊 지표가속 모의투자 [PAPER]',f'조회 {clock(stamp)} KST',
+               f'총 평가금액 {equity:,.0f}원'+(' · 최근 관측값 포함' if b['unknown'] else ''),
+               f'누적 수익률 {(equity/b["initial"]-1)*100:+.2f}% · 총 손익 {equity-b["initial"]:+,.0f}원']
+        if b['unknown']:
+            lines.append('최신 시세 갱신 대기: '+', '.join(b['unknown']))
+            unquoted=[symbol for symbol in b['unknown'] if not s['prices'].get(symbol)]
+            if unquoted:lines.append('시세 미확보 · 매수 기준가 임시평가: '+', '.join(unquoted))
+        lines += [f'Cohort {s["cohort"]}',f'최초원금 {s["initial"]:,.0f}원',
+                  f'매수원금 {b["invested"]:,.0f}원 / 예수금 {b["cash"]:,.0f}원']
         lines += [f'누적 실현손익 {b["realized"]:+,.0f}원',f'보유 {b["positions"]}/{s["slots"]} · 주문대기 {b["pending"]}',
                   '포착·매매: '+('진행 중' if s['enabled'] else '정지'),'일봉 회복 1시간 간격 2회 · 추세청산/초기 보호선',
                   f'교체·리필 기준: 최신 유효 포착 {len(candidates(ledger,stamp))}/10종목','']
