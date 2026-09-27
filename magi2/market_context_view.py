@@ -15,6 +15,24 @@ KST = ZoneInfo('Asia/Seoul')
 DIRECTION = {'UP':'상승','DOWN':'하락','FLAT':'중립','MIXED':'혼조'}
 PARTICIPATION = {'ALT_EXPANSION':'알트 확산','MAJOR_LED':'BTC·ETH 집중',
                  'BROAD_WEAKNESS':'동반 약세','MIXED':'혼재'}
+LEADERSHIP = {'ALT_EXPANSION':'알트장','MAJOR_LED':'메인장',
+              'BROAD_WEAKNESS':'동반 약세','MIXED':'혼재'}
+
+
+def macro_direction(macro, *keys):
+    """Summarize published changes only when every required series is usable."""
+    rows = [macro.get(key, {}) for key in keys]
+    if any(row.get('status') not in ('DELAYED', 'STALE') for row in rows):
+        return '판단 보류 · 자료 부족'
+    if any(row['status'] == 'STALE' for row in rows):
+        return '판단 보류 · 오래된 자료'
+    changes = [row.get('change') for row in rows]
+    if any(not isinstance(value, (int, float)) or not math.isfinite(value) for value in changes):
+        return '판단 보류 · 자료 부족'
+    if all(value > 0 for value in changes): return '상승'
+    if all(value < 0 for value in changes): return '하락'
+    if all(value == 0 for value in changes): return '보합'
+    return '혼조'
 
 
 def validate(payload, now):
@@ -74,7 +92,29 @@ def render(payload, now=None):
     validate(payload,now)
     stamp = datetime.fromtimestamp(payload['observed_ts_ms']/1000,KST)
     lines = ['🧭 시장 국면 · MAGI1', f'관측 {stamp:%m/%d %H:%M} KST · 5분 갱신',
-             '당일: 09:00 KST 이후 · 단기: 완료 시간봉']
+             '\n🧭 종합의견']
+    for venue,label in (('upbit','국내 BTC'),('binance','해외 BTC')):
+        row = payload['venues'][venue]
+        if row['status'] != 'OK':
+            lines.append(f'{label}: 판단 보류 · 자료 부족')
+            continue
+        lines.append(f'{label}: 오늘 {DIRECTION[row["today_direction"]]} · 중기 {DIRECTION[row["medium_direction"]]} · 단기 {DIRECTION[row["short_direction"]]}')
+    for venue,label in (('upbit','국내'),('binance','해외')):
+        row = payload['venues'][venue]
+        if row['status'] != 'OK':
+            lines.append(f'{label} 주도장: 판단 보류')
+            continue
+        flag = '확인' if row['confirmation'] == 'CONFIRMED' else '전환 관측'
+        lines.append(f'{label} 주도장: {LEADERSHIP[row["participation"]]} · {flag}')
+        if row['risk'] == 'HIGH': lines.append(f'⚠ {label} 위험 높음')
+    macro = payload['macro']
+    lines.extend([
+        f'금리(미국 10년): {macro_direction(macro, "DGS10")}',
+        f'미국 주식(S&P500·NASDAQ): {macro_direction(macro, "SP500", "NASDAQCOM")}',
+        f'달러: {macro_direction(macro, "DTWEXBGS")} · 유가: {macro_direction(macro, "DCOILWTICO")}',
+        '거시 방향은 최근 공표치의 전 관측치 대비',
+        '\n📊 근거 데이터',
+        '오늘: 09:00 KST 이후 · 중기: 완료 7일 · 단기: 완료 4시간'])
     for venue,label in (('upbit','국내 · 업비트 KRW'),('binance','해외 · Binance USDT 현물')):
         row = payload['venues'][venue]
         lines.append('\n'+label)

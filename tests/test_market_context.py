@@ -84,6 +84,32 @@ class ContextTests(unittest.TestCase):
         self.assertIn('판단 보류',text);self.assertIn('실시간 아님',text)
         self.assertLess(len(text),4096)
 
+    def test_summary_uses_published_macro_and_withholds_missing_or_stale_series(self):
+        p = bundle()
+        def series(change, status='DELAYED'):
+            return dict(label='지표', status=status, change=change, value=100,
+                        change_unit='FRACTION', observation_date='2026-09-25')
+        p['macro'] = {'SP500':series(.0051), 'NASDAQCOM':series(.0048),
+                      'DGS10':series(.07), 'DTWEXBGS':series(.0014, 'STALE'),
+                      'DCOILWTICO':series(-.0058)}
+        p['macro']['DGS10']['change_unit'] = 'PERCENTAGE_POINTS'
+        text = v.render(p, NOW)
+        summary, details = text.split('📊 근거 데이터')
+        self.assertIn('국내 BTC: 오늘 상승 · 중기 상승 · 단기 상승', summary)
+        self.assertIn('국내 주도장: 알트장 · 전환 관측', summary)
+        self.assertIn('금리(미국 10년): 상승', summary)
+        self.assertIn('미국 주식(S&P500·NASDAQ): 상승', summary)
+        self.assertIn('달러: 판단 보류 · 오래된 자료 · 유가: 하락', summary)
+        self.assertIn('+0.07%p', details)
+        self.assertIn('2026-09-25', details)
+        self.assertLess(len(text),4096)
+        p['macro']['NASDAQCOM']['change'] = -.01
+        self.assertEqual(v.macro_direction(p['macro'], 'SP500', 'NASDAQCOM'), '혼조')
+        del p['macro']['NASDAQCOM']
+        self.assertIn('판단 보류', v.macro_direction(p['macro'], 'SP500', 'NASDAQCOM'))
+        p['macro']['DGS10']['status'] = 'STALE'
+        self.assertIn('오래된 자료', v.macro_direction(p['macro'], 'DGS10'))
+
     def test_failed_refresh_cannot_republish_old_classification(self):
         c=m.Collector()
         with patch.object(c,'upbit',side_effect=ValueError('MISSING_COMPLETED_CANDLES')),patch.object(c,'binance',return_value=bundle()['venues']['binance']),patch.object(c,'macro',return_value={}):
