@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 1549842.5223904145,
+  "cash_krw": 1904694.1802588664,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -309,7 +309,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 90.2,
+      "last_price": 90.6,
       "peak_price": 92.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -1168,7 +1168,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 7.07,
+      "last_price": 7.04,
       "peak_price": 7.07,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -1874,7 +1874,7 @@
     },
     "TAIKO": {
       "market": "KRW-TAIKO",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-27T16:39:44.371324+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-27-REFILL-163944",
@@ -1895,10 +1895,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 138.0,
+      "last_price": 136.0,
       "peak_price": 146.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-09-27T19:25:43.718642+09:00",
+      "exit_price": 136.0,
+      "sell_fee_krw": 177.51458622733966,
+      "net_proceeds_krw": 354851.65786845196,
+      "pnl_krw": -24240.067062080314,
+      "return_pct": -6.394248533523717,
+      "exit_reason": "HARD_STOP"
     },
     "XTZ": {
       "market": "KRW-XTZ",
@@ -5898,8 +5905,8 @@
       "weakening_policy": "TREND_PROFIT_V2"
     }
   },
-  "realized_pnl_krw": 36376.42131443322,
-  "lifetime_realized_pnl_krw": 820118.1671595396,
+  "realized_pnl_krw": 12136.354252352903,
+  "lifetime_realized_pnl_krw": 795878.1000974593,
   "paper_only": true,
   "cohort_id": "2026-09-27-VPD-0747",
   "cohort_date": "2026-09-27",
@@ -5908,7 +5915,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-27T19:12:19.760073+09:00",
+  "updated_at": "2026-09-27T19:25:43.719018+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
