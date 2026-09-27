@@ -114,4 +114,17 @@ class RepairTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(asyncio.CancelledError):await r.run()
         self.assertEqual(seen,['KRW-OK','KRW-BAD'])
 
+    async def test_new_bar_preempts_active_old_cutoff_pass(self):
+        seen=[]
+        r=Repair(self.o,['KRW-OK','KRW-BAD'],self.path,clock=lambda:self.clock,emit=lambda x:None)
+        async def record(symbol,cutoff):
+            seen.append((symbol,cutoff))
+            if len(seen)==1:
+                self.clock+=FIVE
+                r.request_current('KRW-BAD',self.clock-FIVE)
+            else:raise asyncio.CancelledError()
+        r.repair_symbol=record
+        with self.assertRaises(asyncio.CancelledError):await r.run()
+        self.assertEqual(seen,[('KRW-OK',self.start),('KRW-BAD',self.start+FIVE)])
+
 if __name__=='__main__':unittest.main()
