@@ -17,9 +17,10 @@ import time
 from datetime import datetime, timezone, timedelta
 
 import requests
+from magi1 import dominance
 
 SCHEMA = 'magi1-market-context-v1'
-POLICY = 'regime-observation-v2-macro'
+POLICY = 'regime-observation-v3-dominance'
 INTERVAL = 300
 TTL = 600
 DAY = 86400
@@ -141,12 +142,12 @@ class Collector:
         self.get = get or requests.get
         self.cache = {}
 
-    def fetch(self, url, params=None, cache_seconds=0, now=None, text=False):
+    def fetch(self, url, params=None, cache_seconds=0, now=None, text=False, timeout=(3,8)):
         now = time.time() if now is None else now
         key = url+json.dumps(params,sort_keys=True)
         if key in self.cache and now-self.cache[key][0] < cache_seconds:
             return self.cache[key][1]
-        r = self.get(url, params=params, timeout=(3,8))
+        r = self.get(url, params=params, timeout=timeout)
         r.raise_for_status()
         data = r.text if text else r.json()
         if cache_seconds:
@@ -280,7 +281,7 @@ class Collector:
                        mode='OBSERVATION_ONLY',execution_eligible=False,
                        observed_ts_ms=int(now*1000),expires_ts_ms=int((now+TTL)*1000),
                        day_start_ts_ms=int(now//DAY)*DAY*1000,day_basis='00:00 UTC / 09:00 KST',
-                       venues=venues,macro=self.macro(now),
+                       venues=venues,macro=self.macro(now),dominance=dominance.collect(self.fetch, now),
                        methodology=dict(major_assets=['BTC','ETH'],excluded_assets=sorted(EXCLUDED),
                                         min_coverage=.8,min_alts=20,confirmation_samples=2,
                                         threshold_status='RESEARCH_HYPOTHESIS',
@@ -324,6 +325,11 @@ async def run(root, log):
             log.info('market_context_published id=%s venues=%s macro=%s',payload['snapshot_id'],
                      {v:r['status']+':'+r.get('observed_state',r.get('reason','')) for v,r in payload['venues'].items()},
                      {v:r['status'] for v,r in payload['macro'].items()})
+            log.info('market_context_dominance %s', {
+                region: dict(status=row['status'], reason=row.get('reason'),
+                             btc=row.get('assets', {}).get('BTC'),
+                             comparison=row.get('comparison'))
+                for region, row in payload['dominance'].items()})
         except asyncio.CancelledError: raise
         except Exception:
             log.exception('market_context_collection_failed')

@@ -10,6 +10,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import requests
 from magi1.market_context import SCHEMA, TTL
+from magi1.dominance import fresh, point
 
 KST = ZoneInfo('Asia/Seoul')
 DIRECTION = {'UP':'상승','DOWN':'하락','FLAT':'중립','MIXED':'혼조'}
@@ -17,6 +18,24 @@ PARTICIPATION = {'ALT_EXPANSION':'알트 확산','MAJOR_LED':'BTC·ETH 집중',
                  'BROAD_WEAKNESS':'동반 약세','MIXED':'혼재','UNAVAILABLE':'자료 부족'}
 LEADERSHIP = {'ALT_EXPANSION':'알트장','MAJOR_LED':'메인장',
               'BROAD_WEAKNESS':'동반 약세','MIXED':'혼재','UNAVAILABLE':'자료 부족'}
+
+
+def dominance_row(payload, region, now):
+    row = payload.get('dominance', {}).get(region, {})
+    try:
+        if row.get('status') != 'OK': return None
+        expected = ('UPBIT_ALL_MARKETS_MARKET_CAP', 'PREVIOUS_CLOSE') if region == 'upbit' else ('GLOBAL_MARKET_CAP', '24H_ESTIMATE')
+        if (row['scope'], row['comparison']) != expected: return None
+        fresh(row['observed_ts_ms']/1000, now)
+        for key in ('BTC', 'ETH'):
+            asset = row['assets'][key]
+            check = point(asset['share'], asset['previous_share'])
+            if (not math.isfinite(asset['change_pp']) or
+                    abs(check['change_pp']-asset['change_pp']) > 1e-7 or
+                    check['direction'] != asset['direction']): return None
+        return row
+    except (KeyError, ValueError, TypeError, OverflowError):
+        return None
 
 
 def macro_direction(macro, *keys):
@@ -101,14 +120,16 @@ def render(payload, now=None):
             lines.append(f'{label}: 자료 없음')
             continue
         lines.append(f'{label}: 오늘 {DIRECTION[row["today_direction"]]} · 중기 {DIRECTION[row["medium_direction"]]} · 단기 {DIRECTION[row["short_direction"]]}')
+    dominance_rows = {region: dominance_row(payload, region, now) for region in ('upbit', 'global')}
     leadership = []
-    for venue,label in (('upbit','국내'),('binance','해외')):
-        row = payload['venues'][venue]
-        state = LEADERSHIP[row['participation']] if row['status'] == 'OK' else '자료 부족'
+    for region,label in (('upbit','국내'),('global','해외(글로벌)')):
+        row = dominance_rows[region]
+        state = DIRECTION[row['assets']['BTC']['direction']] if row else '자료 없음'
+        if state == '중립': state = '보합'
         leadership.append(f'{label} {state}')
     macro = payload['macro']
     lines.extend([
-        '메인·알트: ' + ' · '.join(leadership),
+        'BTC 도미넌스: ' + ' · '.join(leadership),
         f'미국 금리 {macro_direction(macro, "DGS10")} · 미국 주식 {macro_direction(macro, "SP500", "NASDAQCOM")}',
         f'달러 {macro_direction(macro, "DTWEXBGS")} · 유가 {macro_direction(macro, "DCOILWTICO")}',
         '\n📊 근거 데이터',
@@ -134,13 +155,29 @@ def render(payload, now=None):
             coverage = row.get('coverage', {})
             lines.append(f'메인·알트 자료 부족 · 유효 {coverage.get("valid", 0)}/{coverage.get("eligible", 0)}종목 · BTC 판단은 유지')
         lines.append(f'BTC 24h 실현변동 {btc["realized_vol_24h"]:.2%} · 위험 {"높음" if row["risk"]=="HIGH" else "보통"}')
+    lines.append('\n도미넌스 · 시가총액 비중')
+    for region, label in (('upbit', '국내 · 업비트 전체 마켓'), ('global', '해외 · 글로벌')):
+        row = dominance_rows[region]
+        if row is None:
+            lines.append(f'{label}: 자료 없음'); continue
+        basis = '전일 종가 대비' if region == 'upbit' else '24시간 대비 환산 추정'
+        observed = datetime.fromtimestamp(row['observed_ts_ms']/1000, KST)
+        lines.append(f'{label} · {basis} · {observed:%m/%d %H:%M} KST')
+        parts = []
+        for key, name in (('BTC', 'BTC'), ('ETH', 'ETH'), ('STABLE', '스테이블'), ('ETC', '기타')):
+            if key not in row['assets']: continue
+            asset = row['assets'][key]
+            parts.append(f'{name} {asset["share"]:.2%} ({asset["change_pp"]:+.3f}%p)')
+        lines.append(' · '.join(parts))
+    lines.append('출처: 업비트 데이터랩 · Data provided by CoinGecko https://www.coingecko.com/en/api')
     lines.append('\n거시 참고 · FRED 공표 일별 자료, 실시간 아님')
     for key,row in payload['macro'].items():
         if row['status']=='UNAVAILABLE': lines.append(f'{row["label"]}: 자료 없음');continue
         change = f'{row["change"]:+.2f}%p' if row['change_unit']=='PERCENTAGE_POINTS' else f'{row["change"]:+.2%}'
         stale = ' · 오래된 자료' if row['status']=='STALE' else ''
         lines.append(f'{row["label"]}: {row["value"]:,.2f} ({change}) · {row["observation_date"]}{stale}')
-    lines.extend(['\n메이저=BTC·ETH · 거래대금 비중은 시총 도미넌스와 다름',
+    lines.extend(['\nBTC 도미넌스 상승=BTC 비중 확대 · 하락만으로 알트 상승장을 뜻하지 않음',
+                  '국내는 업비트 상장자산 기준 · 해외는 글로벌 기준 · 거래대금 비중과 다름',
                   '국면 기준은 검증 중 · 전략 비중 자동 변경 없음'])
     return '\n'.join(lines)
 
