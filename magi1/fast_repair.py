@@ -99,8 +99,14 @@ class Repair:
             started=time.monotonic()
             ordered=sorted(self.symbols,key=lambda s:s not in self.current_priority)
             for symbol in ordered:
+                # A closed-bar request can arrive while REST history is already
+                # running. Switch cutoff after the in-flight request, not after
+                # finishing an obsolete whole-universe pass.
+                if bounds(self.clock())[1]!=cutoff and self.current_priority:
+                    self.wake.set()
+                    break
                 await self.repair_symbol(symbol,cutoff)
-                self.current_priority.discard(symbol)
+                if self.ready(symbol,self.clock()):self.current_priority.discard(symbol)
                 self.done+=1;self.progress()
                 await asyncio.sleep(0)
             self.progress(force=True)
