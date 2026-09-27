@@ -15,6 +15,7 @@ import time
 
 import requests
 from magi1.fast_observe import Observer, FIVE, DAY, now_ms
+from magi1.fast_reference import bounds
 
 
 def initialize(db):
@@ -24,11 +25,6 @@ def initialize(db):
       CREATE TABLE IF NOT EXISTS imports(path TEXT,sha256 TEXT,rows INTEGER,cutoff INTEGER,
         PRIMARY KEY(path,sha256));
     ''')
-
-
-def bounds(cutoff):
-    cutoff = int(cutoff)//FIVE*FIVE
-    return cutoff//DAY*DAY-10*DAY, cutoff
 
 
 def validate(row):

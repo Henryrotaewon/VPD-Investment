@@ -140,6 +140,7 @@ class FastPaperTests(unittest.TestCase):
         o.connected('a',['KRW-X'],self.start)
         for k in range(1,11):o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-X',self.start-k*DAY,100))
         o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-X',self.start,300))
+        o.db.execute('INSERT INTO recent5m VALUES(?,?,100,100,100,100,3,300,?)',('KRW-X',self.start,'API'))
         o.current=self.start+FIVE+60000
         for i in range(6):o.bars['KRW-X'].append(dict(t=o.current-60000+i*10000,value=1,buy=1,count=1,ofi=1,l=98))
         def window(amount):
@@ -227,6 +228,7 @@ class FastPaperTests(unittest.TestCase):
         for k in range(1,11):
             o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-X',self.start-k*DAY,100))
         o.db.execute('INSERT INTO baseline VALUES(?,?,?)',('KRW-X',self.start,300))
+        o.db.execute('INSERT INTO recent5m VALUES(?,?,100,100,100,100,3,300,?)',('KRW-X',self.start,'API'))
         o.current=self.start+FIVE+60000
         for i in range(6):
             o.bars['KRW-X'].append(dict(t=o.current-60000+i*10000,value=1,buy=1,count=1,ofi=1,l=98))

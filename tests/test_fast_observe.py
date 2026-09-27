@@ -50,6 +50,7 @@ class ObserveTests(unittest.TestCase):
         for k in range(1,11):
             self.o.db.execute('INSERT INTO baseline VALUES(?,?,?)', ('KRW-X',self.start-k*DAY,100))
         self.o.db.execute('INSERT INTO baseline VALUES(?,?,?)', ('KRW-X',self.start,300))
+        self.o.db.execute('INSERT INTO recent5m VALUES(?,?,100,100,100,100,3,300,?)',('KRW-X',self.start,'API'))
         self.o.current = self.start + FIVE + 60000
         q = self.o.bars['KRW-X']
         for i in range(6):

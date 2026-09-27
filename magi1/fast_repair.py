@@ -11,6 +11,7 @@ import shutil
 import time
 from magi1.fast_bootstrap import Public, api_rows, apply_page, bounds, missing_plan
 from magi1.fast_observe import DAY,FIVE,now_ms
+from magi1.fast_reference import reference_state
 
 
 class Repair:
@@ -23,22 +24,12 @@ class Repair:
         observer.repair=self
 
     def ready(self,symbol,cutoff):
-        full=cutoff//FIVE*FIVE-FIVE
-        keys=[full-k*DAY for k in range(11)]
-        rows=dict(self.observer.db.execute('SELECT bucket,value FROM baseline WHERE symbol=? AND bucket IN ('+','.join('?'*11)+')',(symbol,*keys)))
-        return len(rows)==11 and sum(rows[t] for t in keys[1:])>0
+        return reference_state(self.observer.db,symbol,cutoff)['ready']
 
     def gate(self,symbol):
         # Missing OHLCV at unrelated times must not block an otherwise valid
         # live signal. Only its current same-time reference is required here.
-        ready=self.ready(symbol,self.clock())
-        if not ready:
-            self.observer.repair_blocked.add(symbol)
-            self.observer.previous.pop(symbol,None)
-        elif symbol in self.observer.repair_blocked:
-            self.observer.repair_blocked.discard(symbol)
-            self.observer.previous.pop(symbol,None)  # fresh two-window confirmation
-        return ready
+        return self.observer.refresh_reference(symbol,self.clock())['ready']
 
     def report(self):
         return {'cycle':self.cycle,'checked':self.done,'total':len(self.symbols),
