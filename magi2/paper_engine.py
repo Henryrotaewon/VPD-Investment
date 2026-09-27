@@ -1,4 +1,4 @@
-import argparse, csv, io, json, os, sys
+import argparse, csv, io, json, os, sqlite3, sys
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -79,7 +79,18 @@ def portfolio_status(st,prices,title='📊 VPD 모의투자 현황 [PAPER]'):
     return '\n'.join(lines)
 
 def send_current_status(st,title='📊 VPD 모의투자 현황 [PAPER]'):
-    active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active),title))
+    active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']
+    prices=get_prices(active)
+    record_performance(st,prices)
+    telegram(portfolio_status(st,prices,title))
+
+def record_performance(st,prices):
+    # Reuse the worker's quotes; statistics failure never interrupts trading.
+    from magi2.paper_performance import record_vpd_mark
+    try:
+        record_vpd_mark(STATE_PATH,st,prices,float(CFG.get('fee_rate',.0005)),int(now_dt().timestamp()*1000))
+    except (OSError,ValueError,KeyError,TypeError,sqlite3.Error) as exc:
+        print(f'VPD performance snapshot unavailable: {type(exc).__name__}',flush=True)
 
 def migrate_state(st):
     fee=float(CFG.get('fee_rate',.0005)); changed=False
@@ -196,6 +207,7 @@ def monitor_once(st):
         if ret<=sl+distance and not p.get('sl_warning_sent',False): telegram(f'⚠️ MAGI2 SL 접근\n{coin} | 원금 {float(p["cost_krw"]):,.0f}원 | 현재 {ret:+.2f}% | SL {sl:.1f}%\nPAPER ONLY'); p['sl_warning_sent']=True; dirty=True
         elif ret>sl+distance+1 and p.get('sl_warning_sent',False): p['sl_warning_sent']=False; dirty=True
     if dirty: save_state(st)
+    record_performance(st,prices)
 
 def derive_daily_equal_buy(st,today):
     if st.get('daily_equal_buy_date')==today and float(st.get('daily_equal_buy_krw',0) or 0)>0:
@@ -362,7 +374,7 @@ def refill(st, expected_asof=None):
 
 
 def report(st):
-    active=[p['market'] for p in st.get('positions',{}).values() if p.get('status','OPEN')=='OPEN']; telegram(portfolio_status(st,get_prices(active)))
+    send_current_status(st)
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('mode',nargs='?',default='monitor',choices=['monitor','morning','rebuild','refill','report'])

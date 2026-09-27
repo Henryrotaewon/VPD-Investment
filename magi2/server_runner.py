@@ -494,7 +494,9 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='shadow': telegram(execution_view(cmd),shadow_keyboard())
         elif cmd=='orders': send_shadow_orders()
         elif cmd=='assets': telegram(execution_view(cmd))
-        elif cmd=='strategies': telegram(validation_text(),strategy_keyboard())
+        elif cmd=='strategies':
+            from magi2.paper_performance import view as performance_view
+            telegram(*performance_view(STATE_DIR,time.time_ns()//1000000))
         elif cmd=='regime': start_regime_job()
         elif cmd=='wave': send_wave()
         elif cmd in ('indicator','fast'):
@@ -571,7 +573,15 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('indicator_daily:') and FAST_PAPER:
+    if data.startswith('performance:'):
+        from magi2.paper_performance import view as performance_view, NAMES
+        try:
+            _,key,offset=data.split(':')
+            offset=int(offset)
+        except ValueError:return
+        if key in NAMES and 0<=offset<=100000:
+            telegram(*performance_view(STATE_DIR,time.time_ns()//1000000,key,offset))
+    elif data.startswith('indicator_daily:') and FAST_PAPER:
         from magi2.indicator_report import daily_view
         try:telegram(*daily_view(FAST_PAPER.ledger,data.split(':',1)[1],time.time_ns()//1000000))
         except ValueError:return
@@ -604,7 +614,9 @@ def handle_callback(callback):
         except ValueError: telegram('이력 버튼이 만료되었거나 잘못되었습니다. 최근 3일 매매이력을 다시 선택하세요.',shadow_keyboard())
     elif data.startswith('guide:'):
         name=data[6:]
-        if name=='wave':
+        if name=='validation':
+            telegram(validation_text(),strategy_keyboard(detail=True))
+        elif name=='wave':
             send_wave()
         elif name in ('vpd','fast','basis','cross'):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
@@ -731,6 +743,7 @@ def main():
     from magi2.hourly_indicator import HourlyPaperService as PaperService
     FAST_PAPER=PaperService(STATE_DIR,log)
     log('indicator_paper_ready legacy_history_loaded=false live_orders=false')
+    log('paper_performance_views_ready strategies=vpd,fast,indicator day_start=09:00KST read_only=true')
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
