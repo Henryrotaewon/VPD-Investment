@@ -35,7 +35,8 @@ def walk(levels, *, budget=None, quantity=None):
 
 
 class Paper:
-    def __init__(self, path, stamp):
+    def __init__(self, path, stamp, policy=None):
+        self.policy = dict(POLICY if policy is None else policy)
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(path)
         self.db.executescript('''
@@ -53,12 +54,12 @@ class Paper:
         ''')
         row = self.db.execute('SELECT payload FROM state WHERE id=1').fetchone()
         self.s = json.loads(row[0]) if row else dict(
-            policy=POLICY, started_ms=stamp, updated_ms=stamp, cash=POLICY['initial'],
+            policy=self.policy, started_ms=stamp, updated_ms=stamp, cash=self.policy['initial'],
             realized=0., positions={}, pending={}, closed=0, winning=0)
-        if self.s['policy'] == LEGACY_POLICY:
-            self.event(stamp, 'POLICY_UPDATED', '', dict(previous=self.s['policy'], current=POLICY))
-            self.s['policy'] = dict(POLICY)
-        elif self.s['policy'] != POLICY:
+        if self.s['policy'] == LEGACY_POLICY and self.policy == POLICY:
+            self.event(stamp, 'POLICY_UPDATED', '', dict(previous=self.s['policy'], current=self.policy))
+            self.s['policy'] = dict(self.policy)
+        elif self.s['policy'] != self.policy:
             raise ValueError('FAST_PAPER_POLICY_MISMATCH')
         self.books = {}
         self.trades = {}
@@ -66,7 +67,7 @@ class Paper:
         if row:
             # No invented prices or continuity across process downtime.
             self.gap(set(self.s['pending']) | set(self.s['positions']), stamp, 'RESTART')
-        self.event(stamp, 'START', '', dict(policy=POLICY, restored=bool(row)))
+        self.event(stamp, 'START', '', dict(policy=self.policy, restored=bool(row)))
         self.save(stamp)
 
     def event(self, ts, kind, symbol, payload):
@@ -75,7 +76,7 @@ class Paper:
 
     def save(self, ts):
         self.s['updated_ms'] = ts
-        if self.s['cash'] < -1e-6 or len(self.s['positions']) + len(self.s['pending']) > POLICY['slots']:
+        if self.s['cash'] < -1e-6 or len(self.s['positions']) + len(self.s['pending']) > self.policy['slots']:
             raise RuntimeError('FAST_PAPER_CAPITAL_INVARIANT')
         reserved = sum(x['budget'] for x in self.s['pending'].values())
         if reserved > self.s['cash'] + 1e-6:
@@ -101,7 +102,7 @@ class Paper:
         if not self.can_signal(symbol, ts) or (previous and previous[0] >= ts):
             return
         positions, pending = self.s['positions'], self.s['pending']
-        vacant = POLICY['slots'] - len(positions) - len(pending)
+        vacant = self.policy['slots'] - len(positions) - len(pending)
         free = self.s['cash'] - sum(x['budget'] for x in pending.values())
         budget = free / vacant if vacant > 0 else 0.
         reason = ('ALREADY_HELD' if symbol in positions or symbol in pending else
@@ -145,7 +146,7 @@ class Paper:
         self.save(ts)
 
     def on_trade(self, symbol, ts, price, quantity, stamp):
-        if not 0 <= ts - stamp <= POLICY['quote_age_ms']:
+        if not 0 <= ts - stamp <= self.policy['quote_age_ms']:
             return
         previous = self.trades.get(symbol)
         if previous and stamp < previous[2]:
@@ -163,23 +164,23 @@ class Paper:
             self.request_exit(symbol, ts, 'PROTECTION')
 
     def on_book(self, symbol, ts, book):
-        if not 0 <= ts - book['stamp'] <= POLICY['quote_age_ms']:
+        if not 0 <= ts - book['stamp'] <= self.policy['quote_age_ms']:
             return
         self.books[symbol] = book
         p = self.s['positions'].get(symbol)
         if p:
-            p['mark'] = book['bp'] * (1 - POLICY['slip']) * (1 - POLICY['fee'])
+            p['mark'] = book['bp'] * (1 - self.policy['slip']) * (1 - self.policy['fee'])
             p['mark_ms'] = ts
             if book['bp'] <= p['stop']:
                 self.request_exit(symbol, ts, 'PROTECTION')
-            if not p.get('exit') and ts - p['peak_ms'] >= POLICY['no_new_high_ms']:
+            if not p.get('exit') and ts - p['peak_ms'] >= self.policy['no_new_high_ms']:
                 if p['qty'] * p['mark'] <= p['cost']:
                     self.request_exit(symbol, ts, 'NO_NEW_HIGH_3M_NONPOSITIVE')
             self.execute_exit(symbol, ts, book)
         order = self.s['pending'].get(symbol)
         if not order:
             return
-        if ts > order['ts'] + POLICY['entry_wait_ms']:
+        if ts > order['ts'] + self.policy['entry_wait_ms']:
             self.cancel(symbol, ts, order['last_reason'])
             return
         # Both receive time and exchange timestamp must follow the decision.
@@ -192,13 +193,13 @@ class Paper:
         if self.bought_today(symbol, ts):
             self.cancel(symbol, ts, 'ALREADY_BOUGHT_TODAY')
             return
-        raw_budget = order['budget'] / ((1 + POLICY['fee']) * (1 + POLICY['slip']))
+        raw_budget = order['budget'] / ((1 + self.policy['fee']) * (1 + self.policy['slip']))
         qty, raw, remaining = walk(book['asks'], budget=raw_budget)
         if remaining > 1e-6 or qty <= 0:
             order['last_reason'] = 'INSUFFICIENT_VISIBLE_DEPTH'
             return
-        price = raw / qty * (1 + POLICY['slip'])
-        if price > order['reference'] * (1 + POLICY['entry_cap']):
+        price = raw / qty * (1 + self.policy['slip'])
+        if price > order['reference'] * (1 + self.policy['entry_cap']):
             order['last_reason'] = 'ENTRY_PRICE_CAP'
             order['last_expected_price'] = price
             return
@@ -207,10 +208,10 @@ class Paper:
         self.s['positions'][symbol] = dict(qty=qty, cost=cost, original_cost=cost,
             entry_ms=ts, entry_price=price, stop=order['stop'], peak=trade[1], peak_ms=ts,
             value=0., volume=0., negative_windows=0, minute_lows=[], exit=None,
-            mark=book['bp'] * (1-POLICY['slip']) * (1-POLICY['fee']), mark_ms=ts,
+            mark=book['bp'] * (1-self.policy['slip']) * (1-self.policy['fee']), mark_ms=ts,
             uncertain=False, total_pnl=0., last_sell_stamp=-1)
         self.db.execute('INSERT INTO fills(ts,symbol,side,quantity,price,fee,cash,pnl,reason,decision_ms) VALUES(?,?,?,?,?,?,?,?,?,?)',
-                        (ts, symbol, 'BUY', qty, price, qty*price*POLICY['fee'], -cost, 0., 'FLOW_CONFIRMATION_A', order['ts']))
+                        (ts, symbol, 'BUY', qty, price, qty*price*self.policy['fee'], -cost, 0., self.policy['entry'], order['ts']))
         self.db.execute("UPDATE signals SET status='BOUGHT',reason='' WHERE symbol=? AND day=?", (symbol, order['day']))
         del self.s['pending'][symbol]
         self.save(ts)
@@ -223,8 +224,8 @@ class Paper:
         qty, raw, remaining = walk(book['bids'], quantity=p['qty'])
         if qty <= 0:
             return
-        price = raw / qty * (1 - POLICY['slip'])
-        fee = qty * price * POLICY['fee']
+        price = raw / qty * (1 - self.policy['slip'])
+        fee = qty * price * self.policy['fee']
         proceeds = qty * price - fee
         cost = p['cost'] * qty / p['qty']
         pnl = proceeds - cost
@@ -271,7 +272,7 @@ class Paper:
 
     def tick(self, ts):
         for symbol, order in list(self.s['pending'].items()):
-            if ts > order['ts'] + POLICY['entry_wait_ms']:
+            if ts > order['ts'] + self.policy['entry_wait_ms']:
                 self.cancel(symbol, ts, order['last_reason'])
         if ts - self.last_checkpoint >= 10000:
             self.last_checkpoint = ts
@@ -286,12 +287,12 @@ class Paper:
         value = sum(p['qty'] * p['mark'] for p in positions.values())
         stale = sum(ts - p['mark_ms'] > 2000 for p in positions.values())
         nav = self.s['cash'] + value
-        return dict(mode='FAST_PAPER_ONLY', policy=POLICY['version'], entry_cap=POLICY['entry_cap'],
-                    retry_unfilled=POLICY['retry_unfilled'], same_day_reentry=False, started_ms=self.s['started_ms'],
-                    initial=POLICY['initial'], slots=POLICY['slots'], cash=self.s['cash'],
+        return dict(mode='FAST_PAPER_ONLY', policy=self.policy['version'], entry_cap=self.policy['entry_cap'],
+                    retry_unfilled=self.policy['retry_unfilled'], same_day_reentry=False, started_ms=self.s['started_ms'],
+                    initial=self.policy['initial'], slots=self.policy['slots'], cash=self.s['cash'],
                     reserved=sum(x['budget'] for x in self.s['pending'].values()),
                     positions=len(positions), pending=len(self.s['pending']), equity=nav,
-                    return_pct=(nav/POLICY['initial']-1)*100, realized=self.s['realized'],
+                    return_pct=(nav/self.policy['initial']-1)*100, realized=self.s['realized'],
                     closed=self.s['closed'], winning=self.s['winning'], stale_marks=stale,
                     uncertain_positions=sum(p['uncertain'] for p in positions.values()), asof_ms=ts)
 

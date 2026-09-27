@@ -68,6 +68,7 @@ class Observer:
         self.repair=None;self.repair_blocked=set();self.symbol_since={}
         self.reference_status = {}; self.decision_reasons = {}; self.assessed_ms = None
         self.paper = None
+        self.experiment = None
         self.paper_retry_armed = {}
         self.received_ms = int(start)
         # A long outage may outlive every horizon. Finalize overdue rows even
@@ -80,6 +81,10 @@ class Observer:
             self.active[ident] = (ts, symbol, price)
         self.event(start, 'START', '', {'mode': 'PUBLIC_OBSERVE', 'policy': POLICY})
         self.db.commit()
+
+    @property
+    def papers(self):
+        return ([self.paper] if self.paper else []) + (list(self.experiment.accounts.values()) if self.experiment else [])
 
     def event(self, ts, kind, symbol, payload):
         self.db.execute('INSERT INTO events(ts,kind,symbol,payload) VALUES(?,?,?,?)',
@@ -94,8 +99,8 @@ class Observer:
         self.event(ts, 'CONNECTED', group, {'symbols': len(symbols)})
 
     def gap(self, group, ts, reason):
-        if self.paper:
-            self.paper.gap([s for s,g in self.symbol_group.items() if g == group], ts, reason)
+        for paper in self.papers:
+            paper.gap([s for s,g in self.symbol_group.items() if g == group], ts, reason)
         self.groups.pop(group, None)
         for s, g in list(self.symbol_group.items()):
             if g == group:
@@ -105,8 +110,8 @@ class Observer:
         self.db.commit()
 
     def invalid_symbol(self,symbol,ts):
-        if self.paper:
-            self.paper.gap([symbol], ts, 'INVALID_MESSAGE')
+        for paper in self.papers:
+            paper.gap([symbol], ts, 'INVALID_MESSAGE')
         self.symbol_since[symbol]=ts
         self.bars.pop(symbol,None);self.books.pop(symbol,None)
         self.previous.pop(symbol,None);self.last_price.pop(symbol,None)
@@ -127,9 +132,9 @@ class Observer:
             return
         stamp = int(message.get('trade_timestamp', message.get('timestamp', 0)))
         if not 0 <= received - stamp <= POLICY['max_feed_age_ms']:
-            if self.paper and (s in self.paper.s['pending'] or
-                               (s in self.paper.s['positions'] and not self.paper.s['positions'][s]['uncertain'])):
-                self.paper.gap([s], received, 'STALE_FEED')
+            for paper in self.papers:
+                if s in paper.s['pending'] or (s in paper.s['positions'] and not paper.s['positions'][s]['uncertain']):
+                    paper.gap([s], received, 'STALE_FEED')
             if received-self.stale_logged.get(s,0)>=60000:
                 self.event(received, 'STALE_MESSAGE', s, {})
                 self.stale_logged[s]=received
@@ -149,14 +154,15 @@ class Observer:
                 flow -= (aq if ap <= old['ap'] else 0) - (old['aq'] if ap >= old['ap'] else 0)
                 self.bar(s)['ofi'] += flow / ((bq + aq) / 2)
             self.books[s] = dict(bp=bp, ap=ap, bq=bq, aq=aq, ts=received, stamp=stamp)
-            if self.paper:
+            if self.papers:
                 bids = [(valid(x['bid_price']), valid(x['bid_size'], False)) for x in message['orderbook_units']]
                 asks = [(valid(x['ask_price']), valid(x['ask_size'], False)) for x in message['orderbook_units']]
                 if any(a[0] <= b[0] for a,b in zip(bids,bids[1:])) or any(a[0] >= b[0] for a,b in zip(asks,asks[1:])):
                     raise ValueError('UNSORTED_BOOK')
-                if s in self.repair_blocked:
-                    self.paper.cancel(s, received, 'BASELINE_NOT_READY')
-                self.paper.on_book(s, received, dict(self.books[s], bids=bids, asks=asks))
+                for paper in self.papers:
+                    if s in self.repair_blocked:
+                        paper.cancel(s, received, 'BASELINE_NOT_READY')
+                    paper.on_book(s, received, dict(self.books[s], bids=bids, asks=asks))
         elif message['type'] == 'trade' and message.get('stream_type') != 'SNAPSHOT':
             ident = str(message['sequential_id'])
             if ident in self.ids[s]:
@@ -175,8 +181,8 @@ class Observer:
             if not old or stamp >= old[2]:
                 self.last_price[s] = (received, price, stamp)
                 self.mark_outcomes(s, received, price)
-                if self.paper:
-                    self.paper.on_trade(s, received, price, qty, stamp)
+                for paper in self.papers:
+                    paper.on_trade(s, received, price, qty, stamp)
 
     def mark_outcomes(self, symbol, ts, price):
         for ident, (captured, s, reference) in list(self.active.items()):
@@ -194,8 +200,8 @@ class Observer:
             raise ValueError('CLOCK_REVERSED')
         # A stalled process must not manufacture timely decisions retrospectively.
         if ts - self.current > 2 * TEN:
-            if self.paper:
-                self.paper.gap(list(self.symbol_group), ts, 'PROCESS_GAP')
+            for paper in self.papers:
+                paper.gap(list(self.symbol_group), ts, 'PROCESS_GAP')
             for g in list(self.groups):
                 self.groups[g] = ts
             self.bars.clear(); self.books.clear(); self.previous.clear()
@@ -216,11 +222,12 @@ class Observer:
                 del self.active[ident]
         if advanced:
             self.db.commit()
-        if self.paper:
-            self.paper.tick(ts)
+        for paper in self.papers:
+            paper.tick(ts)
 
     def evaluate(self, end):
         candidates = []
+        experiment_rows = []
         diagnostics = defaultdict(int)
         for s, g in self.symbol_group.items():
             connected = self.groups.get(g)
@@ -229,8 +236,8 @@ class Observer:
                 diagnostics['DISCONNECTED'] += 1
                 continue
             b = self.bar(s)
-            if self.paper:
-                self.paper.window(s, end, self.bars[s], decision_ms=self.received_ms)
+            for paper in self.papers:
+                paper.window(s, end, self.bars[s], decision_ms=self.received_ms)
             history = [x for x in self.bars[s] if end - 70000 <= x['t'] < end - TEN]
             enough = connected <= end - 70000 and len(history) == 6
             baseline10 = sum(x['value'] for x in history) / 6 if enough else 0
@@ -274,6 +281,8 @@ class Observer:
             if qualifies: diagnostics['QUALIFIED_WINDOW'] += 1
             old = self.previous.get(s)
             self.previous[s] = (end, qualifies)
+            if self.experiment:
+                experiment_rows.append((s, f, quote[1] if quote else None, qualifies, old, list(self.bars[s])))
             if not qualifies:
                 self.paper_retry_armed[s] = True
             if qualifies and old == (end-TEN, True):
@@ -282,6 +291,8 @@ class Observer:
                 self.event(end, 'ASSESSMENT', s, dict(f, qualifies=qualifies,
                            enough=enough, fresh=fresh, reasons=reasons,
                            status='BASELINE_WARMUP' if rvalue is None else 'READY'))
+        if self.experiment:
+            self.experiment.evaluate(end, self.received_ms, experiment_rows)
         self.decision_reasons = dict(diagnostics); self.assessed_ms = end
         candidates.sort(key=lambda x: (-x[1]['relative_value'], -x[1]['net_buy'], x[0]))
         selected = 0
@@ -342,6 +353,7 @@ class Observer:
                 'baseline_rows': self.db.execute('SELECT count(*) FROM baseline').fetchone()[0],
                 'repair':self.repair.report() if self.repair else None,
                 'paper':self.paper.report(self.received_ms) if self.paper else None,
+                'experiment':self.experiment.report(self.received_ms) if self.experiment else None,
                 'blocked_symbols':len(self.repair_blocked)}
 
 
@@ -357,6 +369,9 @@ async def run(args):
         for symbol,ts,status,reason,payload in observer.paper.db.execute('SELECT symbol,ts,status,reason,payload FROM signals ORDER BY ts DESC LIMIT 30'):
             print(json.dumps(dict(mode='FAST_SIGNAL_AUDIT', symbol=symbol, ts=ts, status=status, reason=reason,
                                   evidence=json.loads(payload))), flush=True)
+    if getattr(args, 'experiment_dir', None):
+        from magi1.fast_experiment import Experiment
+        observer.experiment = Experiment(args.experiment_dir, now_ms())
     async with aiohttp.ClientSession() as session:
         async with session.get('https://api.upbit.com/v1/market/all', params={'is_details': 'true'}, timeout=aiohttp.ClientTimeout(total=15)) as response:
             response.raise_for_status(); rows = await response.json()
@@ -416,8 +431,8 @@ async def run(args):
             await asyncio.gather(*tasks, return_exceptions=True)
             observer.event(now_ms(), 'STOP', '', observer.report())
             observer.db.commit(); observer.db.close()
-            if observer.paper:
-                observer.paper.close(now_ms())
+            for paper in observer.papers:
+                paper.close(now_ms())
 
 
 def main():
@@ -426,6 +441,7 @@ def main():
     parser.add_argument('--duration', type=int, default=3600)
     parser.add_argument('--continuous',action='store_true')
     parser.add_argument('--repair',action='store_true')
+    parser.add_argument('--experiment-dir', help='Isolated paired early-entry PAPER ledgers')
     parser.add_argument('--paper-db', help='Separate candidate-v1 PAPER ledger; no real order API')
     args = parser.parse_args()
     if not 1 <= args.duration <= 86400:
