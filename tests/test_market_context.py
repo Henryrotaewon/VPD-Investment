@@ -55,9 +55,24 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(r['direction'],'UP')
         self.assertEqual(r['participation'],'MAJOR_LED')
 
-    def test_low_coverage_and_small_universe_withhold(self):
-        for q,n in [(quotes(),50),(dict(list(quotes().items())[:10]),32)]:
-            with self.assertRaisesRegex(ValueError,'COVERAGE'):m.classify_venue(q,n,metrics(),metrics())
+    def test_low_coverage_preserves_btc_and_withholds_only_breadth(self):
+        for q,n in [(quotes(),50),({k:v for k,v in quotes().items() if k in ('BTC','ETH','0')},32)]:
+            row=m.classify_venue(q,n,metrics(),metrics())
+            self.assertEqual(row['status'],'PARTIAL')
+            self.assertIsNone(row['breadth'])
+            p=bundle();p['venues']['upbit']=row
+            text=v.render(p,NOW)
+            self.assertIn('국내 BTC: 오늘 상승',text)
+            self.assertIn('국내 자료 부족',text)
+            row['btc']['return_7d']=float('nan')
+            with self.assertRaises(ValueError):v.validate(p,NOW)
+        with self.assertRaisesRegex(ValueError,'MISSING_MAJOR'):
+            m.classify_venue({'0':quotes()['0']},32,metrics(),metrics())
+
+    def test_macro_btc_directions_follow_return_sign(self):
+        b=metrics(.0001);b.update(return_7d=-.0001,return_4h=0)
+        row=m.classify_venue(quotes(),32,b,metrics())
+        self.assertEqual((row['today_direction'],row['medium_direction'],row['short_direction']),('UP','DOWN','FLAT'))
 
     def test_two_spaced_samples_confirm_not_duplicate_or_gap(self):
         old=bundle()
@@ -84,7 +99,7 @@ class ContextTests(unittest.TestCase):
         self.assertIn('판단 보류',text);self.assertIn('실시간 아님',text)
         self.assertLess(len(text),4096)
 
-    def test_summary_uses_published_macro_and_withholds_missing_or_stale_series(self):
+    def test_five_line_summary_uses_last_published_macro_and_marks_age(self):
         p = bundle()
         def series(change, status='DELAYED'):
             return dict(label='지표', status=status, change=change, value=100,
@@ -96,10 +111,10 @@ class ContextTests(unittest.TestCase):
         text = v.render(p, NOW)
         summary, details = text.split('📊 근거 데이터')
         self.assertIn('국내 BTC: 오늘 상승 · 중기 상승 · 단기 상승', summary)
-        self.assertIn('국내 주도장: 알트장 · 전환 관측', summary)
-        self.assertIn('금리(미국 10년): 상승', summary)
-        self.assertIn('미국 주식(S&P500·NASDAQ): 상승', summary)
-        self.assertIn('달러: 판단 보류 · 오래된 자료 · 유가: 하락', summary)
+        self.assertIn('메인·알트: 국내 알트장 · 해외 알트장', summary)
+        self.assertIn('미국 금리 상승', summary)
+        self.assertIn('미국 주식 상승', summary)
+        self.assertIn('달러 상승(과거 공표) · 유가 하락', summary)
         self.assertIn('+0.07%p', details)
         self.assertIn('2026-09-25', details)
         self.assertLess(len(text),4096)
@@ -108,7 +123,8 @@ class ContextTests(unittest.TestCase):
         del p['macro']['NASDAQCOM']
         self.assertIn('판단 보류', v.macro_direction(p['macro'], 'SP500', 'NASDAQCOM'))
         p['macro']['DGS10']['status'] = 'STALE'
-        self.assertIn('오래된 자료', v.macro_direction(p['macro'], 'DGS10'))
+        self.assertEqual('상승(과거 공표)', v.macro_direction(p['macro'], 'DGS10'))
+        self.assertEqual(len(summary.split('🧭 종합의견')[1].strip().splitlines()),5)
 
     def test_failed_refresh_cannot_republish_old_classification(self):
         c=m.Collector()
@@ -146,7 +162,7 @@ class AdapterTests(unittest.TestCase):
             if url.endswith('/market/all'):
                 return [{'market':'KRW-'+a} for a in assets+['USDE','XAUT']]
             if url.endswith('/ticker'):
-                return [dict(market='KRW-'+a,trade_timestamp=NOW*1000,trade_price=102,
+                return [dict(market='KRW-'+a,trade_timestamp=(NOW-3600)*1000 if a.startswith('A') else NOW*1000,trade_price=102,
                              opening_price=100,prev_closing_price=80,high_price=104,acc_trade_price=100)
                         for a in assets]
             interval=3600 if '/minutes/' in url else 86400
