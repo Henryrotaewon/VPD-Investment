@@ -377,6 +377,8 @@ def results_keyboard(key=None, offset=0, total=0):
         if offset + PAGE_SIZE < total:
             navigation.append(dict(text='이전 날짜 ▶', callback_data=f'performance:{key}:{offset+PAGE_SIZE}'))
         rows.insert(0, navigation)
+        if key == 'bollinger':
+            rows.insert(1, [dict(text='📒 매매이력', callback_data='nav:bollinger_orders')])
         rows.append([dict(text='↩️ 전략검증', callback_data='nav:strategies')])
     else:
         rows.append([dict(text='전략 설명·검증 기준', callback_data='guide:validation'),

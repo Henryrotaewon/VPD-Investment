@@ -25,6 +25,7 @@ COMMANDS = [
     ('fast_paper_balance', 'FAST 모의투자 자산현황 · 300만원 10분할'),
     ('fast_paper_orders', 'FAST 모의 매매기록 · 매수 제외 사유'),
     ('fast_paper_daily', 'FAST 일별 자산평가'),
+    ('bollinger_orders', '더블볼린저·CCI 매매이력'),
     ('signals', '지표가속 포착 조회 · 기존 명령'),
     ('fast', '지표가속 메뉴 · 기존 명령 호환'), ('fast_captures', '지표가속 당일 포착 리스트'), ('fast_start', '지표가속 시작 · 현재 설계 검토로 중지'), ('fast_report', '지표가속 모의투자 · 보유 현황·현재 수익률'), ('fast_orders', '지표가속 모의 거래 상세'),
     ('fast_balance', '지표가속 모의투자 · 거래소별 잔고·손익'),
@@ -51,6 +52,7 @@ ALIASES = {
     '지표가속 전량교체':'indicator_rebuild', '지표가속 전량 교체':'indicator_rebuild',
     '지표가속 리필':'indicator_refill', '지표가속 종목 리필':'indicator_refill',
     '시장 국면': 'regime', '현재 국면': 'regime', '국면': 'regime', '국면 조회': 'regime',
+    '더블볼린저 매매이력': 'bollinger_orders', '더블볼린저 cci 매매이력': 'bollinger_orders',
     '📊 fast 모의검증 결과':'fast_report', '📊 fast 모의결과': 'fast_report', 'fast 모의투자':'fast_paper', 'fast 전일 결과':'fast_daily',
     '📊 fast 모의투자':'fast_report', 'fast 모의검증 결과':'fast_report', 'fast모의검증 결과':'fast_report',
     'fast 모의결과': 'fast_report', 'fast 보고서': 'fast_report', 'fast report': 'fast_report',
@@ -167,6 +169,7 @@ def help_text():
             '/regime — 시장 방향·메이저/알트 확산·거시 참고 (MAGI1, 5분 갱신)\n'
             '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 포착 10종목 이상 전량교체\n/indicator_refill — 유효 포착 10종목 이상 빈자리 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속·더블볼린저 누적·일별 승률과 수익률\n'
             '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
+            '/bollinger_orders — 더블볼린저·CCI 매수·매도 이력과 청산 손익\n'
             '/fast_paper_balance — FAST 자산현황\n'
             '/fast_watch — FAST 포착·추적\n'
             '/fast_paper_orders — FAST 매매기록·매수 제외 사유\n'
