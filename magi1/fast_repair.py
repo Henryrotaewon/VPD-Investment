@@ -21,7 +21,15 @@ class Repair:
         self.emit=emit or (lambda x:print(json.dumps(x),flush=True))
         self.states={};self.retries={};self.pages=0;self.done=0;self.cycle=0
         self.last_emit=0;self.last_page_ms=None;self.started_ms=None
+        self.wake=asyncio.Event();self.current_priority=set();self.current_requested={}
         observer.repair=self
+
+    def request_current(self,symbol,bucket):
+        # Wake once per missing completed bar, not on every ten-second decision.
+        # Historical repair remains bounded and must not delay current-bar work.
+        if self.current_requested.get(symbol)==bucket:return
+        self.current_requested[symbol]=bucket
+        self.current_priority.add(symbol);self.wake.set()
 
     def ready(self,symbol,cutoff):
         return reference_state(self.observer.db,symbol,cutoff)['ready']
@@ -42,7 +50,7 @@ class Repair:
             self.emit({'mode':'FAST_REPAIR_PROGRESS',**self.report()});self.last_emit=now
 
     async def repair_symbol(self,symbol,cutoff,max_pages=32):
-        if self.clock()<self.retries.get(symbol,0):
+        if self.clock()<self.retries.get(symbol,0) and symbol not in self.current_priority:
             self.gate(symbol);return
         self.gate(symbol)
         self.states[symbol]='CHECKING'
@@ -84,13 +92,19 @@ class Repair:
         for symbol in self.symbols:self.gate(symbol)
         self.progress(force=True)
         while True:
+            self.wake.clear()
             if shutil.disk_usage(self.path.parent).free<64*1024*1024:
                 raise RuntimeError('DISK_RESERVE_STOP')
             self.cycle+=1;self.done=0;_,cutoff=bounds(self.clock())
             started=time.monotonic()
-            for symbol in self.symbols:
+            ordered=sorted(self.symbols,key=lambda s:s not in self.current_priority)
+            for symbol in ordered:
                 await self.repair_symbol(symbol,cutoff)
+                self.current_priority.discard(symbol)
                 self.done+=1;self.progress()
                 await asyncio.sleep(0)
             self.progress(force=True)
-            await asyncio.sleep(max(1,300-(time.monotonic()-started)))
+            try:
+                await asyncio.wait_for(self.wake.wait(),timeout=max(1,300-(time.monotonic()-started)))
+            except asyncio.TimeoutError:
+                pass

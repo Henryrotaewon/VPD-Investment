@@ -323,6 +323,8 @@ class Observer:
             self.previous.pop(symbol, None)
             self.event(cutoff, 'REFERENCE_GATE', symbol, ref)
         self.reference_status[symbol] = ref
+        if self.repair and ref['reasons']==['CURRENT_BAR_MISSING']:
+            self.repair.request_current(symbol,ref['five_minute_start'])
         return ref
 
     def report(self):
