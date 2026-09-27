@@ -53,7 +53,8 @@ class Service:
             try:
                 self.save(phase='STARTING',detail='실시간 관측·종목별 보완 시작')
                 code=self.worker('magi1.fast_observe','--continuous','--repair',
-                                 '--paper-db',str(self.directory/'paper-v1.sqlite3'))
+                                 '--paper-db',str(self.directory/'paper-v1.sqlite3'),
+                                 '--experiment-dir',str(self.directory/'entry-experiment-v1'))
                 if code:raise RuntimeError('OBSERVE_EXIT_'+str(code))
             except Exception as exc:
                 self.save(phase='RETRY_WAIT',detail=type(exc).__name__+': '+str(exc))

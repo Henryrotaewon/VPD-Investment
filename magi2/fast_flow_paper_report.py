@@ -85,9 +85,31 @@ def view(state_dir, section='fast_paper'):
                     if p.get('exit'): suffix += ' · 매도 대기'
                     lines.append(f"{symbol} | {quantity(p['qty'])}개 | 원가 {p['cost']:,.0f}원 | 순평가 {ret:+.2f}% | 보호 {p['stop']:g}{suffix}")
                 if not positions and not pending: lines.append('새 신호 대기 · 10종목 강제 매수 없음')
+            if section not in ('fast_paper_orders', 'fast_paper_daily'):
+                lines.extend(experiment_summary(path.parent, now))
             lines.append('공개 호가 모의체결 · 수수료/슬리피지 각 편도 0.05% 가정 · 실제 주문 없음')
             return '\n'.join(lines), keyboard()
         finally:
             db.close()
     except (sqlite3.Error, ValueError, KeyError):
         return '⚡ FAST 모의투자 [PAPER]\n원장 조회 대기 · 잠시 후 다시 조회', keyboard()
+
+
+def experiment_summary(directory, now):
+    try:
+        status = json.loads((directory/'status.json').read_text())
+        pair = (status.get('observation') or {}).get('experiment')
+        if not pair:
+            return []
+        lines = ['\n🧪 조기 진입 병행 검증 · 각 300만원 독립 계좌',
+                 '완료 5분봉 기준 동일 · 확인 횟수만 비교']
+        for key, label in [('control', '기존 조건 2회'), ('early', '조기 조건 1회')]:
+            r = pair[key]
+            lines.append(f"{label} · 시작 {clock(r['started_ms'])}\n"
+                         f"순평가 {r['return_pct']:+.2f}% · 실현 {r['realized']:+,.0f}원 · 완료 {r['closed']}회 · 보유 {r['positions']}\n"
+                         f"정상 매도 {r['normal_exit_pnl']:+,.0f}원 / 자료단절 매도 {r['gap_exit_pnl']:+,.0f}원")
+            if now-r['asof_ms'] > 120000 or r['stale_marks']:
+                lines.append('⚠ 비교 평가 갱신·시세 지연')
+        return lines
+    except (OSError, ValueError, KeyError, TypeError):
+        return ['병행 검증 상태 조회 대기']
