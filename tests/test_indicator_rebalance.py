@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from magi2.hourly_indicator import HourlyLedger, HOUR, STEP, DAY
-from magi2.indicator_rebalance import candidates, plan, request, advance, cancel_entry, RebalanceUnavailable
+from magi2.indicator_rebalance import candidates, plan, request, advance, cancel_entry, preview_text, RebalanceUnavailable
 from magi2.hourly_indicator_report import positions
 from magi2.telegram_ui import Confirmations
 from magi2 import server_runner as server
@@ -45,11 +45,82 @@ class PortfolioActions(unittest.TestCase):
         self.l.s['confirmed']['KRW-A01']['boundary']-=HOUR
         self.l.s['confirmed']['KRW-A02']['day']-=DAY
         before=copy.deepcopy(self.l.s)
-        with self.assertRaisesRegex(RebalanceUnavailable,'9종목'):self.preview('rebuild')
+        prepared=self.preview('rebuild')
+        self.assertEqual(prepared['candidates'],9)
+        self.assertEqual(len(prepared['targets']),9)
+        self.assertTrue(set(prepared['targets']).isdisjoint({'KRW-A00','KRW-A01','KRW-A02'}))
         self.assertEqual(before,self.l.s)
         self.assertEqual(candidates(self.l,T+HOUR),{})
         self.l.s['scan']['status']='SCANNING'
         self.assertEqual(candidates(self.l,self.stamp),{})
+    def test_six_candidate_rebuild_keeps_four_slot_budgets_in_cash(self):
+        self.l.s['confirmed']={k:v for k,v in self.l.s['confirmed'].items() if k<'KRW-A06'}
+        prepared=self.preview('rebuild')
+        self.assertIn('나머지 4슬롯 몫은 현금 유지',preview_text(prepared))
+        self.run_action('rebuild')
+        self.assertEqual(len(self.l.pending()),10)
+        self.assertTrue(all(o['side']=='SELL' for o in self.l.pending().values()))
+        for symbol in list(self.l.pending()):self.fill(symbol)
+        settled=self.l.s['cash']
+        advance(self.l,self.stamp+STEP+100)
+        self.assertEqual(len(self.l.pending()),6)
+        for order in self.l.pending().values():self.assertAlmostEqual(order['budget'],settled/10)
+        for symbol in list(self.l.pending()):self.fill(symbol)
+        advance(self.l,self.stamp+2*STEP+100)
+        self.assertEqual(len(self.l.s['positions']),6)
+        self.assertAlmostEqual(self.l.s['cash'],settled*0.4)
+        self.assertEqual(self.l.s['rebalance']['phase'],'DONE')
+        self.assertEqual(self.l.s['rebalance']['reason'],'PARTIAL_CASH_RETAINED')
+    def test_six_candidate_refill_excludes_holdings_and_keeps_unfilled_budget(self):
+        for symbol in ('KRW-A00','KRW-A01','KRW-A02'):
+            self.l.schedule_exit(symbol,T+STEP+1,'TEST',T)
+            self.fill(symbol)
+        selected={'KRW-A03','KRW-A04','KRW-A05','KRW-A06','KRW-A10','KRW-A11'}
+        self.l.s['confirmed']={k:v for k,v in self.l.s['confirmed'].items() if k in selected}
+        kept=copy.deepcopy(self.l.s['positions']);cash=self.l.s['cash']
+        prepared=self.preview('refill')
+        self.assertEqual(prepared['candidates'],6)
+        self.assertEqual(prepared['vacant'],3)
+        self.assertIn('나머지 1슬롯 몫은 현금 유지',preview_text(prepared))
+        self.run_action('refill')
+        self.assertEqual(set(self.l.pending()),{'KRW-A10','KRW-A11'})
+        self.assertEqual(self.l.s['positions'],kept)
+        for order in self.l.pending().values():self.assertAlmostEqual(order['budget'],cash/3)
+        for symbol in list(self.l.pending()):self.fill(symbol)
+        advance(self.l,self.stamp+STEP+100)
+        self.assertAlmostEqual(self.l.s['cash'],cash/3)
+        for symbol,p in kept.items():self.assertEqual(self.l.s['positions'][symbol],p)
+    def test_single_candidate_can_refill_without_concentrating_cash(self):
+        for symbol in ('KRW-A00','KRW-A01'):
+            self.l.schedule_exit(symbol,T+STEP+1,'TEST',T)
+            self.fill(symbol)
+        self.l.s['confirmed']={'KRW-A10':self.l.s['confirmed']['KRW-A10']}
+        cash=self.l.s['cash']
+        self.run_action('refill')
+        self.assertEqual(list(self.l.pending()),['KRW-A10'])
+        self.assertAlmostEqual(self.l.pending()['KRW-A10']['budget'],cash/2)
+    def test_zero_candidates_never_liquidates_or_creates_a_request(self):
+        self.l.schedule_exit('KRW-A00',T+STEP+1,'TEST',T)
+        self.fill('KRW-A00')
+        self.l.s['confirmed']={}
+        before=copy.deepcopy(self.l.s)
+        for mode in ('refill','rebuild'):
+            with self.subTest(mode=mode),self.assertRaisesRegex(RebalanceUnavailable,'유효 포착 0종목'):
+                request(self.l,mode,self.stamp,'unused')
+        self.assertEqual(self.l.s,before)
+        self.assertFalse(self.l.pending())
+    def test_all_candidates_held_and_scan_unavailable_have_distinct_reasons(self):
+        self.l.schedule_exit('KRW-A00',T+STEP+1,'TEST',T)
+        self.fill('KRW-A00')
+        self.l.s['confirmed']={'KRW-A01':self.l.s['confirmed']['KRW-A01']}
+        with self.assertRaisesRegex(RebalanceUnavailable,'모두 보유 중'):self.preview('refill')
+        original=copy.deepcopy(self.l.s['scan'])
+        for change in ({'status':'SCANNING'},{'status':'DATA_UNAVAILABLE'},
+                       {'boundary':T-HOUR},{'bootstrap':True}):
+            self.l.s['scan']=dict(original,**change)
+            with self.subTest(change=change),self.assertRaisesRegex(RebalanceUnavailable,'스캔이 완료되지'):
+                self.preview('rebuild')
+            self.assertFalse(self.l.pending())
     def test_rebuild_sells_then_buys_from_settled_cash_and_survives_restart(self):
         initial=self.l.s['initial'];self.run_action('rebuild')
         self.assertEqual({o['side'] for o in self.l.pending().values()},{'SELL'})
@@ -149,6 +220,7 @@ class PortfolioActions(unittest.TestCase):
         self.assertFalse(self.l.execute(symbol,order,[order['earliest'],100],T+HOUR))
         self.assertNotIn(symbol,self.l.s['positions'])
     def test_ui_preview_confirmation_actor_cancel_and_replay(self):
+        self.l.s['confirmed']={k:v for k,v in self.l.s['confirmed'].items() if k<'KRW-A06'}
         class Paper:pass
         paper=Paper();paper.ledger=self.l
         with patch.object(server,'FAST_PAPER',paper), patch.object(server,'ALLOWED_CHAT_ID','7'), \
@@ -160,6 +232,8 @@ class PortfolioActions(unittest.TestCase):
                     message=dict(message_id=1,chat=dict(id='7'))))
             callback('nav:indicator_rebuild')
             self.assertFalse(self.l.pending())
+            self.assertIn('최신 유효 포착 6종목',send.call_args.args[0])
+            self.assertIn('나머지 4슬롯 몫은 현금 유지',send.call_args.args[0])
             buttons=send.call_args.args[1]['inline_keyboard'][0]
             callback(buttons[0]['callback_data'],'8');self.assertFalse(self.l.pending())
             callback(buttons[1]['callback_data']);callback(buttons[0]['callback_data']);self.assertFalse(self.l.pending())
