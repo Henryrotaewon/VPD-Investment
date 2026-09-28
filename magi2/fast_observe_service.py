@@ -40,6 +40,7 @@ class Service:
                     self.save(done=self.data.get('done',0)+1,complete=self.data.get('complete',0)+(value['missing_buckets']==0),
                               incomplete=self.data.get('incomplete',0)+(value['missing_buckets']>0),last_market=value['symbol'])
                 elif 'market_count' in value:self.save(total=value['market_count'])
+                elif value.get('mode')=='FAST_USER_STOPPED':self.save(fast_disabled=True,last_progress=value)
                 elif value.get('mode')=='PUBLIC_OBSERVE_NO_ORDERS':self.save(phase='OBSERVING',observation=value,observation_ms=int(time.time()*1000))
                 elif value.get('mode')=='FAST_REPAIR_PROGRESS':self.save(repair=value,done=value['checked'],total=value['total'],complete=value['states'].get('COMPLETE',0),incomplete=value['states'].get('INCOMPLETE_HISTORY',0)+value['states'].get('RETRY_WAIT',0))
                 else:self.save(last_progress=value)
@@ -51,8 +52,8 @@ class Service:
     def run(self):
         while not self.stopped.is_set():
             try:
-                self.save(phase='STARTING',detail='실시간 관측·종목별 보완 시작')
-                code=self.worker('magi1.fast_observe','--continuous','--repair',
+                self.save(phase='STARTING',detail='공용 시세 수신 시작 · FAST 중지 적용')
+                code=self.worker('magi1.fast_observe','--continuous','--disable-fast',
                                  '--paper-db',str(self.directory/'paper-v1.sqlite3'),
                                  '--experiment-dir',str(self.directory/'entry-experiment-v1'),
                                  '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'))
@@ -71,17 +72,22 @@ def view(state_dir):
     try:data=json.loads((directory/'status.json').read_text())
     except (OSError,ValueError):return '⚡ FAST 포착·추적\n초기화 대기 · 주문 없음'
     age=max(0,int(time.time()*1000)-data['updated_ms'])//1000
+    obs=data.get('observation') or {}
+    disabled=data.get('fast_disabled') or obs.get('fast_disabled')
     phase={'STARTING':'관측·종목별 보완 시작', 'REPAIRING':'기준자료 적재·누락 보완','OBSERVING':'포착·추적 중','RETRY_WAIT':'오류 후 재시도 대기'}.get(data['phase'],data['phase'])
     lines=['⚡ FAST 포착·추적 · 주문 없음',f'상태: {phase} · 갱신 {age}초 전']
+    if disabled:
+        lines=['⚡ FAST 포착·매매 중지',f'사용자 요청으로 중지 · 갱신 {age}초 전',
+               '신규 포착·매수 없음 · 기존 보유 보호청산 및 더블볼린저 공용 시세 유지']
     if age>180:lines.append('⚠ 상태 갱신 지연 · 가동 여부 확인 필요')
     done,total=data.get('done',0),data.get('total',0)
-    lines.append(f'기준자료 검사 {done}/{total or "확인 중"}종목 · 완비 {data.get("complete",0)} · 미완비 {data.get("incomplete",0)}')
+    if not disabled:lines.append(f'기준자료 검사 {done}/{total or "확인 중"}종목 · 완비 {data.get("complete",0)} · 미완비 {data.get("incomplete",0)}')
     observation_age=max(0,int(time.time()*1000)-data.get('observation_ms',0))//1000
     if data.get('phase')=='OBSERVING' and observation_age>120:lines.append('⚠ 실시간 관측 보고 지연')
     repair=data.get('repair') or {}
-    if repair:lines.append(f"보완 중 {repair.get('states',{}).get('REPAIRING',0)} · 포착 대기 {repair.get('blocked',0)}종목")
-    obs=data.get('observation') or {}
-    if obs.get('reference_policy'):
+    if repair and not disabled:lines.append(f"보완 중 {repair.get('states',{}).get('REPAIRING',0)} · 포착 대기 {repair.get('blocked',0)}종목")
+    if disabled:lines.append(f"공용 시세 연결 {obs.get('connected_groups',0)}개")
+    if obs.get('reference_policy') and not disabled:
         lines.append(f"실시간 연결 {obs.get('connected_groups',0)}개 · 감시 {obs.get('symbols',0)}종목")
         blocked=obs.get('blocked_symbols',0)
         lines.append(f"기준자료 준비 {max(0,obs.get('symbols',0)-blocked)} · 자료 대기 {blocked}")
@@ -93,7 +99,7 @@ def view(state_dir):
         for reason,label in [('DISCONNECTED','연결 끊김'),('LIVE_WARMUP','재연결·시작 후 실시간 자료 축적'),('STALE_FEED','체결·호가 최신성 미충족')]:
             if checks.get(reason):lines.append(f"  {label} {checks[reason]}종목")
         lines.append('현재 판단봉과 과거 비교자료 분리 · 매 10초 준비 상태 재판정')
-    lines.append('최근 24시간 상세봉 + 직전 10일 동일시간 거래대금')
+    if not disabled:lines.append('최근 24시간 상세봉 + 직전 10일 동일시간 거래대금')
     try:
         db=sqlite3.connect('file:'+str(directory/'observe.sqlite3')+'?mode=ro',uri=True,timeout=1)
         count=db.execute('SELECT count(*) FROM captures').fetchone()[0]
@@ -108,5 +114,5 @@ def view(state_dir):
         lines.append(f'24시간 연결·처리지연 {gaps}건 · 누적 추적 누락 {missing}건')
         db.close()
     except sqlite3.Error:lines.append('원장 조회 대기 · 잠시 후 다시 조회')
-    lines.append('가격변화 관측값 · 체결수익률 아님\n정상 종목은 계속 관측 · 기준자료가 부족한 종목만 포착 대기')
+    lines.append('가격변화 관측값 · 체결수익률 아님\n'+('과거 포착·성과 이력 보존' if disabled else '정상 종목은 계속 관측 · 기준자료가 부족한 종목만 포착 대기'))
     return '\n'.join(lines)
