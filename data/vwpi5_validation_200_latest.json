@@ -1,93 +1,93 @@
 {
   "name": "VWPI5 Shadow 3.0 200-Market Validation",
   "markets_requested": 200,
-  "markets_valid": 195,
-  "rows": 6735,
+  "markets_valid": 194,
+  "rows": 6710,
   "primary_rule": "VPDReplay>=65 AND MaxPriceReturn<=10 AND VWPI5>=20",
   "base": {
-    "N": 6735,
-    "AvgD1%": 0.84,
-    "AvgD3%": 2.59,
-    "AvgD5%": 4.16,
-    "AvgMFE5%": 13.93,
-    "AvgMAE5%": -5.23,
-    "D3WinRate%": 58.8
+    "N": 6710,
+    "AvgD1%": 0.88,
+    "AvgD3%": 2.71,
+    "AvgD5%": 4.42,
+    "AvgMFE5%": 14.01,
+    "AvgMAE5%": -5.12,
+    "D3WinRate%": 60.0
   },
   "primary": {
-    "N": 91,
-    "AvgD1%": 0.83,
-    "AvgD3%": 1.88,
-    "AvgD5%": 2.8,
-    "AvgMFE5%": 12.04,
-    "AvgMAE5%": -4.87,
-    "D3WinRate%": 60.5
+    "N": 90,
+    "AvgD1%": 0.93,
+    "AvgD3%": 2.25,
+    "AvgD5%": 3.09,
+    "AvgMFE5%": 12.26,
+    "AvgMAE5%": -4.64,
+    "D3WinRate%": 62.4
   },
   "controls": {
     "VWPI0+": {
-      "N": 218,
-      "AvgD1%": 0.75,
-      "AvgD3%": 3.23,
-      "AvgD5%": 2.87,
-      "AvgMFE5%": 12.87,
-      "AvgMAE5%": -4.91,
-      "D3WinRate%": 58.7
+      "N": 208,
+      "AvgD1%": 0.9,
+      "AvgD3%": 3.58,
+      "AvgD5%": 3.42,
+      "AvgMFE5%": 13.4,
+      "AvgMAE5%": -4.79,
+      "D3WinRate%": 60.9
     },
     "VWPI10+": {
-      "N": 154,
-      "AvgD1%": 0.88,
-      "AvgD3%": 2.21,
-      "AvgD5%": 2.71,
-      "AvgMFE5%": 11.68,
-      "AvgMAE5%": -4.87,
-      "D3WinRate%": 60.4
+      "N": 149,
+      "AvgD1%": 0.99,
+      "AvgD3%": 2.48,
+      "AvgD5%": 3.13,
+      "AvgMFE5%": 12.0,
+      "AvgMAE5%": -4.74,
+      "D3WinRate%": 61.8
     },
     "VWPI20+": {
-      "N": 91,
-      "AvgD1%": 0.83,
-      "AvgD3%": 1.88,
-      "AvgD5%": 2.8,
-      "AvgMFE5%": 12.04,
-      "AvgMAE5%": -4.87,
-      "D3WinRate%": 60.5
+      "N": 90,
+      "AvgD1%": 0.93,
+      "AvgD3%": 2.25,
+      "AvgD5%": 3.09,
+      "AvgMFE5%": 12.26,
+      "AvgMAE5%": -4.64,
+      "D3WinRate%": 62.4
     },
     "VWPI30+": {
-      "N": 59,
-      "AvgD1%": 1.44,
-      "AvgD3%": 2.14,
-      "AvgD5%": 4.55,
-      "AvgMFE5%": 13.02,
-      "AvgMAE5%": -4.43,
-      "D3WinRate%": 66.7
+      "N": 60,
+      "AvgD1%": 1.37,
+      "AvgD3%": 2.45,
+      "AvgD5%": 4.52,
+      "AvgMFE5%": 12.98,
+      "AvgMAE5%": -4.36,
+      "D3WinRate%": 67.3
     },
     "VWPI40+": {
       "N": 33,
-      "AvgD1%": 1.76,
+      "AvgD1%": 1.66,
       "AvgD3%": 2.0,
-      "AvgD5%": 4.76,
-      "AvgMFE5%": 9.84,
-      "AvgMAE5%": -4.15,
+      "AvgD5%": 4.69,
+      "AvgMFE5%": 9.85,
+      "AvgMAE5%": -4.12,
       "D3WinRate%": 71.0
     }
   },
   "primary_by_coin": [
     {
       "coin": "JTO",
-      "N": 6,
-      "AvgD1%": 0.52,
-      "AvgD3%": 3.24,
-      "AvgD5%": -3.85,
-      "AvgMFE5%": 12.64,
-      "AvgMAE5%": -10.33,
-      "D3WinRate%": 50.0
+      "N": 5,
+      "AvgD1%": 1.76,
+      "AvgD3%": 5.93,
+      "AvgD5%": 0.11,
+      "AvgMFE5%": 16.43,
+      "AvgMAE5%": -8.0,
+      "D3WinRate%": 60.0
     },
     {
       "coin": "OPEN",
-      "N": 4,
-      "AvgD1%": 1.96,
+      "N": 5,
+      "AvgD1%": 1.08,
       "AvgD3%": -0.13,
       "AvgD5%": -2.07,
-      "AvgMFE5%": 3.93,
-      "AvgMAE5%": -3.85,
+      "AvgMFE5%": 3.08,
+      "AvgMAE5%": -3.67,
       "D3WinRate%": 50.0
     },
     {
@@ -95,8 +95,8 @@
       "N": 3,
       "AvgD1%": -0.17,
       "AvgD3%": 1.98,
-      "AvgD5%": 3.88,
-      "AvgMFE5%": 5.63,
+      "AvgD5%": 3.52,
+      "AvgMFE5%": 7.24,
       "AvgMAE5%": -4.53,
       "D3WinRate%": 33.3
     },
@@ -116,7 +116,7 @@
       "AvgD1%": 3.63,
       "AvgD3%": 4.57,
       "AvgD5%": 7.91,
-      "AvgMFE5%": 9.14,
+      "AvgMFE5%": 10.44,
       "AvgMAE5%": -1.92,
       "D3WinRate%": 100.0
     },
@@ -143,18 +143,18 @@
     {
       "coin": "AI",
       "N": 2,
-      "AvgD1%": 0.37,
-      "AvgD3%": 3.09,
-      "AvgD5%": -2.51,
-      "AvgMFE5%": 6.16,
-      "AvgMAE5%": -2.88,
-      "D3WinRate%": 50.0
+      "AvgD1%": 1.09,
+      "AvgD3%": 4.36,
+      "AvgD5%": -0.72,
+      "AvgMFE5%": 6.72,
+      "AvgMAE5%": -2.36,
+      "D3WinRate%": 100.0
     },
     {
       "coin": "CC",
       "N": 2,
       "AvgD1%": 5.44,
-      "AvgD3%": 6.62,
+      "AvgD3%": 12.93,
       "AvgD5%": 0.0,
       "AvgMFE5%": 16.17,
       "AvgMAE5%": -3.95,
@@ -168,16 +168,6 @@
       "AvgD5%": -0.02,
       "AvgMFE5%": 6.16,
       "AvgMAE5%": -5.25,
-      "D3WinRate%": 50.0
-    },
-    {
-      "coin": "HP",
-      "N": 2,
-      "AvgD1%": -2.91,
-      "AvgD3%": 0.8,
-      "AvgD5%": 1.31,
-      "AvgMFE5%": 14.52,
-      "AvgMAE5%": -3.84,
       "D3WinRate%": 50.0
     },
     {
@@ -205,19 +195,19 @@
       "N": 2,
       "AvgD1%": 0.88,
       "AvgD3%": 0.55,
-      "AvgD5%": 0.41,
+      "AvgD5%": -1.13,
       "AvgMFE5%": 7.66,
-      "AvgMAE5%": -3.62,
+      "AvgMAE5%": -3.95,
       "D3WinRate%": 50.0
     },
     {
       "coin": "ONT",
       "N": 2,
-      "AvgD1%": 2.0,
+      "AvgD1%": 1.25,
       "AvgD3%": 1.07,
       "AvgD5%": 7.21,
-      "AvgMFE5%": 7.74,
-      "AvgMAE5%": -1.87,
+      "AvgMFE5%": 4.37,
+      "AvgMAE5%": -1.74,
       "D3WinRate%": 100.0
     },
     {
@@ -236,7 +226,7 @@
       "AvgD1%": 2.68,
       "AvgD3%": 3.67,
       "AvgD5%": 3.64,
-      "AvgMFE5%": 14.82,
+      "AvgMFE5%": 21.12,
       "AvgMAE5%": -2.2,
       "D3WinRate%": 100.0
     },
@@ -296,7 +286,7 @@
       "AvgD1%": 1.6,
       "AvgD3%": null,
       "AvgD5%": null,
-      "AvgMFE5%": 3.77,
+      "AvgMFE5%": 8.56,
       "AvgMAE5%": -0.87,
       "D3WinRate%": null
     },
@@ -546,7 +536,7 @@
       "AvgD1%": 3.48,
       "AvgD3%": 4.72,
       "AvgD5%": null,
-      "AvgMFE5%": 6.18,
+      "AvgMFE5%": 7.19,
       "AvgMAE5%": -0.9,
       "D3WinRate%": 100.0
     },
@@ -558,6 +548,16 @@
       "AvgD5%": 0.23,
       "AvgMFE5%": 12.07,
       "AvgMAE5%": -7.4,
+      "D3WinRate%": 0.0
+    },
+    {
+      "coin": "HP",
+      "N": 1,
+      "AvgD1%": -3.14,
+      "AvgD3%": -0.98,
+      "AvgD5%": 0.98,
+      "AvgMFE5%": 11.76,
+      "AvgMAE5%": -4.71,
       "D3WinRate%": 0.0
     },
     {
@@ -626,7 +626,7 @@
       "AvgD1%": 2.88,
       "AvgD3%": 4.19,
       "AvgD5%": null,
-      "AvgMFE5%": 7.07,
+      "AvgMFE5%": 7.85,
       "AvgMAE5%": -2.88,
       "D3WinRate%": 100.0
     },
