@@ -4,7 +4,7 @@ from datetime import datetime,timedelta
 from magi2.hourly_indicator import GUIDE,clock,date,DAY
 from magi2.fast_paper_report import keyboard
 from magi3.accounts import quantity
-from magi2.indicator_rebalance import candidates, MIN_CANDIDATES
+from magi2.indicator_rebalance import candidates
 from magi2.indicator_protection import effective_stop, net_return
 
 
@@ -30,7 +30,7 @@ def menu(ledger):
     from magi2.hourly_indicator import now
     with ledger.lock:
         count=len(candidates(ledger,now()))
-    return GUIDE+f'\n\n최신 유효 포착 {count}종목 / 실행기준 {MIN_CANDIDATES}종목 이상\n포착·매매: '+('진행 중' if ledger.control()['enabled'] else '정지'),keyboard()
+    return GUIDE+f'\n\n최신 유효 포착 {count}종목 · 1종목부터 가능한 만큼 편입\n포착·매매: '+('진행 중' if ledger.control()['enabled'] else '정지'),keyboard()
 
 
 def positions(ledger,stamp,offset=0):
@@ -48,7 +48,7 @@ def positions(ledger,stamp,offset=0):
                   f'매수원금 {b["invested"]:,.0f}원 / 예수금 {b["cash"]:,.0f}원']
         lines += [f'누적 실현손익 {b["realized"]:+,.0f}원',f'보유 {b["positions"]}/{s["slots"]} · 주문대기 {b["pending"]}',
                   '포착·매매: '+('진행 중' if s['enabled'] else '정지'),'매도: 일봉 추세청산 / 초기·본전·수익 보호선',
-                  f'교체·리필 기준: 최신 유효 포착 {len(candidates(ledger,stamp))}/10종목','']
+                  f'최신 유효 포착 {len(candidates(ledger,stamp))}종목 · 교체·리필은 가능한 만큼 편입, 나머지 현금','']
         op=s.get('rebalance',{})
         if op:
             phase={'SELLING':'전량 매도 대기','BUYING':'편입 매수 대기','DONE':'처리 완료','CANCELED':'종료 · 미편입금 현금 유지'}.get(op['phase'],op['phase'])

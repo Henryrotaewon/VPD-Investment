@@ -19,8 +19,8 @@ COMMANDS = [
     ('scan', '최근 VPD 조회 · 오전/저녁 선택'), ('rescan', '현재 시점 VPD 재스캔 · 매매 없음'),
     ('morning_scan', '오전 VPD 저장본 조회'), ('evening_scan', '저녁 VPD 저장본 조회'),
     ('indicator', '지표가속 모의투자 메뉴'),
-    ('indicator_rebuild', '지표가속 전량교체 · 유효 포착 10종목 이상'),
-    ('indicator_refill', '지표가속 종목 리필 · 유효 포착 10종목 이상'),
+    ('indicator_rebuild', '지표가속 전량교체 · 유효 후보만 편입'),
+    ('indicator_refill', '지표가속 종목 리필 · 가능한 빈자리만 채우기'),
     ('fast_watch', 'FAST 포착·추적 현황 · 주문 없음'),
     ('fast_paper_balance', 'FAST 모의투자 자산현황 · 300만원 10분할'),
     ('fast_paper_orders', 'FAST 모의 매매기록 · 매수 제외 사유'),
@@ -167,7 +167,7 @@ def help_text():
             '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
             '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
             '/regime — 시장 방향·메이저/알트 확산·거시 참고 (MAGI1, 5분 갱신)\n'
-            '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 포착 10종목 이상 전량교체\n/indicator_refill — 유효 포착 10종목 이상 빈자리 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속·더블볼린저 누적·일별 승률과 수익률\n'
+            '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 후보만 전량교체 · 부족분 현금 유지\n/indicator_refill — 유효 후보로 가능한 빈자리만 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속·더블볼린저 누적·일별 승률과 수익률\n'
             '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
             '/bollinger_orders — 더블볼린저·CCI 매수·매도 이력과 청산 손익\n'
             '/fast_paper_balance — FAST 자산현황\n'

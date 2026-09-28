@@ -6,7 +6,7 @@ from magi2.indicator_protection import effective_stop
 HOUR = 3600000
 DAY = 86400000
 STEP = 300000
-MIN_CANDIDATES = 10
+MIN_CANDIDATES = 1
 
 
 class RebalanceUnavailable(ValueError):
@@ -34,14 +34,19 @@ def restore_confirmed(ledger, stamp):
     ledger.save()
 
 
+def scan_ready(s, stamp):
+    scan = s['scan']
+    return (scan.get('status') == 'MONITORING' and not scan.get('bootstrap') and
+            scan.get('boundary') == stamp // HOUR * HOUR)
+
+
 def candidates(ledger, stamp):
     """Unique, still-confirmed markets in the latest completed hourly scan."""
     s = ledger.s
+    if not scan_ready(s, stamp):
+        return {}
     scan = s['scan']
     boundary = stamp // HOUR * HOUR
-    if (scan.get('status') != 'MONITORING' or scan.get('bootstrap') or
-            scan.get('boundary') != boundary):
-        return {}
     result = {}
     for symbol, point in sorted(s.get('confirmed', {}).items()):
         current = s['previous'].get(symbol, {})
@@ -64,16 +69,20 @@ def plan(ledger, mode, stamp):
             raise RebalanceUnavailable('포착·매매가 정지 상태입니다. 시작 후 새 관측을 기다려 주세요.')
         if s.get('rebalance', {}).get('phase') in ('SELLING', 'BUYING'):
             raise RebalanceUnavailable('앞선 전량교체·리필이 진행 중입니다.')
-        pool = candidates(ledger, stamp)
-        if len(pool) < MIN_CANDIDATES:
-            raise RebalanceUnavailable(f'최신 유효 포착 {len(pool)}종목 / 최소 10종목. 정시 스캔 완료 후 다시 확인하세요.')
         if s['pending']:
             raise RebalanceUnavailable('기존 매수·매도 대기가 있습니다. 체결 완료 후 다시 선택하세요.')
         vacant = s['slots'] if mode == 'rebuild' else s['slots'] - len(s['positions'])
+        if vacant <= 0:
+            raise RebalanceUnavailable('채울 빈자리가 없습니다. 기존 보유를 유지합니다.')
+        if not scan_ready(s, stamp):
+            raise RebalanceUnavailable('현재 시간의 정시 스캔이 완료되지 않았습니다. 스캔 완료 후 다시 확인하세요.')
+        pool = candidates(ledger, stamp)
+        if len(pool) < MIN_CANDIDATES:
+            raise RebalanceUnavailable('최신 정시 스캔 완료 · 유효 포착 0종목. 기존 보유·현금을 유지합니다. 다음 유효 포착 후 다시 확인하세요.')
         targets = {k:v for k,v in pool.items() if mode == 'rebuild' or k not in s['positions']}
-        targets = dict(list(targets.items())[:vacant]) if vacant > 0 else {}
+        targets = dict(list(targets.items())[:vacant])
         if not targets:
-            raise RebalanceUnavailable('채울 빈자리 또는 새로 편입할 유효 종목이 없습니다.')
+            raise RebalanceUnavailable(f'최신 유효 포착 {len(pool)}종목은 모두 보유 중입니다. 새로 편입할 종목이 없어 기존 보유·현금을 유지합니다.')
         if mode == 'refill' and s['cash'] / vacant < 5000:
             raise RebalanceUnavailable('빈 슬롯당 가용현금이 최소 모의매수금액 5,000원 미만입니다.')
         result = dict(mode=mode, boundary=stamp//HOUR*HOUR, candidates=len(pool), targets=targets,
@@ -122,7 +131,7 @@ def advance(ledger, stamp):
             return
         if op['phase'] == 'BUYING':
             if not any(o.get('manual_request') == op['fingerprint'] for o in s['pending'].values()):
-                _finish(ledger, stamp, 'DONE', 'COMPLETED' if not op['canceled'] else 'PARTIAL_CASH_RETAINED')
+                _finish(ledger, stamp, 'DONE', 'COMPLETED' if len(op['bought']) == op['vacant'] else 'PARTIAL_CASH_RETAINED')
             return
         if any(symbol in s['positions'] for symbol in op['sells']):
             return
@@ -174,6 +183,7 @@ def preview_text(prepared):
     costs = ('기존 보유도 재편입될 수 있으며 편도 수수료·슬리피지 각 0.05% 반영' if mode == 'rebuild'
              else '보유 수량·보호선 유지 · 신규 매수 편도 수수료·슬리피지 각 0.05% 반영')
     return (f'지표가속 {title} [PAPER]\n최신 유효 포착 {prepared["candidates"]}종목\n{action}\n'
+            f'배분 대상 {prepared["vacant"]}슬롯 중 {len(prepared["targets"])}슬롯 편입 · 나머지 {prepared["vacant"]-len(prepared["targets"])}슬롯 몫은 현금 유지\n'
             '편입 예정: '+', '.join(prepared['targets'])+'\n'
             '동시 후보는 기존 방식인 마켓 코드순 · 매도 후 가용현금/빈 슬롯 균등배분\n'
             '확정 이후 실제 다음 5분봉 시가로 모의체결 · 최초원금·누적손익 보존\n'
