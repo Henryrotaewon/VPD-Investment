@@ -12,6 +12,7 @@ import requests
 from magi2.fast_wave_indicator import Candle, indicators
 from magi2.indicator_rebalance import advance as advance_rebalance, cancel_entry, restore_confirmed
 from magi2 import indicator_protection as protection
+from magi2 import indicator_risk as risk
 
 DAY=86400000
 HOUR=3600000
@@ -25,11 +26,13 @@ GUIDE=('지표가속 · 일봉 회복 2회 확인 [PAPER]\n'
        '같은 일봉에서 1시간 간격 두 번 확인 → 확인 이후 다음 5분봉 시가로 모의매수\n'
        '추세청산: 일봉 지표 3개 중 2개 하락 + 종가가 전일 저가 이탈\n'
        '초기 보호: 포착 당시 당일 저가 고정, 이후 시간구간 종가 이탈 시 청산\n'
+       '독립 손절: 비용 포함 순손익 −6% 이하 · 보유 전 종목 최신 시세 10초 주기 감시\n'
+       '시간봉 스캔과 독립 실행 · 감지 후 다음 실제 5분봉 모의매도 · 손실률 보장 아님\n'
        '최고 순수익 +6%부터 비용 포함 본전 보호 · +15%부터 수익 추적 보호\n'
        '허용 반납폭: max(6%p, 완료 1시간봉 ATR14×3의 순수익률 환산값)\n'
        '최고 수익·보호선은 완료 시간봉 기준 · 보호선 하향 없음 · 종가 1회 이탈 시 전량 청산\n'
        '300만원·최대 10종목, 가용현금/빈 슬롯 균등배분 · 미충족은 현금\n'
-       '완전 청산 후 새 신호로 재진입 · 고정 익절/손절률·60분 제한 없음\n'
+       '완전 청산 후 새 신호로 재진입 · 고정 익절률·60분 제한 없음\n'
        '수동 전량교체·리필: 최신 유효 후보만 편입 · 부족한 슬롯 몫은 현금 유지 · 확인 후 실행\n'
        '수수료·슬리피지 각 편도 0.05% · 실주문 없음')
 
@@ -156,6 +159,12 @@ class HourlyLedger:
             log('indicator_reset '+json.dumps(dict(cohort=COHORT,removed=removed,initial=self.s['initial'],slots=self.s['slots'],vpd_untouched=True)))
         restore_confirmed(self,stamp)
         protection.restore(self,stamp)
+        if self.s.get('independent_risk',{}).get('version') != risk.VERSION:
+            self.s['independent_risk'] = dict(version=risk.VERSION, max_loss_pct=risk.MAX_LOSS_PCT,
+                activated_ms=stamp, poll_seconds=risk.POLL_SECONDS, quote_max_age_ms=risk.QUOTE_MAX_AGE_MS)
+            self.event(stamp,'INDEPENDENT_RISK_ACTIVATED','',dict(self.s['independent_risk'],
+                positions=list(self.s['positions']),historical_exits_replayed=False))
+            self.save()
     def save(self):
         with self.db:self.db.execute('INSERT OR REPLACE INTO state VALUES(1,?)',(json.dumps(self.s,allow_nan=False),))
     def event(self,stamp,kind,symbol,payload):
@@ -202,6 +211,36 @@ class HourlyLedger:
             self.save()
     def pending(self):
         with self.lock:return json.loads(json.dumps(self.s['pending']))
+    def risk_positions(self):
+        with self.lock:
+            return {symbol:risk.position_key(pos) for symbol,pos in self.s['positions'].items()}
+    def check_hard_stops(self,prices,stamp,expected):
+        """Protect current holdings independently of entry enablement and hourly data.
+
+        Network I/O happens outside the ledger lock. The identity guard prevents
+        a late quote response from affecting a sold/re-entered position.
+        """
+        signals=[];unavailable=[]
+        with self.lock,self.db:
+            for symbol,key in expected.items():
+                pos=self.s['positions'].get(symbol)
+                if not pos or risk.position_key(pos)!=key:continue
+                quote=prices.get(symbol,{})
+                if not risk.valid_quote(quote,pos,stamp):
+                    unavailable.append(symbol);continue
+                if self.s['prices'].get(symbol,{}).get('ts',0)>quote['ts']:continue
+                self.s['prices'][symbol]=quote
+                if not risk.breached(pos,self.s,quote['price']) or symbol in self.s['pending']:continue
+                self.schedule_exit(symbol,stamp,risk.REASON,stamp)
+                evidence=dict(price=quote['price'],quote_ms=quote['ts'],decision_ms=stamp,
+                    net_pct=protection.net_return(pos,self.s,quote['price']),
+                    stop_price=risk.stop_price(pos,self.s),entry_ms=pos['entry_ms'])
+                self.s['pending'][symbol]['risk_evidence']=evidence
+                self.event(stamp,'INDEPENDENT_STOP_TRIGGER',symbol,evidence)
+                signals.append(dict(symbol=symbol,**evidence))
+            self.s['independent_risk'].update(last_check_ms=stamp,unavailable=unavailable)
+            self.save()
+        return signals,unavailable
     def execute(self,symbol,order,bar,stamp):
         with self.lock,self.db:
             if self.s['pending'].get(symbol)!=order:return False
@@ -273,7 +312,7 @@ class HourlyLedger:
 
 class HourlyPaperService:
     def __init__(self,root,log,clock=now):self.clock=clock;self.log=log;self.ledger=HourlyLedger(root,clock(),log)
-    def start(self):self.log(f'indicator_paper_started cohort={COHORT} initial={self.ledger.s["initial"]} slots={self.ledger.s["slots"]} enabled={self.ledger.s["enabled"]} profit_protection=v{protection.VERSION} live_orders=false')
+    def start(self):self.log(f'indicator_paper_started cohort={COHORT} initial={self.ledger.s["initial"]} slots={self.ledger.s["slots"]} enabled={self.ledger.s["enabled"]} profit_protection=v{protection.VERSION} independent_stop_net_pct=-{risk.MAX_LOSS_PCT:g} live_orders=false')
     def clear(self):return self.ledger.clear(self.clock())
     def resume(self):return self.ledger.resume(self.clock())
     def daily(self,send):pass  # Hourly monitor persists actual 5-minute marks; UI reads them.
@@ -283,10 +322,49 @@ class HourlyMonitor:
     def __init__(self,root,log,paper,market_factory=PublicCandles,clock=now):
         self.log=log;self.ledger=paper.ledger;self.clock=clock;self.market_factory=market_factory;self.stop=Event()
     def start(self):
+        self.risk_thread=Thread(target=self.risk_worker,daemon=True,name='indicator-risk');self.risk_thread.start()
         self.thread=Thread(target=self.worker,daemon=True,name='indicator-hourly');self.thread.start()
     def drain(self):return []
     def update(self,**fields):
         with self.ledger.lock:self.ledger.s['scan'].update(fields);self.ledger.save()
+    def risk_cycle(self,market):
+        expected=self.ledger.risk_positions()
+        # A separate HTTP session and worker keep all-market scans off this path.
+        try:prices=market.prices(list(expected)) if expected else {}
+        except PublicPauseError:raise
+        except Exception as exc:
+            prices={};self.log('indicator_risk_quote_error '+type(exc).__name__)
+        stamp=self.clock()
+        signals,unavailable=self.ledger.check_hard_stops(prices,stamp,expected)
+        for signal in signals:self.log('indicator_independent_stop '+json.dumps(signal))
+        # Also execute pre-existing exits while the hourly worker is scanning.
+        # Keep their original reason and earliest fill boundary unchanged.
+        # execute() atomically rejects a duplicate fill raced by the other worker.
+        for symbol,order in self.ledger.pending().items():
+            if order['side']!='SELL':continue
+            stamp=self.clock()
+            if stamp<=order['earliest']:continue
+            try:
+                bar=market.fills(symbol,order['earliest'],stamp)
+                if bar and self.ledger.execute(symbol,order,bar,stamp):
+                    self.log(f'indicator_paper_fill side=SELL market={symbol} price={bar[1]} reason={order["reason"]} signal={clock(order["signal_ms"])} fill={clock(bar[0])}')
+            except PublicPauseError:raise
+            except Exception as exc:self.log(f'indicator_risk_fill_error market={symbol} type={type(exc).__name__}')
+        return len(expected),unavailable
+    def risk_worker(self):
+        market=self.market_factory();last_status=0
+        self.log(f'indicator_risk_started version={risk.VERSION} max_loss_net_pct=-{risk.MAX_LOSS_PCT:g} poll_seconds={risk.POLL_SECONDS} quote_max_age_ms={risk.QUOTE_MAX_AGE_MS} existing_positions=true live_orders=false')
+        while not self.stop.is_set():
+            delay=risk.POLL_SECONDS
+            try:
+                count,unavailable=self.risk_cycle(market)
+                if self.clock()-last_status>=60000:
+                    self.log('indicator_risk_status '+json.dumps(dict(positions=count,unavailable=unavailable)))
+                    last_status=self.clock()
+            except PublicPauseError as exc:
+                delay=60;self.log('indicator_risk_rate_limit_wait '+str(exc))
+            except Exception as exc:self.log('indicator_risk_error '+type(exc).__name__+':'+str(exc)[:100])
+            self.stop.wait(delay)
     def worker(self):
         market=self.market_factory();names={};last_boundary=0;last_mark=0;last_discover=0
         self.log('indicator_monitor_started universe=UPBIT_ALL_KRW checkpoint=1h confirmation=2 paper_only=true')
@@ -328,7 +406,7 @@ class HourlyMonitor:
                         continue
                     try:
                         bar=market.fills(symbol,order['earliest'],ts)
-                        if bar and self.ledger.execute(symbol,order,bar,ts):self.log(f'indicator_paper_fill side={order["side"]} market={symbol} price={bar[1]} signal={clock(order["signal_ms"])} fill={clock(bar[0])}')
+                        if bar and self.ledger.execute(symbol,order,bar,ts):self.log(f'indicator_paper_fill side={order["side"]} market={symbol} price={bar[1]} reason={order["reason"]} signal={clock(order["signal_ms"])} fill={clock(bar[0])}')
                     except PublicPauseError:
                         raise
                     except Exception as exc:self.log(f'indicator_fill_error market={symbol} type={type(exc).__name__}')

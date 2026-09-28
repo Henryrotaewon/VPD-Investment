@@ -21,6 +21,7 @@ class Experiment:
             self.accounts[name] = paper
 
     def evaluate(self, end, received, rows):
+        if all(p.s.get('entries_paused',False) for p in self.accounts.values()):return
         stamp = max(end, received)
         candidates = {'control': [], 'early': []}
         for symbol, features, price, qualifies, old, bars in rows:

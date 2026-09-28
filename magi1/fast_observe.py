@@ -71,6 +71,7 @@ class Observer:
         self.experiment = None
         self.bollinger = None
         self.paper_retry_armed = {}
+        self.fast_disabled = bool(self.db.execute("SELECT 1 FROM meta WHERE key='fast_disabled' AND value='true'").fetchone())
         self.received_ms = int(start)
         # A long outage may outlive every horizon. Finalize overdue rows even
         # when the capture is too old to restore into the active tracker.
@@ -88,6 +89,16 @@ class Observer:
         return (([self.paper] if self.paper else []) +
                 (list(self.experiment.accounts.values()) if self.experiment else []) +
                 ([self.bollinger] if self.bollinger else []))
+
+    def disable_fast(self, ts):
+        self.fast_disabled=True
+        self.previous.clear();self.paper_retry_armed.clear()
+        self.db.execute("INSERT OR REPLACE INTO meta VALUES('fast_disabled','true')")
+        self.event(ts,'FAST_USER_STOPPED','',dict(captures=False,new_trades=False,protective_exits=True))
+        self.db.commit()
+        if self.paper:self.paper.pause_entries(ts)
+        if self.experiment:
+            for paper in self.experiment.accounts.values():paper.pause_entries(ts)
 
     def event(self, ts, kind, symbol, payload):
         self.db.execute('INSERT INTO events(ts,kind,symbol,payload) VALUES(?,?,?,?)',
@@ -235,6 +246,16 @@ class Observer:
             paper.tick(ts)
 
     def evaluate(self, end):
+        if self.fast_disabled:
+            # Shared live data still feeds Bollinger and exits of existing FAST
+            # holdings, but no FAST capture, retry, or experiment is evaluated.
+            for symbol,group in self.symbol_group.items():
+                if group in self.groups:
+                    for paper in self.papers:
+                        paper.window(symbol,end,self.bars[symbol],decision_ms=self.received_ms)
+            self.decision_reasons={'USER_STOPPED':len(self.symbol_group)}
+            self.assessed_ms=end
+            return
         candidates = []
         experiment_rows = []
         diagnostics = defaultdict(int)
@@ -353,6 +374,7 @@ class Observer:
             for reason in ref['reasons']:
                 reasons[reason] += 1
         return {'mode': 'PUBLIC_OBSERVE_NO_ORDERS', 'asof_ms': self.current,
+                'fast_disabled':self.fast_disabled,
                 'reference_policy': 'SEPARATE_CURRENT_HISTORY_V2',
                 'reference_block_reasons': dict(reasons),
                 'decision_reasons': self.decision_reasons, 'assessed_ms': self.assessed_ms,
@@ -386,6 +408,11 @@ async def run(args):
         from magi1.bollinger_paper import BollingerPaper
         observer.bollinger = BollingerPaper(args.bollinger_db, now_ms())
         print(json.dumps(observer.bollinger.report(now_ms())), flush=True)
+    if getattr(args,'disable_fast',False) or observer.fast_disabled:
+        observer.disable_fast(now_ms())
+        print(json.dumps(dict(mode='FAST_USER_STOPPED',captures=False,new_trades=False,
+            protective_exits=True,bollinger_enabled=bool(observer.bollinger),
+            positions=len(observer.paper.s['positions']) if observer.paper else 0)),flush=True)
     async with aiohttp.ClientSession() as session:
         async with session.get('https://api.upbit.com/v1/market/all', params={'is_details': 'true'}, timeout=aiohttp.ClientTimeout(total=15)) as response:
             response.raise_for_status(); rows = await response.json()
@@ -420,7 +447,7 @@ async def run(args):
                     await asyncio.sleep(backoff); backoff = min(30, backoff*2)
         tasks = [];repair_task=None;bollinger_task=None
         try:
-            if getattr(args,'repair',False):
+            if getattr(args,'repair',False) and not observer.fast_disabled:
                 from magi1.fast_repair import Repair
                 repair_task=asyncio.create_task(Repair(observer,symbols,args.db).run())
                 tasks.append(repair_task)
@@ -462,6 +489,7 @@ def main():
     parser.add_argument('--duration', type=int, default=3600)
     parser.add_argument('--continuous',action='store_true')
     parser.add_argument('--repair',action='store_true')
+    parser.add_argument('--disable-fast',action='store_true',help='Persistently stop FAST captures and entries, retaining exits and Bollinger')
     parser.add_argument('--experiment-dir', help='Isolated paired early-entry PAPER ledgers')
     parser.add_argument('--paper-db', help='Separate candidate-v1 PAPER ledger; no real order API')
     parser.add_argument('--bollinger-db', help='Separate Double Bollinger + CCI PAPER ledger')

@@ -91,8 +91,17 @@ class Paper:
                                     (symbol, start, start+DAY)).fetchone())
 
     def can_signal(self, symbol, ts):
-        return (symbol not in self.s['positions'] and symbol not in self.s['pending']
+        return (not self.s.get('entries_paused',False) and
+                symbol not in self.s['positions'] and symbol not in self.s['pending']
                 and not self.bought_today(symbol, ts))
+
+    def pause_entries(self, ts):
+        """Persistently stop new trades; retain accounting and protective exits."""
+        if not self.s.get('entries_paused',False):
+            self.s.update(entries_paused=True,entries_paused_ms=ts)
+            self.event(ts,'USER_PAUSED','',dict(positions=list(self.s['positions'])))
+        for symbol in list(self.s['pending']):self.cancel(symbol,ts,'USER_STOPPED')
+        self.save(ts)
 
     def signal(self, symbol, ts, price, low, features):
         if ts < self.s['started_ms']:
@@ -180,6 +189,9 @@ class Paper:
             self.execute_exit(symbol, ts, book)
         order = self.s['pending'].get(symbol)
         if not order:
+            return
+        if self.s.get('entries_paused',False):
+            self.cancel(symbol,ts,'USER_STOPPED')
             return
         if ts > order['ts'] + self.policy['entry_wait_ms']:
             self.cancel(symbol, ts, order['last_reason'])

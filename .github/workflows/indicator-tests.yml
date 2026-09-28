@@ -22,6 +22,7 @@ jobs:
       - run: python -m unittest tests.test_indicator_rebalance tests.test_quantity_display tests.test_accounts_summary tests.test_telegram_ui -v
       - run: python -m unittest discover -s tests -p 'test_hourly_indicator.py' -v
       - run: python -m unittest tests.test_indicator_protection tests.test_paper_performance -v
+      - run: python -m unittest tests.test_indicator_risk tests.test_fast_stop -v
       - run: python -m unittest tests.test_bollinger_paper tests.test_bollinger_report -v
       - run: python -m unittest discover -s tests -p 'test_daily_indicator_review.py' -v
       - run: python -m unittest discover -s tests -p 'test_indicator_paper.py' -v
