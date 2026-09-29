@@ -332,7 +332,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 85.0,
+      "last_price": 83.9,
       "peak_price": 85.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -2662,10 +2662,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 40.6,
+      "last_price": 39.9,
       "peak_price": 42.2,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "JUP": {
       "market": "KRW-JUP",
@@ -4618,7 +4618,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 94.7,
+      "last_price": 94.2,
       "peak_price": 96.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -5391,7 +5391,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 23.1,
+      "last_price": 23.0,
       "peak_price": 23.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -6029,7 +6029,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 92.5,
+      "last_price": 92.6,
       "peak_price": 93.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -6120,7 +6120,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 180.0,
+      "last_price": 178.0,
       "peak_price": 181.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -6148,7 +6148,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 555.0,
+      "last_price": 544.0,
       "peak_price": 555.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -6164,7 +6164,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-30T00:13:35.878599+09:00",
+  "updated_at": "2026-09-30T00:28:39.857975+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
