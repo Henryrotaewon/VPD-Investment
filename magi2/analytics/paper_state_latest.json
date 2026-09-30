@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 718424.9459359733,
+  "cash_krw": 1107970.5535688563,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -332,7 +332,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 84.8,
+      "last_price": 84.1,
       "peak_price": 85.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -1083,7 +1083,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1.12,
+      "last_price": 1.13,
       "peak_price": 1.14,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -5472,7 +5472,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 23.4,
+      "last_price": 23.2,
       "peak_price": 23.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -6231,7 +6231,7 @@
     },
     "ARKM": {
       "market": "KRW-ARKM",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-29T20:15:44.103756+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-29-REFILL-201544",
@@ -6252,7 +6252,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 191.0,
+      "last_price": 185.0,
       "peak_price": 191.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -6279,7 +6279,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_since": "2026-09-30T09:36:00+09:00",
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-09-30T22:35:37.201106+09:00",
+      "exit_price": 185.0,
+      "sell_fee_krw": 194.87023893590947,
+      "net_proceeds_krw": 389545.607632883,
+      "pnl_krw": 16099.255350616993,
+      "return_pct": 4.3109954755826685,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "CRV": {
       "market": "KRW-CRV",
@@ -6334,8 +6341,8 @@
       "weakening_policy": "TREND_PROFIT_V2"
     }
   },
-  "realized_pnl_krw": -11554.094645616831,
-  "lifetime_realized_pnl_krw": 711997.7820697783,
+  "realized_pnl_krw": 4545.160705000162,
+  "lifetime_realized_pnl_krw": 728097.0374203953,
   "paper_only": true,
   "cohort_id": "2026-09-30-VPD-0936",
   "cohort_date": "2026-09-30",
@@ -6344,7 +6351,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-09-30T21:35:20.586043+09:00",
+  "updated_at": "2026-09-30T22:35:37.201489+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
