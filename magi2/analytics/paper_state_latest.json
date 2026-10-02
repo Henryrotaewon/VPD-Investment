@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 359303.6292447441,
+  "cash_krw": 1738278.9096244522,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -892,10 +892,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1.75,
+      "last_price": 1.7,
       "peak_price": 1.79,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "IOST": {
       "market": "KRW-IOST",
@@ -986,7 +986,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3.81,
+      "last_price": 3.82,
       "peak_price": 3.98,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -2509,7 +2509,7 @@
     },
     "TOSHI": {
       "market": "KRW-TOSHI",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-30T14:07:26.512135+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-30-REFILL-140726",
@@ -2530,7 +2530,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 0.167,
+      "last_price": 0.163,
       "peak_price": 0.181,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -2557,7 +2557,14 @@
       "hold_state": "WEAKENING",
       "weakening_count": 1,
       "weakening_policy": "TREND_PROFIT_V2",
-      "weakening_since": "2026-10-02T07:28:00+09:00"
+      "weakening_since": "2026-10-02T07:28:00+09:00",
+      "exit_at": "2026-10-03T03:40:10.783360+09:00",
+      "exit_price": 0.163,
+      "sell_fee_krw": 172.19205884257053,
+      "net_proceeds_krw": 344211.92562629847,
+      "pnl_krw": -23964.458995472,
+      "return_pct": -6.508961464242424,
+      "exit_reason": "HARD_STOP"
     },
     "ZAMA": {
       "market": "KRW-ZAMA",
@@ -2702,7 +2709,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 0.688,
+      "last_price": 0.675,
       "peak_price": 0.706,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -4298,7 +4305,7 @@
     },
     "PUNDIX": {
       "market": "KRW-PUNDIX",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-01T08:22:01.265779+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-01-VPD-0819",
@@ -4319,7 +4326,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 163.0,
+      "last_price": 160.0,
       "peak_price": 173.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -4346,7 +4353,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_since": "2026-10-02T07:28:00+09:00",
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-03T03:40:12.040291+09:00",
+      "exit_price": 160.0,
+      "sell_fee_krw": 173.53890739006613,
+      "net_proceeds_krw": 346904.2758727422,
+      "pnl_krw": -22419.241983543267,
+      "return_pct": -6.070353199729683,
+      "exit_reason": "HARD_STOP"
     },
     "IQ": {
       "market": "KRW-IQ",
@@ -6379,7 +6393,7 @@
     },
     "CRV": {
       "market": "KRW-CRV",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-09-29T20:15:44.103898+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-09-29-REFILL-201544",
@@ -6400,7 +6414,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 507.0,
+      "last_price": 489.0,
       "peak_price": 555.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -6427,7 +6441,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_policy": "TREND_PROFIT_V2",
-      "weakening_since": "2026-10-02T07:28:00+09:00"
+      "weakening_since": "2026-10-02T07:28:00+09:00",
+      "exit_at": "2026-10-03T03:40:13.242787+09:00",
+      "exit_price": 489.0,
+      "sell_fee_krw": 172.34561682542045,
+      "net_proceeds_krw": 344518.8880340154,
+      "pnl_krw": -28927.464248250588,
+      "return_pct": -7.746082957154188,
+      "exit_reason": "HARD_STOP"
     },
     "LIT": {
       "market": "KRW-LIT",
@@ -6490,7 +6511,7 @@
     },
     "CYBER": {
       "market": "KRW-CYBER",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-01T20:12:27.325694+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-10-01-REFILL-201227",
@@ -6511,7 +6532,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 421.0,
+      "last_price": 408.0,
       "peak_price": 438.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -6538,7 +6559,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_since": "2026-10-02T07:28:00+09:00",
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-03T03:40:14.445442+09:00",
+      "exit_price": 408.0,
+      "sell_fee_krw": 171.7559734100312,
+      "net_proceeds_krw": 343340.1908466524,
+      "pnl_krw": -25983.327009633067,
+      "return_pct": -7.035383817540675,
+      "exit_reason": "HARD_STOP"
     },
     "MOVE": {
       "market": "KRW-MOVE",
@@ -6563,10 +6591,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 13.4,
+      "last_price": 13.0,
       "peak_price": 14.4,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "RVN": {
       "market": "KRW-RVN",
@@ -6591,14 +6619,14 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3.32,
+      "last_price": 3.29,
       "peak_price": 3.58,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": -10259.388366573257,
-  "lifetime_realized_pnl_krw": 734839.3266615034,
+  "realized_pnl_krw": -111553.88060347218,
+  "lifetime_realized_pnl_krw": 633544.8344246045,
   "paper_only": true,
   "cohort_id": "2026-10-02-VPD-0728",
   "cohort_date": "2026-10-02",
@@ -6607,7 +6635,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-03T03:20:05.372766+09:00",
+  "updated_at": "2026-10-03T03:40:15.825063+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
