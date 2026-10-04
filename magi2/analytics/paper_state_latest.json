@@ -919,7 +919,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1.77,
+      "last_price": 1.78,
       "peak_price": 1.82,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3483,10 +3483,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 0.329,
+      "last_price": 0.335,
       "peak_price": 0.344,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": false
     },
     "NXPC": {
       "market": "KRW-NXPC",
@@ -3643,7 +3643,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 39.1,
+      "last_price": 38.7,
       "peak_price": 39.5,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -3926,7 +3926,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 514.0,
+      "last_price": 515.0,
       "peak_price": 521.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -6730,7 +6730,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-05T02:09:45.205195+09:00",
+  "updated_at": "2026-10-05T04:05:14.378153+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
