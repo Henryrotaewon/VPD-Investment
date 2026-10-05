@@ -1,0 +1,139 @@
+{
+  "policy": {
+    "mode": "RESEARCH_ONLY_FROZEN_FIVE_ASSET_REENTRY_STUDY",
+    "markets": [
+      "KRW-ARK",
+      "KRW-B3",
+      "KRW-SPK",
+      "KRW-ENA",
+      "KRW-AERO"
+    ],
+    "start_utc": "2026-09-10T00:00:00+00:00",
+    "requested_asof_kst": "2026-09-26T02:58:59+09:00",
+    "cutoff_utc": "2026-09-25T17:55:00+00:00",
+    "hypothetical_terminal_kst": "2026-09-27T09:00:00+09:00",
+    "total_initial_capital_krw": 3000000,
+    "capital_per_asset_krw": 600000,
+    "minimum_completed_history": 150,
+    "entry": "Previous completed daily RSI14 and Williams14 both declined. Provisional current-day RSI and Williams exceed their previous daily values, and MACD histogram second daily difference is positive. Require the condition at two consecutive completed one-hour checkpoints on the same daily candle. Use next actual five-minute open.",
+    "entry_signal_lifecycle": "Only the first confirmed candidate on each daily candle is a fresh event. Discard candidates observed while holding or while an exit is pending. Reentry must have signal availability strictly after the last full-exit fill; never reuse an old signal or trade twice at the same boundary.",
+    "position_sizing": "One position per asset, all that asset's available cash at each entry. Reinvest realized results within the asset. No transfers/rebalancing across the five equal initial sleeves, no forced initial entry, no partial exits.",
+    "normal_exit": "At least two of MACD histogram, RSI14, Williams14 daily first differences are negative AND the completed daily close is strictly below the previous daily low. Execute next actual five-minute open.",
+    "initial_stop": "Fix the already observed signal-day low when the buy candidate is confirmed. If a subsequent completed hourly close is below this fixed level, sell at next actual five-minute open. Never widen the stop or assume a fill at the stop price.",
+    "priority": "At equal availability, daily full exit first, hourly initial stop second, entry last. No same-boundary sale and reentry.",
+    "no_hard_gates": [
+      "prior-volume surge",
+      "current-volume decline",
+      "1bn KRW median turnover",
+      "RSI overbought level",
+      "calendar target buy/sell dates"
+    ],
+    "activation_take_profit": false,
+    "time_limit_exit": false,
+    "fee_per_side": 0.0005,
+    "slippage_per_side": 0.0005,
+    "quantity_rounding": false,
+    "hour_ms": 3600000,
+    "bar_ms": 300000,
+    "epsilon": 1e-10,
+    "terminal_valuation": "At data cutoff, retain positions and mark at each asset's last completed native 5m close. Report realized PnL, unrealized PnL and hypothetical liquidation equity separately. Carry prices across empty buckets for valuation only, never create synthetic fills.",
+    "tomorrow_price_scenarios_pct": [
+      -10,
+      -5,
+      0,
+      5,
+      10
+    ],
+    "tomorrow_scenario_interpretation": "Future Sep27 prices and paths are unknown. Scenarios assume no additional trades after the cutoff and liquidate current inventory at last known price times (1+scenario). Keep cash unchanged. Zero change is a reference scenario, not a forecast or expected return. Actual continued strategy results may differ.",
+    "caveat": "User-selected five assets; rules developed after reviewing ARK, so ARK is in-sample. No numerical threshold tuning after collection, no independent-validation claim. No historical order book, latency, taxes, funding or minimum-order model. No live orders, deployment or scheduled future action."
+  },
+  "warmup_revision": {
+    "revision": "warmup-100-with-original-150-sensitivity",
+    "timing": "Defined after collection found B3/SPK shorter native histories, before calculating any five-asset strategy returns.",
+    "original_minimum_completed_history": 150,
+    "effective_minimum_completed_history": 100,
+    "reason": "At Sep10 B3 has 126 native daily observations and SPK 140. The existing magi2.fast_wave_indicator.Policy minimum history is 100. MACD/RSI/Williams can be calculated with these histories; 150 was an added study gate, not an API permission or user requirement.",
+    "unchanged": "All indicator definitions, entry/exit thresholds, costs, allocation, date boundaries and tomorrow price scenarios remain frozen. No fabricated pre-listing candles or other-exchange history.",
+    "sensitivity": "Also run the original 150-completed-day eligibility rule at each signal time. Show its impact explicitly rather than mislabeling 100-day results as the original protocol."
+  },
+  "source": "https://api.upbit.com/v1/",
+  "started": "2026-09-25T18:09:25.536236+00:00",
+  "finished": "2026-09-25T18:10:54.411086+00:00",
+  "requests": 104,
+  "markets": [
+    {
+      "market": "KRW-ARK",
+      "name": "아크",
+      "daily_count": 199,
+      "completed_history_before_start": 184,
+      "first_native_daily": "2026-03-10T00:00:00Z",
+      "minute_count": 4256,
+      "pages": 22,
+      "first_minute": "2026-09-10T00:00:00Z",
+      "last_minute_close": "2026-09-25T17:55:00Z",
+      "last_completed_daily": "2026-09-24T00:00:00Z",
+      "missing_buckets": 279
+    },
+    {
+      "market": "KRW-B3",
+      "name": "비쓰리",
+      "daily_count": 141,
+      "completed_history_before_start": 126,
+      "first_native_daily": "2026-05-07T00:00:00Z",
+      "minute_count": 4362,
+      "pages": 22,
+      "first_minute": "2026-09-10T00:00:00Z",
+      "last_minute_close": "2026-09-25T17:55:00Z",
+      "last_completed_daily": "2026-09-24T00:00:00Z",
+      "missing_buckets": 173
+    },
+    {
+      "market": "KRW-SPK",
+      "name": "스파크",
+      "daily_count": 155,
+      "completed_history_before_start": 140,
+      "first_native_daily": "2026-04-23T00:00:00Z",
+      "minute_count": 2949,
+      "pages": 15,
+      "first_minute": "2026-09-10T00:00:00Z",
+      "last_minute_close": "2026-09-25T17:55:00Z",
+      "last_completed_daily": "2026-09-24T00:00:00Z",
+      "missing_buckets": 1586
+    },
+    {
+      "market": "KRW-ENA",
+      "name": "에테나",
+      "daily_count": 199,
+      "completed_history_before_start": 184,
+      "first_native_daily": "2026-03-10T00:00:00Z",
+      "minute_count": 4493,
+      "pages": 23,
+      "first_minute": "2026-09-10T00:00:00Z",
+      "last_minute_close": "2026-09-25T17:55:00Z",
+      "last_completed_daily": "2026-09-24T00:00:00Z",
+      "missing_buckets": 42
+    },
+    {
+      "market": "KRW-AERO",
+      "name": "에어로드롬파이낸스",
+      "daily_count": 199,
+      "completed_history_before_start": 184,
+      "first_native_daily": "2026-03-10T00:00:00Z",
+      "minute_count": 3085,
+      "pages": 16,
+      "first_minute": "2026-09-10T00:00:00Z",
+      "last_minute_close": "2026-09-25T17:55:00Z",
+      "last_completed_daily": "2026-09-24T00:00:00Z",
+      "missing_buckets": 1450
+    }
+  ],
+  "columns": [
+    "open_ms",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "turnover"
+  ]
+}
