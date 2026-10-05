@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 1440338.5463203336,
+  "cash_krw": 1776385.00342389,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -919,7 +919,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1.78,
+      "last_price": 1.79,
       "peak_price": 1.82,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3462,7 +3462,7 @@
     },
     "BLAST": {
       "market": "KRW-BLAST",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-04T19:51:17.637840+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-10-04-REFILL-195117",
@@ -3483,7 +3483,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 0.343,
+      "last_price": 0.322,
       "peak_price": 0.344,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -3507,7 +3507,14 @@
       "hold_signal_checked_at": "2026-10-05T07:42:19.150761+09:00",
       "hold_state": "TREND",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-05T10:11:23.412587+09:00",
+      "exit_price": 0.322,
+      "sell_fee_krw": 168.10728219287472,
+      "net_proceeds_krw": 336046.4571035566,
+      "pnl_krw": -23678.24691143073,
+      "return_pct": -6.582324385050908,
+      "exit_reason": "HARD_STOP"
     },
     "NXPC": {
       "market": "KRW-NXPC",
@@ -6813,8 +6820,8 @@
       "exit_reason": "VPD_SIGNAL_DECAY"
     }
   },
-  "realized_pnl_krw": 0.0,
-  "lifetime_realized_pnl_krw": 642208.565852217,
+  "realized_pnl_krw": -23678.24691143073,
+  "lifetime_realized_pnl_krw": 618530.3189407863,
   "paper_only": true,
   "cohort_id": "2026-10-05-VPD-0739",
   "cohort_date": "2026-10-05",
@@ -6823,7 +6830,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-05T07:42:19.151203+09:00",
+  "updated_at": "2026-10-05T10:11:23.412977+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
