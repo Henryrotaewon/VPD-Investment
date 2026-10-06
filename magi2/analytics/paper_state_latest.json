@@ -1920,7 +1920,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2435.0,
+      "last_price": 2430.0,
       "peak_price": 2539.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -3945,7 +3945,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 498.0,
+      "last_price": 496.0,
       "peak_price": 521.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -6701,7 +6701,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 13.1,
+      "last_price": 13.2,
       "peak_price": 14.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -6753,10 +6753,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 3.29,
+      "last_price": 3.27,
       "peak_price": 3.42,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "ZKP": {
       "market": "KRW-ZKP",
@@ -6781,7 +6781,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 67.2,
+      "last_price": 66.9,
       "peak_price": 70.5,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -6809,7 +6809,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2020.0,
+      "last_price": 2015.0,
       "peak_price": 2020.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -6825,7 +6825,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-07T01:50:14.248247+09:00",
+  "updated_at": "2026-10-07T02:00:18.385848+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
