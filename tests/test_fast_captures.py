@@ -48,6 +48,6 @@ class CapturesTests(unittest.TestCase):
             self.assertIn('1종목',text);self.assertEqual(text.count('업비트 · BTC'),1)
             self.assertNotIn('강도',text);self.assertNotIn('수익률',text)
             self.assertIn('07:30',text);a.db.close()
-        self.assertIn('FAST 모의투자',str(main_keyboard()));self.assertNotIn('FAST 포착',str(main_keyboard()))
+        self.assertIn('모의투자현황',str(main_keyboard()));self.assertNotIn('FAST 포착',str(main_keyboard()))
         self.assertEqual(parse_command('FAST 포착'),'fast_captures')
 

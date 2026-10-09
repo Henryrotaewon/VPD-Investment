@@ -249,7 +249,7 @@ class StrategyTests(unittest.TestCase):
         self.assertIn('더블볼린저·CCI', text)
         self.assertIn('과거봉 준비 1', text)
         self.assertIn('+0.00%', text)
-        self.assertIn('performance:bollinger:0', str(keyboard))
+        self.assertIn('paper:results:bollinger:0', str(keyboard))
         self.assertTrue(all(len(row) <= 3 for row in keyboard['inline_keyboard']))
 
 

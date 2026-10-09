@@ -41,7 +41,7 @@ class ShadowHistoryTests(unittest.TestCase):
             server.handle_callback(callback);history.assert_called_once_with(1800000000000,20)
             trade.assert_not_called()
         labels=[b['text'] for row in main_keyboard()['keyboard'] for b in row]
-        self.assertIn('🧪 shadows 모의투자',labels)
+        self.assertIn('모의투자현황',labels)
         self.assertNotIn('🧪 Shadow 자산',labels);self.assertNotIn('📒 Shadow 원장',labels)
 
     def test_empty_history_is_not_service_failure(self):
