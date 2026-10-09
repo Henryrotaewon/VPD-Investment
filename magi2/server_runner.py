@@ -15,7 +15,7 @@ import requests
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.latency import TimedExecutor, timed, span, emit, trace
-from magi2.telegram_ui import (COMMANDS, Confirmations, help_text, main_keyboard,
+from magi2.telegram_ui import (COMMANDS, Confirmations, clean_markup, help_text, main_keyboard,
     scan_keyboard, status_keyboard, vpd_keyboard, shadow_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
 from magi2.strategy_guide import strategy_keyboard, strategy_text
 from magi2.execution_client import view as execution_view
@@ -168,7 +168,7 @@ def telegram(text,reply_markup=None):
     try:
         for i,chunk in enumerate(chunks):
             payload={'chat_id':ALLOWED_CHAT_ID,'text':chunk}
-            if reply_markup and i==len(chunks)-1: payload['reply_markup']=reply_markup
+            if reply_markup and i==len(chunks)-1: payload['reply_markup']=clean_markup(reply_markup)
             telegram_api('sendMessage',payload)
     except Exception as e: log(f'Telegram send error: {type(e).__name__}')
 
@@ -188,30 +188,29 @@ def setup_telegram_menu():
             except Exception as exc:
                 log(f'MAGI profile update failed: {method} {type(exc).__name__}')
     scope={'type':'chat','chat_id':ALLOWED_CHAT_ID}
-    fast_children={'fast_watch','fast_paper_balance','fast_paper_orders','fast_paper_daily'}
-    commands=[{'command':key,'description':desc} for key,desc in COMMANDS if key not in fast_children]
+    commands=[{'command':key,'description':desc} for key,desc in COMMANDS]
     for language in ('','ko'):
         telegram_api('setMyCommands',{'commands':commands,'scope':scope,'language_code':language})
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v22; FAST_top_menu=true')
+    log('MAGI Telegram menu registered: Korean v23; unified_paper=true; top_menu=3')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v22','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    expected={'version':'magi-menu-v23','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'최상단의 ⚡ FAST 모의투자에서 자산현황·포착·추적·매매기록·일별평가를 확인하세요.',
+        'text':'메뉴를 실투자 현황 · 모의투자현황 · 시장국면으로 정리했습니다. 모의투자 아래에서 투자결과·전략현황·전략세부를 확인하세요. VPD는 매일 07:30 KST 자동 리밸런싱합니다.',
         'reply_markup':main_keyboard()})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v22')
+    log('MAGI reply keyboard refreshed: magi-menu-v23')
 
 
 def start_regime_job():
@@ -375,6 +374,29 @@ def consume_startup_rebalance():
         log(f'VPD one-shot rejected: {type(e).__name__}')
 
 
+def consume_scheduled_rebalance(now=None):
+    """Claim before dispatch; busy work may defer within the 15-minute window."""
+    from magi2.vpd_schedule import claim, due
+    now = now or datetime.now(KST)
+    if due(now) is None or SCAN_JOB is not None:
+        return
+    if ENGINE_JOB is not None and not ENGINE_JOB.done():
+        return
+    if load_json(ROOT/'magi2/config.json').get('mode') != 'PAPER':
+        return
+    ident = claim(STATE_DIR, now)
+    if not ident:
+        return
+    record_request(ident,'claimed',mode='morning',scheduled_at=due(now).isoformat())
+    try:
+        if not start_engine('morning',request_id=ident):
+            record_request(ident,'not_started_busy')
+            telegram('VPD 07:30 자동 리밸런싱을 시작하지 못했습니다. 수동 운용에서 상태를 확인하세요.')
+    except Exception as exc:
+        record_request(ident,'start_failed',error=type(exc).__name__)
+        raise
+
+
 def num(v,d=0):
     try: return f'{float(v):.{d}f}'
     except Exception: return '-'
@@ -423,9 +445,15 @@ def handle_command(text,chat_id=None,user_id=None):
     chat_id=str(chat_id or ALLOWED_CHAT_ID)
     try:
         if cmd in ('help','menu'):
-            telegram(help_text() if cmd=='help' else '📋 MAGI 메뉴\n시장 관측 · 전략 검증 · 자산 관리\n실계좌 조회·PAPER·Shadow를 구분해 표시합니다.\n역할별 안내는 🧩 MAGI 역할을 누르세요.',main_keyboard())
+            telegram(help_text() if cmd=='help' else 'MAGI 메뉴\n실투자 현황 · 모의투자현황 · 시장국면\n아래에서 확인할 항목을 선택하세요.',main_keyboard())
+        elif cmd=='paper':
+            from magi2.paper_dashboard import menu
+            telegram(*menu())
+        elif cmd in ('paper_results','paper_status','paper_guide'):
+            from magi2.paper_dashboard import view
+            telegram(*view(STATE_DIR,time.time_ns()//1000000,cmd.removeprefix('paper_')))
         elif cmd=='vpd':
-            telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n'
+            telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n매일 07:30 KST 자동 리밸런싱\n'
                      '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\nVPD 재스캔: 현재 시점 분석만 새로 수행 · 매매 없음\n리밸런싱: 요청 시점 새 스캔 후 보유 종목 재조정\n종목 리필: 빈자리 채우기\n전량 교체: 모두 매도 후 새 VPD TOP10으로 균등 재구성\n'
                      '실행 버튼을 누르면 먼저 확인 화면이 열립니다.',vpd_keyboard())
         elif cmd=='about': telegram(role_text(),role_keyboard())
@@ -496,10 +524,10 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram('🧪 shadows 모의투자\n현재 가상자산·손익과 최근 72시간 매매이력을 확인하세요.\n조회만 수행하며 모의매매를 시작하지 않습니다.',shadow_keyboard())
         elif cmd=='shadow': telegram(execution_view(cmd),shadow_keyboard())
         elif cmd=='orders': send_shadow_orders()
-        elif cmd=='assets': telegram(execution_view(cmd))
+        elif cmd=='assets': telegram(execution_view(cmd),{'inline_keyboard':[[{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}]]})
         elif cmd=='strategies':
-            from magi2.paper_performance import view as performance_view
-            telegram(*performance_view(STATE_DIR,time.time_ns()//1000000))
+            from magi2.paper_dashboard import view as performance_view
+            telegram(*performance_view(STATE_DIR,time.time_ns()//1000000,'results'))
         elif cmd=='bollinger_orders':
             from magi2.bollinger_report import view as bollinger_orders_view
             telegram(*bollinger_orders_view(STATE_DIR,time.time_ns()//1000000))
@@ -579,7 +607,15 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('performance:'):
+    if data.startswith('paper:'):
+        from magi2.paper_dashboard import view, NAMES, SECTIONS
+        try:
+            _,section,key,offset=data.split(':')
+            offset=int(offset)
+        except ValueError:return
+        if section in SECTIONS and key in NAMES and 0<=offset<=100000:
+            telegram(*view(STATE_DIR,time.time_ns()//1000000,section,key,offset))
+    elif data.startswith('performance:'):
         from magi2.paper_performance import view as performance_view, NAMES
         try:
             _,key,offset=data.split(':')
@@ -636,7 +672,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
+        if command in ('paper','paper_results','paper_status','paper_guide','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -761,6 +797,7 @@ def main():
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
     consume_startup_rebalance()
+    log('VPD daily schedule active: 07:30 KST; window=15m; durable_claim=true; mode=PAPER')
     next_monitor=time.monotonic()+INTERVAL
     next_execution_probe=time.monotonic()+30
     probe_job=None
@@ -776,6 +813,8 @@ def main():
         finish_engine_job()
         finish_scan_job()
         finish_regime_job()
+        try: consume_scheduled_rebalance()
+        except Exception as exc: log(f'VPD schedule error: {type(exc).__name__}')
         if time.monotonic()>=next_monitor:
             next_monitor=time.monotonic()+(INTERVAL if start_engine('monitor') else 1)
         timeout=poll_timeout(next_monitor,next_execution_probe,ENGINE_JOB is not None)

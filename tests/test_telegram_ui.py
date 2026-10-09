@@ -149,8 +149,8 @@ class RoutingTests(unittest.TestCase):
             read.assert_called_once_with('magi3')
         self.start.assert_not_called()
         labels=[b['text'] for row in main_keyboard()['keyboard'] for b in row]
-        self.assertIn('📊 VPD 모의투자',labels)
-        self.assertIn('💼 실계좌 자산',labels)
+        self.assertIn('모의투자현황',labels)
+        self.assertIn('실투자 현황',labels)
         self.assertNotIn('⚙️ 실행 상태',labels)
 
     def test_vpd_submenu_routes_actions_through_confirmation(self):

@@ -41,7 +41,13 @@ COMMANDS = [
     ('rebuild', 'PAPER 전량 교체 · 최신 VPD로 재구성'),
     ('refill', 'PAPER 빈자리 매수 · 확인 후 실행'), ('cancel', '대기 중 실행 확인 취소'),
 ]
+# Old commands remain accepted, but only the concise navigation is advertised.
+LEGACY_COMMANDS = COMMANDS
+COMMANDS = [('assets','실투자 현황'), ('paper','모의투자현황'),
+            ('regime','시장국면 (MAGI1)'), ('menu','메인 메뉴'), ('help','도움말')]
+MAIN_LABELS = {'실투자 현황':'assets', '모의투자현황':'paper', '시장국면 (MAGI1)':'regime'}
 LABELS = {
+    **MAIN_LABELS,
     '⚡ FAST 모의투자': 'fast_paper',
     '📊 VPD 모의투자': 'vpd', '💼 실계좌 자산': 'assets',
     '🧪 shadows 모의투자': 'shadows', '지표가속 모의투자': 'indicator',
@@ -50,6 +56,8 @@ LABELS = {
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '실투자현황':'assets', '모의투자 현황':'paper', '시장국면':'regime',
+    '투자결과':'paper_results', '투자전략현황':'paper_status', '투자전략세부':'paper_guide',
     'fast-derivatives':'fast_derivatives', 'fast-bear':'fast_bear',
     '⚡ fast 포착·추적': 'fast_watch',
     'fast모의투자': 'fast_paper', '⚡ fast 모의투자': 'fast_paper',
@@ -101,15 +109,22 @@ def parse_command(text, bot_username=''):
         text = ' '.join([head] + tail)
     text = text.lower()
     text = ALIASES.get(text, text)
-    return text if text in dict(COMMANDS) or text in ('execution','magi3','status1','status2','status3','wave') else None
+    return text if text in dict(COMMANDS + LEGACY_COMMANDS) or text in ('paper_results','paper_status','paper_guide','execution','magi3','status1','status2','status3','wave') else None
 
 
 def main_keyboard():
-    labels = list(LABELS)
-    rows = [labels[:1]] + [labels[n:n+2] for n in range(1, len(labels), 2)]
-    return {'keyboard': [[{'text': x} for x in row] for row in rows],
+    return {'keyboard': [[{'text': label}] for label in MAIN_LABELS],
             'resize_keyboard': True, 'is_persistent': True,
-            'input_field_placeholder': 'MAGI · 메뉴를 선택하거나 /help를 입력하세요'}
+            'input_field_placeholder': '확인할 메뉴를 선택하세요'}
+
+
+def clean_markup(markup):
+    """Hide obsolete refresh controls, including on legacy message routes."""
+    if not markup or 'inline_keyboard' not in markup:
+        return markup
+    rows = [[b for b in row if '새로고침' not in b['text'] and '다시 조회' not in b['text']]
+            for row in markup['inline_keyboard']]
+    return dict(markup, inline_keyboard=[row for row in rows if row])
 
 
 def role_text():
@@ -169,27 +184,17 @@ def scan_keyboard():
 
 
 def help_text():
-    return ('🤖 MAGI 도움말\n시장 관측 → 전략 검증 → 자산·실행 관리\n/about — MAGI1·2·3 소개와 역할별 메뉴\n\n[조회 · 거래 없음]\n'
-            '/vpd — VPD 모의투자 메뉴 (현황·VPD 조회·리밸런싱·종목 리필·전량 교체)\n/report — VPD 모의투자 현황 (가상자금)\n/assets — 실계좌 자산 (거래소 실제 잔고)\n'
-            '/scan — 오전·저녁 VPD 선택\n/rescan — 현재 시점 VPD 재스캔 (매매 없음)\n/morning_scan · /evening_scan — 저장본 조회\n'
-            '/regime — 시장 방향·메이저/알트 확산·거시 참고 (MAGI1, 5분 갱신)\n'
-            '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 후보만 전량교체 · 부족분 현금 유지\n/indicator_refill — 유효 후보로 가능한 빈자리만 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속·더블볼린저 누적·일별 승률과 수익률\n'
-            '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
-            '/bollinger_orders — 더블볼린저·CCI 매수·매도 이력과 청산 손익\n'
-            '/fast_models — 두 FAST 모델 승률·수익률·MDD 비교\n'
-        '/fast_derivatives · /fast_bear — 독립 모의투자 현황\n'
-        '/fast_model_daily · /fast_model_data — 일별 비교·수집 점검\n'
-        '/fast_paper_balance — FAST 자산현황\n'
-            '/fast_watch — FAST 포착·추적\n'
-            '/fast_paper_orders — FAST 매매기록·매수 제외 사유\n'
-            '/fast_paper_daily — FAST 일별평가\n'
-            '/shadows — shadows 모의투자 메뉴\n/shadow — 현재 자산현황\n/orders — 최근 3일 매매이력\n'
-            '/status — MAGI1·2·3 상태 선택\n/execution · /magi3 — 기존 MAGI3 상태 명령도 지원\n\n'
-            '[PAPER 실행 · 확인 버튼 필요]\n/morning — 보유 판단 후 리밸런싱\n/rebuild — 전량 매도 후 새 VPD TOP10 균등 매수 (보유·당일 재진입 유예 해제)\n/refill — 빈자리 채우기\n'
-            '/cancel — 대기 중 확인 취소 (진행 중 작업 중단 아님)\n\n'
-            '[화면]\n/menu — 버튼 메뉴\n/help — 이 안내\n\n'
-            'magi 접두어 없이 report, help 또는 한글 버튼을 사용하세요. 기존 명령도 지원합니다.\n'
-            'VPD 조회는 저장본 조회이며, /rescan만 현재 시점 신규 스캔을 실행합니다. /rescan은 매매하지 않습니다. 실거래 시작 명령은 제공하지 않습니다.')
+    return ('MAGI 메뉴 안내\n\n'
+            '/assets — 실투자 현황\n'
+            '/paper — 모의투자현황\n'
+            '  투자결과: 원금·평가금액·수익률·승률\n'
+            '  투자전략현황: 보유·포착 시각·목표·최근 매매\n'
+            '  투자전략세부: 포착·매수·매도 방식\n'
+            '/regime — 시장국면 (MAGI1)\n'
+            '/menu — 메인 메뉴\n/help — 이 안내\n\n'
+            'VPD 자동 리밸런싱: 매일 오전 7시 30분 KST\n'
+            '수동 운용은 투자전략현황 → VPD/지표가속에서 확인 후 실행합니다.\n'
+            '기존 명령도 계속 사용할 수 있습니다. /status — 시스템 상태')
 
 
 def observation_text(rows,view='signals'):

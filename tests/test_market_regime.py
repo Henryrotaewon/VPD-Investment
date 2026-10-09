@@ -140,7 +140,7 @@ class RoutingTests(unittest.TestCase):
 
     def test_button_and_slash_start_one_background_job_without_trading(self):
         labels = [x['text'] for row in main_keyboard()['keyboard'] for x in row]
-        self.assertIn('🧭 시장 국면', labels)
+        self.assertIn('시장국면 (MAGI1)', labels)
         for command in ('🧭 시장 국면', '/regime', '현재 국면'):
             self.assertEqual(parse_command(command), 'regime')
             server.handle_command(command, '7', '7')

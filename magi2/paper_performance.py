@@ -372,24 +372,20 @@ def daily_rows(result, now):
 
 
 def results_keyboard(key=None, offset=0, total=0):
-    buttons = [dict(text=NAMES[k]+' 결과', callback_data=f'performance:{k}:0') for k in NAMES]
-    rows = [buttons[i:i+2] for i in range(0, len(buttons), 2)]
-    rows.append([dict(text='FAST-DERIVATIVES / FAST-BEAR · MDD 비교',callback_data='nav:fast_models')])
+    rows = []
     if key:
-        navigation = []
+        nav = []
         if offset:
-            navigation.append(dict(text='◀ 최근', callback_data=f'performance:{key}:{max(0,offset-PAGE_SIZE)}'))
-        navigation.append(dict(text='새로고침', callback_data=f'performance:{key}:{offset}'))
+            nav.append(dict(text='◀ 최근', callback_data=f'performance:{key}:{max(0,offset-PAGE_SIZE)}'))
         if offset + PAGE_SIZE < total:
-            navigation.append(dict(text='이전 날짜 ▶', callback_data=f'performance:{key}:{offset+PAGE_SIZE}'))
-        rows.insert(0, navigation)
+            nav.append(dict(text='이전 날짜 ▶', callback_data=f'performance:{key}:{offset+PAGE_SIZE}'))
+        if nav:
+            rows.append(nav)
         if key == 'bollinger':
-            rows.insert(1, [dict(text='📒 매매이력', callback_data='nav:bollinger_orders')])
-        rows.append([dict(text='↩️ 전략검증', callback_data='nav:strategies')])
-    else:
-        rows.append([dict(text='전략 설명·검증 기준', callback_data='guide:validation'),
-                     dict(text='새로고침', callback_data='nav:strategies')])
-    rows.append([dict(text='↩️ 메인 메뉴', callback_data='nav:menu')])
+            rows.append([dict(text='매매 상세', callback_data='nav:bollinger_orders')])
+        rows.append([dict(text='↩️ '+NAMES[key]+' 투자결과', callback_data=f'paper:results:{key}:0')])
+    rows.append([dict(text='↩️ 투자결과 전체', callback_data='nav:paper_results')])
+    rows.append([dict(text='↩️ 모의투자현황', callback_data='nav:paper')])
     return {'inline_keyboard': rows}
 
 

@@ -76,7 +76,7 @@ def view(state_dir, now, anchor=0, offset=0):
                      f'기준시점 누적 실현손익 {realized:+,.0f}원 · 매수 거래 {total}건',
                      f'{offset//PAGE_SIZE+1}/{max(1,math.ceil(total/PAGE_SIZE))}페이지 · 페이지당 {PAGE_SIZE}건']
             if last:
-                lines.append('체결 기준 '+clock(last['ts'])+' · 새로고침하면 최신 이력 반영')
+                lines.append('체결 기준 '+clock(last['ts'])+' · 다시 열면 최신 이력 반영')
             if now-state['updated_ms'] > 30000:
                 lines.append('원장 갱신 지연 · 저장된 이력 기준')
             for r in rows:
@@ -111,4 +111,4 @@ def view(state_dir, now, anchor=0, offset=0):
         finally:
             db.close()
     except (OSError, sqlite3.Error, ValueError, KeyError, TypeError, IndexError):
-        return title+'\n원장 조회 대기 · 잠시 후 새로고침해 주세요.', keyboard()
+        return title+'\n원장 조회 대기 · 잠시 후 다시 열어 주세요.', keyboard()
