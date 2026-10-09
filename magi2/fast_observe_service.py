@@ -111,17 +111,18 @@ def view(state_dir):
             if checks.get(reason):lines.append(f"  {label} {checks[reason]}종목")
         lines.append('현재 판단봉과 과거 비교자료 분리 · 매 10초 준비 상태 재판정')
     if not disabled:lines.append('최근 24시간 상세봉 + 직전 10일 동일시간 거래대금')
+    cutoff = ((obs.get('paper') or {}).get('review_segment') or {}).get('started_ms', 0)
     try:
         db=sqlite3.connect('file:'+str(directory/'observe.sqlite3')+'?mode=ro',uri=True,timeout=1)
-        count=db.execute('SELECT count(*) FROM captures').fetchone()[0]
-        lines.append(f'누적 포착 {count}건')
-        for ident,stamp,symbol,price in db.execute('SELECT id,ts,symbol,price FROM captures ORDER BY ts DESC LIMIT 5'):
+        count=db.execute('SELECT count(*) FROM captures WHERE ts>=?', (cutoff,)).fetchone()[0]
+        lines.append(f'누적 포착 {count}건'+(' · 재개 이후' if cutoff else ''))
+        for ident,stamp,symbol,price in db.execute('SELECT id,ts,symbol,price FROM captures WHERE ts>=? ORDER BY ts DESC LIMIT 5', (cutoff,)):
             clock=datetime.fromtimestamp(stamp/1000,ZoneInfo('Asia/Seoul')).strftime('%m/%d %H:%M:%S')
             lines.append(f'{symbol} · {clock} · 기준 {price:g}원')
             marks=db.execute('SELECT horizon,status,return_pct FROM outcomes WHERE capture_id=? ORDER BY horizon',(ident,)).fetchall()
             lines.append(' / '.join(f'{h//60}분 '+(f'{ret:+.2f}%' if state=='OBSERVED' else '자료 누락') for h,state,ret in marks) or '가격 추적 대기')
-        gaps=db.execute("SELECT count(*) FROM events WHERE kind IN ('GAP','PROCESS_GAP') AND ts>?",(int(time.time()*1000)-86400000,)).fetchone()[0]
-        missing=db.execute("SELECT count(*) FROM outcomes WHERE status='MISSING'").fetchone()[0]
+        gaps=db.execute("SELECT count(*) FROM events WHERE kind IN ('GAP','PROCESS_GAP') AND ts>?",(max(cutoff,int(time.time()*1000)-86400000),)).fetchone()[0]
+        missing=db.execute("SELECT count(*) FROM outcomes o JOIN captures c ON c.id=o.capture_id WHERE o.status='MISSING' AND c.ts>=?", (cutoff,)).fetchone()[0]
         lines.append(f'24시간 연결·처리지연 {gaps}건 · 누적 추적 누락 {missing}건')
         db.close()
     except sqlite3.Error:lines.append('원장 조회 대기 · 잠시 후 다시 조회')

@@ -6,6 +6,7 @@ Account and fill changes commit atomically; never replay historical captures.
 import json
 from pathlib import Path
 import sqlite3
+from magi1.fast_performance import performance_state
 
 DAY = 86_400_000
 POLICY = dict(version='fast-flow-paper-v2', initial=3000000., slots=10,
@@ -402,6 +403,7 @@ class Paper:
                                 (ts // DAY, ts, json.dumps(report, allow_nan=False)))
 
     def report(self, ts):
+        performance = performance_state(self.s)
         positions = self.s['positions']
         value = sum(p['qty'] * p['mark'] for p in positions.values())
         stale = sum(ts - p['mark_ms'] > 2000 for p in positions.values())
@@ -410,13 +412,14 @@ class Paper:
         review = dict(segment, return_pct=(nav/segment['equity']-1)*100,
                       completed=self.s['closed']-segment['closed']) if segment else None
         return dict(mode='FAST_PAPER_ONLY', policy=self.policy['version'], entry_cap=self.policy['entry_cap'],
+                    performance_scope=performance['performance_scope'],
                     entries_paused=self.s.get('entries_paused',False), review_segment=review,
-                    retry_unfilled=self.policy['retry_unfilled'], same_day_reentry=False, started_ms=self.s['started_ms'],
-                    initial=self.policy['initial'], slots=self.policy['slots'], cash=self.s['cash'],
+                    retry_unfilled=self.policy['retry_unfilled'], same_day_reentry=False, started_ms=performance['started_ms'],
+                    initial=performance['policy']['initial'], slots=self.policy['slots'], cash=self.s['cash'],
                     reserved=sum(x['budget'] for x in self.s['pending'].values()),
                     positions=len(positions), pending=len(self.s['pending']), equity=nav,
-                    return_pct=(nav/self.policy['initial']-1)*100, realized=self.s['realized'],
-                    closed=self.s['closed'], winning=self.s['winning'], stale_marks=stale,
+                    return_pct=(nav/performance['policy']['initial']-1)*100, realized=performance['realized'],
+                    closed=performance['closed'], winning=performance['winning'], stale_marks=stale,
                     uncertain_positions=sum(p['uncertain'] for p in positions.values()), asof_ms=ts)
 
     def close(self, ts):

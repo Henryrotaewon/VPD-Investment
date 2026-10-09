@@ -421,6 +421,7 @@ class Observer:
         return ref
 
     def report(self):
+        cutoff = (self.paper.s.get('review_segment') or {}).get('started_ms', 0) if self.paper else 0
         reasons = defaultdict(int)
         for ref in getattr(self, 'reference_status', {}).values():
             for reason in ref['reasons']:
@@ -438,8 +439,8 @@ class Observer:
                 'reference_block_reasons': dict(reasons),
                 'decision_reasons': self.decision_reasons, 'assessed_ms': self.assessed_ms,
                 'connected_groups': len(self.groups), 'symbols': len(self.symbol_group),
-                'captures': self.db.execute('SELECT count(*) FROM captures').fetchone()[0],
-                'outcomes': dict(self.db.execute('SELECT status,count(*) FROM outcomes GROUP BY status')),
+                'captures': self.db.execute('SELECT count(*) FROM captures WHERE ts>=?', (cutoff,)).fetchone()[0],
+                'outcomes': dict(self.db.execute('SELECT o.status,count(*) FROM outcomes o JOIN captures c ON c.id=o.capture_id WHERE c.ts>=? GROUP BY o.status', (cutoff,))),
                 'baseline_rows': self.db.execute('SELECT count(*) FROM baseline').fetchone()[0],
                 'repair':self.repair.report() if self.repair else None,
                 'paper':self.paper.report(self.received_ms) if self.paper else None,

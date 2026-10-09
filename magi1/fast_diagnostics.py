@@ -1,6 +1,7 @@
 """Read-only FAST evidence. Features annotate signals; they never authorize buys."""
 import json
 from statistics import median
+from magi1.fast_performance import performance_state
 
 
 def acceleration(bars, end, book):
@@ -37,10 +38,12 @@ def distribution(values):
 def ledger_review(paper):
     """Aggregate complete round trips, including partial fills, without rewriting history."""
     db = paper.db
+    performance = performance_state(paper.s)
+    cutoff = performance['started_ms']
     cursor = db.execute('''
         WITH buys AS (
           SELECT *, LEAD(id) OVER (PARTITION BY symbol ORDER BY id) next_id
-          FROM fills WHERE side='BUY'
+          FROM fills WHERE side='BUY' AND ts>=?
         )
         SELECT b.id,b.ts,b.symbol,b.quantity,b.cash,b.fee,b.decision_ms,
                COALESCE(SUM(s.quantity),0),COALESCE(SUM(s.pnl),0),MAX(s.ts),
@@ -48,7 +51,7 @@ def ledger_review(paper):
         FROM buys b LEFT JOIN fills s ON s.symbol=b.symbol AND s.side='SELL'
           AND s.id>b.id AND (b.next_id IS NULL OR s.id<b.next_id)
         GROUP BY b.id ORDER BY b.id
-    ''')
+    ''', (cutoff,))
     completed = []; by_reason = {}; by_symbol = {}; latency = []
     for ident, ts, symbol, qty, cash, fee, decision, sold, pnl, exit_ts, sell_fee, reasons in cursor:
         latency.append(ts-decision)
@@ -61,10 +64,13 @@ def ledger_review(paper):
             row['trades'] += 1; row['wins'] += pnl > 0; row['pnl'] += pnl
     gross_profit = sum(max(0, r['pnl']) for r in completed)
     gross_loss = -sum(min(0, r['pnl']) for r in completed)
-    exits = [json.loads(x[0]) for x in db.execute("SELECT payload FROM events WHERE kind='EXIT_DIAGNOSTIC'")]
-    entries = [json.loads(x[0]) for x in db.execute("SELECT payload FROM events WHERE kind='ENTRY_DIAGNOSTIC'")]
+    def events(kind):
+        records = [json.loads(x[0]) for x in db.execute('SELECT payload FROM events WHERE kind=? AND ts>=?', (kind, cutoff))]
+        return [r for r in records if r.get('entry_ms', cutoff) >= cutoff]
+    exits = events('EXIT_DIAGNOSTIC')
+    entries = events('ENTRY_DIAGNOSTIC')
     continuous = [r for r in exits if r['continuous']]
-    post = [json.loads(x[0]) for x in db.execute("SELECT payload FROM events WHERE kind='POST_EXIT_DIAGNOSTIC'")]
+    post = events('POST_EXIT_DIAGNOSTIC')
     post_stats = {str(h): dict(observed=distribution(r.get('difference_pct') for r in post if r['horizon_ms']==h),
         missing=sum(r['horizon_ms']==h and r['status']=='MISSING' for r in post)) for h in (60000,180000,300000)}
     cohorts = {}
@@ -74,6 +80,8 @@ def ledger_review(paper):
         row = cohorts.setdefault(key, dict(trades=0, wins=0, pnl=0.))
         row['trades'] += 1; row['wins'] += r['pnl'] > 0; row['pnl'] += r['pnl']
     return dict(mode='FAST_LEDGER_REVIEW', policy=paper.policy['version'],
+        performance_scope=performance['performance_scope'], started_ms=cutoff,
+        initial=performance['policy']['initial'],
         completed=len(completed), wins=sum(r['pnl'] > 0 for r in completed),
         net_pnl=sum(r['pnl'] for r in completed), explicit_fees=sum(r['fee'] for r in completed),
         profit_factor=gross_profit/gross_loss if gross_loss else None,
