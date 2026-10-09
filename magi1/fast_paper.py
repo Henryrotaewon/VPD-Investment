@@ -63,10 +63,11 @@ class Paper:
             raise ValueError('FAST_PAPER_POLICY_MISMATCH')
         self.books = {}
         self.trades = {}
+        self.diagnostics = False
         self.last_checkpoint = stamp
         if row:
             # No invented prices or continuity across process downtime.
-            self.gap(set(self.s['pending']) | set(self.s['positions']), stamp, 'RESTART')
+            self.gap(set(self.s['pending']) | set(self.s['positions']) | set(self.s.get('exit_reviews', {})), stamp, 'RESTART')
         self.event(stamp, 'START', '', dict(policy=self.policy, restored=bool(row)))
         self.save(stamp)
 
@@ -103,6 +104,19 @@ class Paper:
         for symbol in list(self.s['pending']):self.cancel(symbol,ts,'USER_STOPPED')
         self.save(ts)
 
+    def resume_entries(self, ts, request_id):
+        """One authorized restart, preserving cash, history and daily BUY lockout."""
+        if self.s.get('resume_request_id') == request_id:
+            return False
+        if not request_id or self.s['positions'] or self.s['pending'] or self.s['cash'] <= 0:
+            raise ValueError('FAST_RESUME_REQUIRES_FLAT_ACCOUNT_AND_REQUEST_ID')
+        segment = dict(request_id=request_id, started_ms=ts, equity=self.s['cash'],
+                       realized=self.s['realized'], closed=self.s['closed'], winning=self.s['winning'])
+        self.s.update(entries_paused=False, resume_request_id=request_id, review_segment=segment)
+        self.event(ts, 'USER_RESUMED', '', segment)
+        self.save(ts)
+        return True
+
     def signal(self, symbol, ts, price, low, features):
         if ts < self.s['started_ms']:
             return
@@ -126,6 +140,8 @@ class Paper:
         if not reason:
             pending[symbol] = dict(ts=ts, day=day, reference=price, stop=low,
                                    budget=budget, last_reason='WAIT_FRESH_BOOK')
+            if self.diagnostics:
+                pending[symbol]['diagnostic'] = dict(features)
         self.save(ts)
 
     def cancel(self, symbol, ts, reason):
@@ -145,12 +161,15 @@ class Paper:
 
     def gap(self, symbols, ts, reason):
         for symbol in list(symbols):
+            self.discard_exit_review(symbol, ts, reason)
             self.books.pop(symbol, None)
             self.trades.pop(symbol, None)
             self.cancel(symbol, ts, 'DATA_GAP_' + reason)
             p = self.s['positions'].get(symbol)
             if p:
                 p['uncertain'] = True
+                if p.get('diagnostic'):
+                    p['diagnostic']['continuous'] = False
                 self.request_exit(symbol, ts, 'DATA_GAP_' + reason)
         self.save(ts)
 
@@ -176,8 +195,10 @@ class Paper:
         if not 0 <= ts - book['stamp'] <= self.policy['quote_age_ms']:
             return
         self.books[symbol] = book
+        self.review_after_exit(symbol, ts, book)
         p = self.s['positions'].get(symbol)
         if p:
+            self.mark_diagnostic(p, book)
             p['mark'] = book['bp'] * (1 - self.policy['slip']) * (1 - self.policy['fee'])
             p['mark_ms'] = ts
             if book['bp'] <= p['stop']:
@@ -227,6 +248,22 @@ class Paper:
             value=0., volume=0., negative_windows=0, minute_lows=[], exit=None,
             mark=book['bp'] * (1-self.policy['slip']) * (1-self.policy['fee']), mark_ms=ts,
             uncertain=False, total_pnl=0., last_sell_stamp=-1)
+        if self.diagnostics:
+            evidence = order.get('diagnostic', {})
+            p = self.s['positions'][symbol]
+            p['diagnostic'] = dict(entry_ms=ts, decision_ms=order['ts'],
+                original_qty=qty,
+                fill_delay_ms=ts-order['ts'], continuous=True, best_exit_net_pct=None,
+                worst_exit_net_pct=None, depth_missing_books=0,
+                price_acceleration_bps=evidence.get('price_acceleration_bps'),
+                confirmation_delay_ms=evidence.get('confirmation_delay_ms'),
+                confirmation_rise_bps=evidence.get('confirmation_rise_bps'),
+                entry_rise_bps=(price/order['reference']-1)*10000,
+                stop_distance_bps=(1-order['stop']/price)*10000,
+                spread_bps=(book['ap']/book['bp']-1)*10000)
+            self.mark_diagnostic(p, book)
+            p['diagnostic']['immediate_exit_net_pct'] = p['diagnostic']['worst_exit_net_pct']
+            self.event(ts, 'ENTRY_DIAGNOSTIC', symbol, p['diagnostic'])
         self.db.execute('INSERT INTO fills(ts,symbol,side,quantity,price,fee,cash,pnl,reason,decision_ms) VALUES(?,?,?,?,?,?,?,?,?,?)',
                         (ts, symbol, 'BUY', qty, price, qty*price*self.policy['fee'], -cost, 0., self.policy['entry'], order['ts']))
         self.db.execute("UPDATE signals SET status='BOUGHT',reason='' WHERE symbol=? AND day=?", (symbol, order['day']))
@@ -236,6 +273,56 @@ class Paper:
     def entry_rejection(self, order, price):
         """Optional strategy-specific check on the depth-weighted fill price."""
         return ''
+
+    def mark_diagnostic(self, position, book):
+        """Depth- and cost-adjusted hypothetical liquidation, never a fill."""
+        d = position.get('diagnostic')
+        if not d or book['stamp'] <= position['last_sell_stamp']:
+            return
+        _, raw, remaining = walk(book['bids'], quantity=position['qty'])
+        if remaining > 1e-8:
+            d['depth_missing_books'] += 1
+            return
+        net = raw*(1-self.policy['slip'])*(1-self.policy['fee'])
+        pct = (position['total_pnl']+net-position['cost'])/position['original_cost']*100
+        for key, compare in (('best_exit_net_pct', max), ('worst_exit_net_pct', min)):
+            d[key] = pct if d[key] is None else compare(d[key], pct)
+
+    def discard_exit_review(self, symbol, ts, reason):
+        review = self.s.get('exit_reviews', {}).pop(symbol, None)
+        if review:
+            for horizon in review['remaining']:
+                self.event(ts, 'POST_EXIT_DIAGNOSTIC', symbol, dict(entry_ms=review['entry_ms'],
+                    exit_ms=review['exit_ms'], horizon_ms=horizon, status='MISSING', reason=reason))
+
+    def review_after_exit(self, symbol, ts, book=None):
+        """Observe later quotes, with depth and costs; no retroactive trade or NAV change."""
+        review = self.s.get('exit_reviews', {}).get(symbol)
+        if not review:
+            return
+        for horizon in list(review['remaining']):
+            target = review['exit_ms']+horizon
+            if ts < target:
+                continue
+            evidence = dict(entry_ms=review['entry_ms'], exit_ms=review['exit_ms'], horizon_ms=horizon)
+            if ts > target+10000:
+                evidence.update(status='MISSING', reason='NO_TIMELY_BOOK')
+            elif book is not None and book['stamp'] >= target:
+                _, raw, remaining = walk(book['bids'], quantity=review['qty'])
+                if remaining > 1e-8:
+                    evidence.update(status='MISSING', reason='INSUFFICIENT_VISIBLE_DEPTH')
+                else:
+                    net = raw*(1-self.policy['slip'])*(1-self.policy['fee'])
+                    pct = (net/review['cost']-1)*100
+                    evidence.update(status='OBSERVED_QUOTE_PROXY', hold_net_pct=pct,
+                                    actual_exit_net_pct=review['exit_net_pct'],
+                                    difference_pct=pct-review['exit_net_pct'])
+            else:
+                continue
+            self.event(ts, 'POST_EXIT_DIAGNOSTIC', symbol, evidence)
+            review['remaining'].remove(horizon)
+        if not review['remaining']:
+            del self.s['exit_reviews'][symbol]
 
     def execute_exit(self, symbol, ts, book):
         p = self.s['positions'][symbol]
@@ -261,6 +348,15 @@ class Paper:
         if remaining <= 1e-8:
             self.s['closed'] += 1
             self.s['winning'] += p['total_pnl'] > 0
+            if p.get('diagnostic'):
+                self.event(ts, 'EXIT_DIAGNOSTIC', symbol, dict(p['diagnostic'],
+                    exit_ms=ts, reason=decision['reason'], pnl=p['total_pnl'],
+                    exit_delay_ms=ts-decision['ts'], holding_ms=ts-p['entry_ms'],
+                    net_return_pct=p['total_pnl']/p['original_cost']*100))
+                self.discard_exit_review(symbol, ts, 'NEXT_ROUNDTRIP')
+                self.s.setdefault('exit_reviews', {})[symbol] = dict(entry_ms=p['entry_ms'],
+                    exit_ms=ts, qty=p['diagnostic']['original_qty'], cost=p['original_cost'],
+                    exit_net_pct=p['total_pnl']/p['original_cost']*100, remaining=[60000,180000,300000])
             del self.s['positions'][symbol]
         self.save(ts)
 
@@ -292,6 +388,8 @@ class Paper:
                                    dict(previous=old_stop, stop=p['stop'], minute_lows=p['minute_lows']))
 
     def tick(self, ts):
+        for symbol in list(self.s.get('exit_reviews', {})):
+            self.review_after_exit(symbol, ts)
         for symbol, order in list(self.s['pending'].items()):
             if ts > order['ts'] + self.policy['entry_wait_ms']:
                 self.cancel(symbol, ts, order['last_reason'])
@@ -308,7 +406,11 @@ class Paper:
         value = sum(p['qty'] * p['mark'] for p in positions.values())
         stale = sum(ts - p['mark_ms'] > 2000 for p in positions.values())
         nav = self.s['cash'] + value
+        segment = self.s.get('review_segment')
+        review = dict(segment, return_pct=(nav/segment['equity']-1)*100,
+                      completed=self.s['closed']-segment['closed']) if segment else None
         return dict(mode='FAST_PAPER_ONLY', policy=self.policy['version'], entry_cap=self.policy['entry_cap'],
+                    entries_paused=self.s.get('entries_paused',False), review_segment=review,
                     retry_unfilled=self.policy['retry_unfilled'], same_day_reentry=False, started_ms=self.s['started_ms'],
                     initial=self.policy['initial'], slots=self.policy['slots'], cash=self.s['cash'],
                     reserved=sum(x['budget'] for x in self.s['pending'].values()),

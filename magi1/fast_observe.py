@@ -9,6 +9,8 @@ import json
 import math
 from pathlib import Path
 from magi1.fast_reference import bounds as reference_bounds, reference_state
+from magi1.fast_universe_watch import UniverseWatch, fetch_markets
+from magi1.fast_diagnostics import acceleration, ledger_review
 import sqlite3
 import shutil
 import time
@@ -63,6 +65,7 @@ class Observer:
         self.bars = defaultdict(lambda: deque(maxlen=12))
         self.books = {}; self.ids = defaultdict(set); self.id_queue = defaultdict(deque)
         self.previous = {}; self.last_price = {}; self.groups = {}; self.symbol_group = {}
+        self.first_condition = {}
         self.current = int(start) // TEN * TEN
         self.active = {}; self.started = int(start); self.stale_logged = {}
         self.repair=None;self.repair_blocked=set();self.symbol_since={}
@@ -74,6 +77,7 @@ class Observer:
         self.paper_retry_armed = {}
         self.fast_disabled = bool(self.db.execute("SELECT 1 FROM meta WHERE key='fast_disabled' AND value='true'").fetchone())
         self.received_ms = int(start)
+        self.universe_status = {}
         # A long outage may outlive every horizon. Finalize overdue rows even
         # when the capture is too old to restore into the active tracker.
         for horizon in POLICY['horizons_seconds']:
@@ -95,12 +99,35 @@ class Observer:
     def disable_fast(self, ts):
         self.fast_disabled=True
         self.previous.clear();self.paper_retry_armed.clear()
+        self.first_condition.clear()
         self.db.execute("INSERT OR REPLACE INTO meta VALUES('fast_disabled','true')")
         self.event(ts,'FAST_USER_STOPPED','',dict(captures=False,new_trades=False,protective_exits=True))
         self.db.commit()
         if self.paper:self.paper.pause_entries(ts)
         if self.experiment:
             for paper in self.experiment.accounts.values():paper.pause_entries(ts)
+
+    def resume_fast(self, ts, request_id):
+        """Consume a named restart once; later user stops survive service restarts."""
+        old = self.db.execute("SELECT value FROM meta WHERE key='fast_resume_request'").fetchone()
+        if old and old[0] == request_id:
+            return False
+        if not self.paper:
+            raise ValueError('FAST_RESUME_REQUIRES_BASE_PAPER')
+        if self.paper.s.get('resume_request_id') == request_id and self.paper.s.get('entries_paused'):
+            return False  # a later stop must win even across a partial startup
+        self.paper.resume_entries(ts, request_id)
+        if self.experiment:
+            for paper in self.experiment.accounts.values():
+                paper.pause_entries(ts)
+        self.fast_disabled = False
+        self.previous.clear(); self.first_condition.clear(); self.paper_retry_armed.clear()
+        self.db.execute("INSERT OR REPLACE INTO meta VALUES('fast_disabled','false')")
+        self.db.execute("INSERT OR REPLACE INTO meta VALUES('fast_resume_request',?)", (request_id,))
+        self.event(ts, 'FAST_USER_RESUMED', '', dict(request_id=request_id, account='base',
+                   policy=self.paper.policy['version'], replay=False))
+        self.db.commit()
+        return True
 
     def event(self, ts, kind, symbol, payload):
         self.db.execute('INSERT INTO events(ts,kind,symbol,payload) VALUES(?,?,?,?)',
@@ -115,6 +142,7 @@ class Observer:
             self.symbol_group[s] = group
             self.symbol_since[s] = ts
             self.bars.pop(s, None); self.books.pop(s, None); self.previous.pop(s, None)
+            self.first_condition.pop(s, None)
         self.event(ts, 'CONNECTED', group, {'symbols': len(symbols)})
 
     def gap(self, group, ts, reason):
@@ -125,6 +153,7 @@ class Observer:
             if g == group:
                 self.bars.pop(s, None); self.books.pop(s, None); self.previous.pop(s, None)
                 self.last_price.pop(s, None)
+                self.first_condition.pop(s, None)
         self.event(ts, 'GAP', group, {'reason': reason})
         self.db.commit()
 
@@ -134,6 +163,7 @@ class Observer:
         self.symbol_since[symbol]=ts
         self.bars.pop(symbol,None);self.books.pop(symbol,None)
         self.previous.pop(symbol,None);self.last_price.pop(symbol,None)
+        self.first_condition.pop(symbol,None)
         if ts-self.stale_logged.get(symbol,0)>=60000:
             self.event(ts,'INVALID_SYMBOL_MESSAGE',symbol,{})
             self.stale_logged[symbol]=ts
@@ -161,6 +191,7 @@ class Observer:
                 self.event(received, 'STALE_MESSAGE', s, {})
                 self.stale_logged[s]=received
             self.previous.pop(s, None)
+            self.first_condition.pop(s, None)
             return
         if message['type'] == 'orderbook':
             u = message['orderbook_units'][0]
@@ -181,8 +212,9 @@ class Observer:
                 asks = [(valid(x['ask_price']), valid(x['ask_size'], False)) for x in message['orderbook_units']]
                 if any(a[0] <= b[0] for a,b in zip(bids,bids[1:])) or any(a[0] >= b[0] for a,b in zip(asks,asks[1:])):
                     raise ValueError('UNSORTED_BOOK')
+                fast_accounts = ([self.paper] if self.paper else []) + (list(self.experiment.accounts.values()) if self.experiment else [])
                 for paper in self.papers:
-                    if s in self.repair_blocked and paper is not self.bollinger:
+                    if s in self.repair_blocked and paper in fast_accounts:
                         paper.cancel(s, received, 'BASELINE_NOT_READY')
                     paper.on_book(s, received, dict(self.books[s], bids=bids, asks=asks))
         elif message['type'] == 'trade' and message.get('stream_type') != 'SNAPSHOT':
@@ -232,6 +264,7 @@ class Observer:
             for g in list(self.groups):
                 self.groups[g] = ts
             self.bars.clear(); self.books.clear(); self.previous.clear()
+            self.first_condition.clear()
             self.event(ts, 'PROCESS_GAP', '', {})
             self.current = ts // TEN * TEN
         advanced = False
@@ -302,6 +335,7 @@ class Observer:
             f = dict(relative_value=rvalue, baseline_days=same_n, burst=b['value']/baseline10 if baseline10 else None,
                      buy_share=b['buy']/b['value'] if b['value'] else 0, trades=b['count'], ofi=b['ofi'],
                      net_buy=b['buy']*2-b['value'], five_minute_start=full,
+                     reference_age_ms=end-(full+FIVE), current_5m_value=ref['current_value'],
                      current_source=ref['current_source'], reference_reasons=ref['reasons'])
             qualifies = bool(s not in self.repair_blocked and enough and fresh and rvalue is not None and rvalue >= 2 and
                              f['burst'] is not None and f['burst'] >= 3 and f['buy_share'] >= .65 and
@@ -318,6 +352,16 @@ class Observer:
             if qualifies: diagnostics['QUALIFIED_WINDOW'] += 1
             old = self.previous.get(s)
             self.previous[s] = (end, qualifies)
+            f.update(acceleration(self.bars[s], end, book))
+            if qualifies:
+                if old != (end-TEN, True):
+                    self.first_condition[s] = (end, quote[1])
+                first_ms, first_price = self.first_condition.get(s, (end, quote[1]))
+                f.update(first_condition_ms=first_ms, first_condition_price=first_price,
+                         confirmation_delay_ms=end-first_ms,
+                         confirmation_rise_bps=(quote[1]/first_price-1)*10000)
+            else:
+                self.first_condition.pop(s, None)
             if self.experiment:
                 experiment_rows.append((s, f, quote[1] if quote else None, qualifies, old, list(self.bars[s])))
             if not qualifies:
@@ -369,6 +413,7 @@ class Observer:
             self.repair_blocked.add(symbol)
         if was_blocked != (not ref['ready']):
             self.previous.pop(symbol, None)
+            self.first_condition.pop(symbol, None)
             self.event(cutoff, 'REFERENCE_GATE', symbol, ref)
         self.reference_status[symbol] = ref
         if self.repair and ref['reasons']==['CURRENT_BAR_MISSING']:
@@ -380,7 +425,14 @@ class Observer:
         for ref in getattr(self, 'reference_status', {}).values():
             for reason in ref['reasons']:
                 reasons[reason] += 1
+        universe = dict(self.universe_status)
+        universe['recent_feeds'] = {s: dict(
+            trade_ms=self.last_price.get(s, (None,))[0],
+            book_ms=self.books.get(s, {}).get('ts'),
+            connected=self.symbol_group.get(s) in self.groups)
+            for s in universe.get('recent_added', [])}
         return {'mode': 'PUBLIC_OBSERVE_NO_ORDERS', 'asof_ms': self.current,
+                'universe': universe,
                 'fast_disabled':self.fast_disabled,
                 'reference_policy': 'SEPARATE_CURRENT_HISTORY_V2',
                 'reference_block_reasons': dict(reasons),
@@ -401,6 +453,7 @@ async def run(args):
     if getattr(args, 'paper_db', None):
         from magi1.fast_paper import Paper
         observer.paper = Paper(args.paper_db, now_ms())
+        observer.paper.diagnostics = bool(getattr(args, 'diagnostics', False))
         # Bounded, read-only startup evidence: preserve original capture times
         # while allowing operators to audit old exclusions after a policy update.
         for ts,symbol,price in observer.db.execute('SELECT ts,symbol,price FROM captures ORDER BY ts DESC LIMIT 30'):
@@ -419,17 +472,23 @@ async def run(args):
         from magi2.fast_models.runtime import Models
         observer.models = Models(args.models_dir, now_ms())
     if getattr(args,'disable_fast',False) or observer.fast_disabled:
+        # A new explicit request can override the persisted stop, never --disable-fast.
+        if getattr(args, 'resume_fast_id', None) and not getattr(args, 'disable_fast', False):
+            try:
+                if observer.resume_fast(now_ms(), args.resume_fast_id):
+                    print(json.dumps(dict(mode='FAST_USER_RESUMED', request_id=args.resume_fast_id)), flush=True)
+            except ValueError as exc:
+                print(json.dumps(dict(mode='FAST_RESUME_DEFERRED', reason=str(exc))), flush=True)
+    elif getattr(args, 'resume_fast_id', None):
+        observer.resume_fast(now_ms(), args.resume_fast_id)
+    if getattr(args,'disable_fast',False) or observer.fast_disabled:
         observer.disable_fast(now_ms())
         print(json.dumps(dict(mode='FAST_USER_STOPPED',captures=False,new_trades=False,
             protective_exits=True,bollinger_enabled=bool(observer.bollinger),
             positions=len(observer.paper.s['positions']) if observer.paper else 0)),flush=True)
+    last_review_ms = 0
     async with aiohttp.ClientSession() as session:
-        async with session.get('https://api.upbit.com/v1/market/all', params={'is_details': 'true'}, timeout=aiohttp.ClientTimeout(total=15)) as response:
-            response.raise_for_status(); rows = await response.json()
-        symbols = sorted(x['market'] for x in rows if x['market'].startswith('KRW-'))
-        if not symbols:
-            raise ValueError('EMPTY_UNIVERSE')
-        observer.event(now_ms(), 'UNIVERSE', '', {'symbols': symbols, 'scope': 'ALL_KRW_OBSERVATION'})
+        symbols = await fetch_markets(session)
         async def stream(group, names):
             backoff = 1
             while True:
@@ -455,7 +514,7 @@ async def run(args):
                 except Exception as exc:
                     observer.gap(group, now_ms(), type(exc).__name__)
                     await asyncio.sleep(backoff); backoff = min(30, backoff*2)
-        tasks = [];repair_task=None;bollinger_task=None;models_task=None
+        tasks = [];repair_task=None;bollinger_task=None;models_task=None;universe_task=None
         try:
             if observer.models:
                 models_task=asyncio.create_task(observer.models.run(session,symbols))
@@ -468,12 +527,15 @@ async def run(args):
                 from magi1.bollinger_paper import warm_history
                 bollinger_task = asyncio.create_task(warm_history(observer.bollinger, symbols, now_ms))
                 tasks.append(bollinger_task)
-            for i in range(0, len(symbols), 100):
-                tasks.append(asyncio.create_task(stream(str(i), symbols[i:i+100])))
-                await asyncio.sleep(.3)
+            universe = UniverseWatch(observer, symbols, stream, now_ms)
+            universe_task = asyncio.create_task(universe.run(session))
+            tasks.append(universe_task)
             stop = time.monotonic() + args.duration
             last_report = 0
             while getattr(args,'continuous',False) or time.monotonic() < stop:
+                if universe_task.done():
+                    universe_task.result()
+                    raise RuntimeError('UNIVERSE_WORKER_STOPPED')
                 if models_task and models_task.done():
                     models_task.result()
                     raise RuntimeError('FAST_MODELS_WORKER_STOPPED')
@@ -488,6 +550,9 @@ async def run(args):
                 observer.advance(now_ms())
                 if time.monotonic() - last_report >= 60:
                     print(json.dumps(observer.report()), flush=True); last_report = time.monotonic()
+                    if observer.paper and observer.paper.diagnostics and now_ms()-last_review_ms >= FIVE:
+                        print(json.dumps(ledger_review(observer.paper)), flush=True)
+                        last_review_ms = now_ms()
                 await asyncio.sleep(.2)
         finally:
             for task in tasks:
@@ -505,7 +570,10 @@ def main():
     parser.add_argument('--duration', type=int, default=3600)
     parser.add_argument('--continuous',action='store_true')
     parser.add_argument('--repair',action='store_true')
-    parser.add_argument('--disable-fast',action='store_true',help='Persistently stop FAST captures and entries, retaining exits and Bollinger')
+    control = parser.add_mutually_exclusive_group()
+    control.add_argument('--disable-fast',action='store_true',help='Persistently stop FAST captures and entries, retaining exits and Bollinger')
+    control.add_argument('--resume-fast-id',help='One-time authorized base PAPER restart; old comparison accounts stay paused')
+    parser.add_argument('--diagnostics', action='store_true', help='Record causal acceleration and depth-adjusted entry/exit evidence')
     parser.add_argument('--experiment-dir', help='Isolated paired early-entry PAPER ledgers')
     parser.add_argument('--paper-db', help='Separate candidate-v1 PAPER ledger; no real order API')
     parser.add_argument('--models-dir', help='Independent FAST-BEAR and FAST-DERIVATIVES paper accounts')
