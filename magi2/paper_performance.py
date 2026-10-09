@@ -12,6 +12,7 @@ import math
 from pathlib import Path
 import sqlite3
 from zoneinfo import ZoneInfo
+from magi1.fast_performance import performance_state
 
 DAY = 86_400_000
 KST = ZoneInfo('Asia/Seoul')
@@ -240,6 +241,8 @@ def public_paper_results(path, key, now):
     db = readonly(path)
     try:
         state = json.loads(db.execute('SELECT payload FROM state WHERE id=1').fetchone()[0])
+        if key == 'fast':
+            state = performance_state(state)
         result = Results(key, initial=number(state['policy']['initial']), started=state['started_ms'])
         rows = db.execute('SELECT * FROM fills WHERE ts>=? AND ts<=? ORDER BY id', (result.started, now))
         result.trades, result.wins_complete = fast_trades(rows, state['positions'])
@@ -254,7 +257,9 @@ def public_paper_results(path, key, now):
             0 <= now-p['mark_ms'] <= 2000 and not p['uncertain'] for p in state['positions'].values())
         result.current = Mark(state['updated_ms'], equity, fresh)
         if key == 'fast':
-            result.notes.append('현재 FAST 원장 전체 · 이전 정책으로 체결한 기록도 포함')
+            result.notes.append('FAST 재개 이후 성과 · 과거 거래는 보존하고 집계에서 제외' if state['performance_scope']=='RESTART'
+                                else '현재 FAST 원장 전체 · 이전 정책으로 체결한 기록도 포함')
+            result.notes.append(f'성과 기준자산 {result.initial:,.0f}원 · 기준 {clock(result.started)} KST')
         else:
             o = state.get('observation', {})
             counts = o.get('states', {})
@@ -403,7 +408,7 @@ def view(root, now, key=None, offset=0):
             lines += ['',summary(root,'derivatives',now),summary(root,'bear',now)]
         lines += ['', '전략별 시작일·운용 이력이 다릅니다.',
                   '승률: 비용 반영 후 전량 청산 기준 · 본전 포함 · 보유분 제외',
-                  '수익률: 보유 평가 포함 총자산 / 최초원금 − 1',
+                  '수익률: 보유 평가 포함 총자산 / 전략별 성과 기준자산 − 1',
                   '각 전략을 선택하면 누적·일별 결과를 확인합니다.']
         return '\n'.join(lines), results_keyboard()
     if key not in NAMES:
@@ -419,7 +424,7 @@ def view(root, now, key=None, offset=0):
         lines.append(f'• {day_label(day)}{suffix}\n  승률 {wins} / 수익률 {ret}')
     lines += ['', f'{offset//PAGE_SIZE+1}/{max(1,math.ceil(len(rows)/PAGE_SIZE))}페이지',
               '승률=순이익 청산 / 전체 청산 · 분할매도는 완료 시 1건 · 본전 포함',
-              '누적 수익률=보유 평가 포함 총자산 / 최초원금 − 1',
+              '누적 수익률=보유 평가 포함 총자산 / 성과 기준자산 − 1',
               '일 수익률=당일 마지막 평가 / 전일 마지막 평가 − 1',
               '일말 평가는 09시 직전 10분 내 유효 관측만 사용']
     if r.current:

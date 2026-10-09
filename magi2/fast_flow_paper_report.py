@@ -6,6 +6,7 @@ from pathlib import Path
 import sqlite3
 import time
 from zoneinfo import ZoneInfo
+from magi1.fast_performance import performance_state, daily_performance
 
 
 def clock(stamp):
@@ -26,7 +27,7 @@ def keyboard(home=False):
 
 def menu():
     return ('⚡ FAST 모의투자 [PAPER]\n'
-            '업비트 · 초기 300만원 · 최대 10종목 분할\n\n'
+            '업비트 · FAST base · 최대 10종목 분할\n\n'
             '자산현황: 예수금·보유 종목·수익률\n'
             '포착·추적: 포착 종목과 이후 가격 변화\n'
             '매매기록: 체결 내역·매수 제외 사유\n'
@@ -44,7 +45,8 @@ def view(state_dir, section='fast_paper'):
             row = db.execute('SELECT payload FROM state WHERE id=1').fetchone()
             if not row:
                 return '⚡ FAST 모의투자 [PAPER]\n장부 초기화 대기', keyboard()
-            s = json.loads(row[0]); policy = s['policy']; now = int(time.time()*1000)
+            raw_state = json.loads(row[0]); s = performance_state(raw_state)
+            policy = s['policy']; now = int(time.time()*1000)
             if section == 'fast_paper_orders':
                 return orders_report(db, s, now), keyboard()
             lines = ['⚡ FAST 모의투자 [PAPER]', '검증 후보: '+policy['version'],
@@ -56,24 +58,24 @@ def view(state_dir, section='fast_paper'):
             if now-s['updated_ms'] > 30000:
                 lines.append('⚠ 원장 갱신 지연 · 아래 평가는 마지막 관측 기준')
             if section == 'fast_paper_daily':
-                rows = db.execute('SELECT day,ts,payload FROM daily ORDER BY day DESC LIMIT 7').fetchall()
+                rows = db.execute('SELECT day,ts,payload FROM daily WHERE ts>=? ORDER BY day DESC LIMIT 7', (s['started_ms'],)).fetchall()
                 lines.append('업비트 일자: 09:00 KST 시작 · 당일은 진행 중')
                 for day, ts, payload in rows:
-                    r = json.loads(payload)
+                    r = daily_performance(json.loads(payload), raw_state)
                     lines.append(f'{clock(day*86400000)[:5]} · 평가 {r["equity"]:,.0f}원 · 누적 {r["return_pct"]:+.2f}%\n실현 누계 {r["realized"]:+,.0f}원 · 기준 {clock(ts)}'+(' · 지연 시세 포함' if r['stale_marks'] else ''))
                 if not rows: lines.append('첫 평가 기록 대기')
             else:
                 positions = s['positions']; pending = s['pending']
                 reserved = sum(p['budget'] for p in pending.values())
                 nav = s['cash'] + sum(p['qty']*p['mark'] for p in positions.values())
-                lines += [f"최초원금 {policy['initial']:,.0f}원 · {policy['slots']}분할",
+                lines += [f"성과 기준자산 {policy['initial']:,.0f}원 · {policy['slots']}분할",
                           f"보유 {len(positions)}/{policy['slots']} · 매수대기 {len(pending)}",
                           f"예수금 {s['cash']:,.0f}원 · 예약 {reserved:,.0f}원",
                           f"평가 {nav:,.0f}원 · 누적 {(nav/policy['initial']-1)*100:+.2f}%",
                           f"실현손익 {s['realized']:+,.0f}원 · 완료매매 {s['closed']}회"]
                 segment = s.get('review_segment')
                 if segment:
-                    lines.append(f"재개 후 {clock(segment['started_ms'])} · 기준 {segment['equity']:,.0f}원 · {(nav/segment['equity']-1)*100:+.2f}% · 완료 {s['closed']-segment['closed']}회")
+                    lines.append(f"재개 후 {clock(segment['started_ms'])}부터 집계 · 과거 성과 제외")
                     lines.append('가속도·체결 지연·보유 중 순평가 진단 수집 중')
                 vacant = policy['slots']-len(positions)-len(pending)
                 if vacant and not s.get('entries_paused'): lines.append(f"다음 배분 {(s['cash']-reserved)/vacant:,.0f}원")
@@ -83,7 +85,7 @@ def view(state_dir, section='fast_paper'):
                     if p.get('exit'): suffix += ' · 매도 대기'
                     lines.append(f"{symbol} | {quantity(p['qty'])}개 | 원가 {p['cost']:,.0f}원 | 순평가 {ret:+.2f}% | 보호 {price_text(p['stop'])}{suffix}")
                 if not positions and not pending: lines.append('중지 상태 · 전액 현금' if s.get('entries_paused') else '새 신호 대기 · 10종목 강제 매수 없음')
-            if section not in ('fast_paper_orders', 'fast_paper_daily'):
+            if section not in ('fast_paper_orders', 'fast_paper_daily') and not s.get('review_segment'):
                 lines.extend(experiment_summary(path.parent, now))
             lines.append('공개 호가 모의체결 · 수수료/슬리피지 각 편도 0.05% 가정 · 실제 주문 없음')
             return '\n'.join(lines), keyboard()
@@ -163,7 +165,7 @@ def orders_report(db, state, now):
         WITH buys AS (
             SELECT id,ts,symbol,quantity,price,cash,
                    LEAD(id) OVER (PARTITION BY symbol ORDER BY id) next_id
-            FROM fills WHERE side='BUY'
+            FROM fills WHERE side='BUY' AND ts>=?
         )
         SELECT b.id,b.ts,b.symbol,b.quantity,b.price,b.cash,
                COALESCE(SUM(f.quantity),0) sold_qty,
@@ -175,7 +177,7 @@ def orders_report(db, state, now):
           ON f.symbol=b.symbol AND f.side='SELL' AND f.id>b.id
          AND (b.next_id IS NULL OR f.id<b.next_id)
         GROUP BY b.id ORDER BY latest_id DESC LIMIT 6
-    """)
+    """, (state['started_ms'],))
     columns = [c[0] for c in cursor.description]
     rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
     policy = state['policy']
@@ -212,9 +214,9 @@ def orders_report(db, state, now):
         SELECT symbol,reason,ts FROM (
             SELECT symbol,reason,ts,status,
                    ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY ts DESC) latest
-            FROM signals
+            FROM signals WHERE ts>=?
         ) WHERE latest=1 AND status='SKIPPED' ORDER BY ts DESC LIMIT 5
-    """).fetchall()
+    """, (state['started_ms'],)).fetchall()
     if skips:
         lines += ['', '🚫 최근 매수 제외 · 종목별 최신 기록']
         lines += [f'{symbol} · {reason_text(reason)} ({clock(ts)})' for symbol,reason,ts in skips]
