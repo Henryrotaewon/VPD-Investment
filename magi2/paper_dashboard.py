@@ -10,7 +10,7 @@ from magi2.paper_performance import (load_results, readonly, clock, timestamp,
 NAMES = {'vpd': 'VPD', 'fast': 'FAST base', 'indicator': '지표가속',
          'bollinger': '더블볼린저·CCI', 'bear': 'FAST-BEAR',
          'derivatives': 'FAST-DERIVATIVES'}
-SECTIONS = {'results': '투자결과', 'status': '투자전략현황', 'guide': '투자전략세부'}
+SECTIONS = {'results': '투자결과', 'status': '투자전략세부', 'guide': '전략 설명'}
 PAGE_SIZE = 4
 
 
@@ -50,39 +50,40 @@ def keyboard(section=None, key=None, offset=0, total=0):
     return {'inline_keyboard': rows}
 
 
-def menu():
+def menu(root, now):
+    """The first PAPER screen is the actual report, with the bottom navigation."""
     from magi2.telegram_ui import paper_keyboard
-    return ('모의투자현황 [PAPER]\n\n'
-            '투자결과 · 전략별 원금, 평가금액, 수익률, 승률\n'
-            '투자전략현황 · 보유, 포착·매수 시각, 목표, 최근 매매\n'
-            '투자전략세부 · 포착 조건과 매수·매도 방식\n\n'
-            'VPD 자동 리밸런싱: 매일 07:30 KST\n'
-            'FAST base: 재시작 이후 성과 집계', paper_keyboard())
+    text, _ = view(root, now, 'results')
+    return text, paper_keyboard()
 
 
 def money(value):
     return '확인 대기' if value is None else f'{value:,.0f}원'
 
 
-def result_lines(root, key, now):
+def result_lines(root, key, now, compact=False):
     lines = ['• '+NAMES[key]]
     if key in ('bear', 'derivatives'):
         from magi2.fast_models.report import load, wins
         try:
             _, m, _, trades = load(root, key)
+            if m['initial'] <= 0:
+                raise ValueError('INVALID_INITIAL_CAPITAL')
             fresh = m['valid'] and 0 <= now-m['last_ms'] <= 120000
             lines += [f"투자원금 {money(m['initial'])} · 평가 {money(m['equity'])}",
-                      f"수익률 {(m['equity']/m['initial']-1)*100:+.2f}% · 승률 {wins(trades)}",
+                      f"수익률 {(m['equity']/m['initial']-1)*100:+.2f}% · 승률 {wins(trades)}"+('' if fresh else ' · 최근 관측값'),
                       f"MDD {m['mdd']:.2f}%"+(' · 관측 공백 포함' if m['gap'] else ''),
                       f"시작 {clock(m['started_ms'])} · 평가 {clock(m['last_ms'])}"+('' if fresh else ' · 최근 관측값')]
         except (OSError, sqlite3.Error, ValueError, KeyError, TypeError, IndexError):
             lines.append('원장 준비 중 · 성과 확인 대기')
-        return lines
+        return lines[:3] if compact else lines
     r = load_results(root, key, now)
-    base_label = '성과 기준자산' if key == 'fast' else '투자원금'
+    base_label = ('기준원금*' if compact else '성과 기준자산') if key == 'fast' else '투자원금'
     equity = r.current.equity if r.current else None
     lines += [f'{base_label} {money(r.initial)} · 평가 {money(equity)}',
               f'수익률 {return_text(r.current,r.initial)} · 승률 {win_text(r.trades,r.wins_complete)}']
+    if compact:
+        return lines
     if r.started:
         lines.append(f'시작 {clock(r.started)} · 평가 {clock(r.current.ts) if r.current else "대기"}')
     if key == 'fast':
@@ -237,13 +238,13 @@ def status_data(root, key, now):
 def view(root, now, section, key=None, offset=0):
     if section not in SECTIONS or (key is not None and key not in NAMES):
         raise ValueError('UNKNOWN_PAPER_VIEW')
-    lines = [SECTIONS[section]+' [PAPER]', '모든 시각 KST', '']
+    title = '모의투자현황 · 투자결과' if section=='results' and key is None else SECTIONS[section]
+    lines = [title+' [PAPER]', '조회 '+clock(now)+' KST', '']
     if section == 'results':
         for k in ([key] if key else NAMES):
-            lines += result_lines(root,k,now)+['']
-        lines += ['수익률: 보유 평가 포함 / 전략별 기준자산',
-                  '승률: 비용 차감 후 전량 청산 기준 · 분할매도 합산',
-                  '전략별 시작일이 달라 단순 순위 비교에 유의하세요.']
+            lines += result_lines(root,k,now,compact=key is None)+['']
+        lines += ['* FAST base 원금·성과는 재시작 기준',
+                  '수익률: 보유평가 포함 · 승률: 비용 차감 후 전량 청산 기준']
         markup = keyboard(section,key)
         if key in ('vpd','fast','indicator','bollinger'):
             markup['inline_keyboard'].insert(0,[button('일별 결과',f'performance:{key}:0')])
@@ -252,18 +253,18 @@ def view(root, now, section, key=None, offset=0):
         return '\n'.join(lines),markup
     if not key:
         lines.append('확인할 전략을 선택하세요.')
-        if section == 'status': lines.append('보유종목 · 포착/진입 시각 · 목표 · 최근 손익매매')
+        if section == 'status': lines.append('보유종목 · 포착일시 · 목표수익률 · 최근 손익매매이력')
         else: lines.append('각 전략의 포착·매수·매도 조건을 설명합니다.')
         return '\n'.join(lines),keyboard(section)
     if section == 'guide':
-        return guide(key),keyboard(section,key)
+        return '전략 설명 · '+guide(key),keyboard(section,key)
     lines.append(NAMES[key])
     try:
         holdings, recent, notes = status_data(root,key,now)
         offset = min(max(0,offset)//PAGE_SIZE*PAGE_SIZE,max(0,(len(holdings)-1)//PAGE_SIZE*PAGE_SIZE))
         lines += notes+['', f'보유 {len(holdings)}종목']
         lines += holdings[offset:offset+PAGE_SIZE] or ['보유 없음']
-        lines += ['', '최근 매매 (최대 5건 · 매도는 비용 차감 실현손익)']+(recent or ['매매 기록 없음'])
+        lines += ['', '최근 손익매매이력 (최대 5건 · 매도는 비용 차감 실현손익)']+(recent or ['매매 기록 없음'])
         return '\n'.join(lines),keyboard(section,key,offset,len(holdings))
     except (OSError,sqlite3.Error,ValueError,KeyError,TypeError,IndexError):
         return '\n'.join(lines+['원장 준비 중 또는 갱신 중 · 현황 확인 대기']),keyboard(section,key)

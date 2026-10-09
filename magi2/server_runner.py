@@ -196,7 +196,7 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v24; reply_hierarchy=true; unified_system_info=true')
+    log('MAGI Telegram menu registered: Korean v25; paper_home=performance_report; strategy_detail=holdings')
 
 
 def refresh_telegram_keyboard():
@@ -204,7 +204,7 @@ def refresh_telegram_keyboard():
     marker=STATE_DIR/'telegram_keyboard.json'
     markup=main_keyboard()
     labels=[b['text'] for row in markup['keyboard'] for b in row]
-    expected={'version':'magi-menu-v24','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME,'buttons':labels}
+    expected={'version':'magi-menu-v25','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME,'buttons':labels}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
@@ -212,12 +212,12 @@ def refresh_telegram_keyboard():
         'text':'이전 하단 버튼을 정리합니다.', 'reply_markup':{'remove_keyboard':True},
         'disable_notification':True})
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'MAGI 하단 메뉴를 교체했습니다.\n모의투자현황을 누르면 투자결과·투자전략현황·투자전략세부 버튼이 열립니다.\nMAGI 설명과 시스템 상태는 MAGI 안내·상태에서 함께 확인하세요.',
+        'text':'모의투자현황에서 모든 전략의 원금·평가금액·수익률·승률을 바로 보여드립니다.\n투자전략세부에서 보유·포착·목표·최근 손익매매를 확인하세요. 매매 방식은 전략 설명으로 옮겼습니다.',
         'reply_markup':markup})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard replaced: magi-menu-v24; cleared=true; buttons='+json.dumps(labels,ensure_ascii=False))
+    log('MAGI reply keyboard replaced: magi-menu-v25; cleared=true; buttons='+json.dumps(labels,ensure_ascii=False))
 
 
 def start_regime_job():
@@ -493,7 +493,7 @@ def handle_command(text,chat_id=None,user_id=None):
         if text.strip() in LEGACY_PAPER_BUTTONS:
             from magi2.paper_dashboard import menu, view
             key=LEGACY_PAPER_BUTTONS[text.strip()]
-            telegram(*menu())
+            telegram(*menu(STATE_DIR,time.time_ns()//1000000))
             if key=='shadow':
                 telegram('Shadow 검증 · 자산과 최근 매매',shadow_keyboard())
             else:
@@ -505,7 +505,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram(help_text() if cmd=='help' else 'MAGI 메뉴\n실투자 현황 · 모의투자현황 · 시장국면\n아래에서 확인할 항목을 선택하세요.',main_keyboard())
         elif cmd=='paper':
             from magi2.paper_dashboard import menu
-            telegram(*menu())
+            telegram(*menu(STATE_DIR,time.time_ns()//1000000))
         elif cmd in ('paper_results','paper_status','paper_guide'):
             from magi2.paper_dashboard import view
             telegram(*view(STATE_DIR,time.time_ns()//1000000,cmd.removeprefix('paper_')))
