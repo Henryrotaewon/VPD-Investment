@@ -70,6 +70,7 @@ class Observer:
         self.paper = None
         self.experiment = None
         self.bollinger = None
+        self.models = None
         self.paper_retry_armed = {}
         self.fast_disabled = bool(self.db.execute("SELECT 1 FROM meta WHERE key='fast_disabled' AND value='true'").fetchone())
         self.received_ms = int(start)
@@ -88,7 +89,8 @@ class Observer:
     def papers(self):
         return (([self.paper] if self.paper else []) +
                 (list(self.experiment.accounts.values()) if self.experiment else []) +
-                ([self.bollinger] if self.bollinger else []))
+                ([self.bollinger] if self.bollinger else []) +
+                ([self.models.bear] if self.models else []))
 
     def disable_fast(self, ts):
         self.fast_disabled=True
@@ -108,6 +110,7 @@ class Observer:
         self.groups[group] = ts
         if self.bollinger:
             self.bollinger.connected(symbols, ts)
+        if self.models:self.models.bear.connected(symbols, ts)
         for s in symbols:
             self.symbol_group[s] = group
             self.symbol_since[s] = ts
@@ -148,8 +151,9 @@ class Observer:
             return
         stamp = int(message.get('trade_timestamp', message.get('timestamp', 0)))
         if not 0 <= received - stamp <= POLICY['max_feed_age_ms']:
-            if self.bollinger and message.get('type') == 'trade' and message.get('stream_type') != 'SNAPSHOT':
-                self.bollinger.invalidate_candles(s, received)
+            if message.get('type') == 'trade' and message.get('stream_type') != 'SNAPSHOT':
+                if self.bollinger:self.bollinger.invalidate_candles(s, received)
+                if self.models:self.models.bear.invalidate_candles(s, received)
             for paper in self.papers:
                 if s in paper.s['pending'] or (s in paper.s['positions'] and not paper.s['positions'][s]['uncertain']):
                     paper.gap([s], received, 'STALE_FEED')
@@ -193,6 +197,9 @@ class Observer:
                 raise ValueError('INVALID_SIDE')
             if self.bollinger:
                 self.bollinger.candle_trade(s, received, price, qty, stamp, ident)
+            if self.models:
+                self.models.bear.candle_trade(s, received, price, qty, stamp, ident)
+                self.models.bear.trade_side(s, price, qty, stamp, message['ask_bid'])
             b = self.bar(s); b['value'] += price * qty; b['count'] += 1
             b['o'] = price if b['o'] is None else b['o']; b['h'] = max(b['h'] or price,price)
             b['l'] = min(b['l'] or price,price); b['c'] = price; b['volume'] += qty
@@ -408,6 +415,9 @@ async def run(args):
         from magi1.bollinger_paper import BollingerPaper
         observer.bollinger = BollingerPaper(args.bollinger_db, now_ms())
         print(json.dumps(observer.bollinger.report(now_ms())), flush=True)
+    if getattr(args, 'models_dir', None):
+        from magi2.fast_models.runtime import Models
+        observer.models = Models(args.models_dir, now_ms())
     if getattr(args,'disable_fast',False) or observer.fast_disabled:
         observer.disable_fast(now_ms())
         print(json.dumps(dict(mode='FAST_USER_STOPPED',captures=False,new_trades=False,
@@ -445,8 +455,11 @@ async def run(args):
                 except Exception as exc:
                     observer.gap(group, now_ms(), type(exc).__name__)
                     await asyncio.sleep(backoff); backoff = min(30, backoff*2)
-        tasks = [];repair_task=None;bollinger_task=None
+        tasks = [];repair_task=None;bollinger_task=None;models_task=None
         try:
+            if observer.models:
+                models_task=asyncio.create_task(observer.models.run(session,symbols))
+                tasks.append(models_task)
             if getattr(args,'repair',False) and not observer.fast_disabled:
                 from magi1.fast_repair import Repair
                 repair_task=asyncio.create_task(Repair(observer,symbols,args.db).run())
@@ -461,6 +474,9 @@ async def run(args):
             stop = time.monotonic() + args.duration
             last_report = 0
             while getattr(args,'continuous',False) or time.monotonic() < stop:
+                if models_task and models_task.done():
+                    models_task.result()
+                    raise RuntimeError('FAST_MODELS_WORKER_STOPPED')
                 if repair_task and repair_task.done():
                     repair_task.result()
                     raise RuntimeError('REPAIR_WORKER_STOPPED')
@@ -492,6 +508,7 @@ def main():
     parser.add_argument('--disable-fast',action='store_true',help='Persistently stop FAST captures and entries, retaining exits and Bollinger')
     parser.add_argument('--experiment-dir', help='Isolated paired early-entry PAPER ledgers')
     parser.add_argument('--paper-db', help='Separate candidate-v1 PAPER ledger; no real order API')
+    parser.add_argument('--models-dir', help='Independent FAST-BEAR and FAST-DERIVATIVES paper accounts')
     parser.add_argument('--bollinger-db', help='Separate Double Bollinger + CCI PAPER ledger')
     args = parser.parse_args()
     if not 1 <= args.duration <= 86400:

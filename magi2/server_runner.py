@@ -478,6 +478,9 @@ def handle_command(text,chat_id=None,user_id=None):
             from magi2.fast_observe_service import view as fast_watch_view
             from magi2.fast_flow_paper_report import keyboard as fast_paper_keyboard
             telegram(fast_watch_view(STATE_DIR),fast_paper_keyboard())
+        elif cmd in ('fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data'):
+            from magi2.fast_models.report import view as models_view
+            telegram(*models_view(STATE_DIR,time.time_ns()//1000000,cmd))
         elif cmd=='fast_paper':
             from magi2.fast_flow_paper_report import menu as fast_paper_menu
             telegram(*fast_paper_menu())

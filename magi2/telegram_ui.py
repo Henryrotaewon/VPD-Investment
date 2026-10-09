@@ -11,6 +11,11 @@ BOT_DESCRIPTION = ('MAGI — 코인 시장 분석과 투자 현황을 한곳에�
     '모의투자와 실제 자산을 구분해 확인하세요. /menu로 시작합니다.')
 
 COMMANDS = [
+    ('fast_models','FAST 두 모델 승률·수익률·MDD 비교'),
+    ('fast_derivatives','FAST-DERIVATIVES 현선물 모의투자'),
+    ('fast_bear','FAST-BEAR 하락장 반등 모의투자'),
+    ('fast_model_daily','FAST 두 모델 일별 비교'),
+    ('fast_model_data','현물·선물 데이터 수집 점검'),
     ('fast_paper', 'FAST 모의투자 메뉴'),
     ('help', 'MAGI 도움말 · 전체 명령어'), ('about', 'MAGI 소개 · 역할별 메뉴'), ('menu', '버튼 메뉴 열기'),
     ('status', 'MAGI1·2·3 상태 선택'), ('vpd', 'VPD 모의투자 메뉴'), ('report', 'VPD 모의투자 현황'),
@@ -45,6 +50,7 @@ LABELS = {
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    'fast-derivatives':'fast_derivatives', 'fast-bear':'fast_bear',
     '⚡ fast 포착·추적': 'fast_watch',
     'fast모의투자': 'fast_paper', '⚡ fast 모의투자': 'fast_paper',
     'fast 관측': 'fast_watch', 'fast 추적': 'fast_watch',
@@ -170,7 +176,10 @@ def help_text():
             '/indicator — 지표가속 모의투자 메뉴\n/indicator_rebuild — 유효 후보만 전량교체 · 부족분 현금 유지\n/indicator_refill — 유효 후보로 가능한 빈자리만 채우기\n/fast — 지표가속 메뉴의 기존 명령 호환\n/signals · /fast_captures — 지표가속 포착 이력 (기존 실험 07:30 집계)\n/fast_compare — 지표가속 관측 상태\n/fast_report — 지표가속 총 자산·누적 수익률·보유 종목별 현재 순손익\n/fast_balance — 지표가속 거래소별 잔고·오늘 손익\n/fast_orders — 지표가속 모의 거래 상세\n/fast_clear — 재확인 후 일괄정리 및 포착정지\n/fast_start — 지표가속 시작 (현재 설계 검토로 실행 중지)\n/fast_daily — 지표가속 전일 결과 (매일 07:30 KST 집계)\n/fast_replay — FAST 과거 재생검증\n/wave — 지표가속 전략 설명\n/strategies — VPD·FAST·지표가속·더블볼린저 누적·일별 승률과 수익률\n'
             '지표가속과 FAST는 별도 전략입니다. FAST 모의투자는 /fast_paper에서 확인합니다.\n'
             '/bollinger_orders — 더블볼린저·CCI 매수·매도 이력과 청산 손익\n'
-            '/fast_paper_balance — FAST 자산현황\n'
+            '/fast_models — 두 FAST 모델 승률·수익률·MDD 비교\n'
+        '/fast_derivatives · /fast_bear — 독립 모의투자 현황\n'
+        '/fast_model_daily · /fast_model_data — 일별 비교·수집 점검\n'
+        '/fast_paper_balance — FAST 자산현황\n'
             '/fast_watch — FAST 포착·추적\n'
             '/fast_paper_orders — FAST 매매기록·매수 제외 사유\n'
             '/fast_paper_daily — FAST 일별평가\n'
