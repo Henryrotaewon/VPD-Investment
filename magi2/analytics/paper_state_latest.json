@@ -200,10 +200,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 84.3,
+      "last_price": 84.1,
       "peak_price": 88.3,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "BREV": {
       "market": "KRW-BREV",
@@ -3077,7 +3077,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 90.2,
+      "last_price": 90.0,
       "peak_price": 91.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4891,7 +4891,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 96.0,
+      "last_price": 95.8,
       "peak_price": 97.8,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -5618,7 +5618,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 81.9,
+      "last_price": 81.4,
       "peak_price": 81.9,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -7053,7 +7053,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-09T09:43:32.010236+09:00",
+  "updated_at": "2026-10-09T09:48:33.314108+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
