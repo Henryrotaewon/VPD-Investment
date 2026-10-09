@@ -83,8 +83,8 @@ class DashboardTests(unittest.TestCase):
 
     def test_top_menu_and_refresh_removed_from_legacy_send(self):
         labels=[b['text'] for row in main_keyboard()['keyboard'] for b in row]
-        self.assertEqual(labels,['실투자 현황','모의투자현황','시장국면 (MAGI1)'])
-        self.assertEqual([parse_command(x) for x in labels],['assets','paper','regime'])
+        self.assertEqual(labels,['실투자 현황','모의투자현황','시장국면 (MAGI1)','MAGI 안내·상태'])
+        self.assertEqual([parse_command(x) for x in labels],['assets','paper','regime','system_info'])
         mark={'inline_keyboard':[[dict(text='새로고침',callback_data='nav:paper')],[dict(text='🔄 다시 조회',callback_data='nav:regime')],[dict(text='다음 ▶',callback_data='nav:paper')]]}
         self.assertEqual(len(clean_markup(mark)['inline_keyboard']),1)
         with patch.object(server,'BOT_TOKEN','test'),patch.object(server,'ALLOWED_CHAT_ID','7'),patch.object(server,'telegram_api') as api:

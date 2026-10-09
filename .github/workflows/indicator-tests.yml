@@ -19,7 +19,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python -m compileall -q magi2
-      - run: python -m unittest tests.test_paper_dashboard tests.test_vpd_schedule -v
+      - run: python -m unittest tests.test_paper_dashboard tests.test_vpd_schedule tests.test_keyboard_hierarchy -v
       - run: python -m unittest tests.test_fast_models -v
       - run: python -m unittest tests.test_indicator_rebalance tests.test_quantity_display tests.test_accounts_summary tests.test_telegram_ui -v
       - run: python -m unittest discover -s tests -p 'test_hourly_indicator.py' -v

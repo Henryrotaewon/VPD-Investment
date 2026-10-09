@@ -41,3 +41,30 @@ First eligible scheduled start after the midnight deployment: 2026-10-10 07:30
 KST (2026-10-09 22:30 UTC). Completion follows the scan and is not guaranteed at
 07:30 precisely. Runtime startup logs announce the schedule without triggering
 an immediate rebalance outside the window.
+
+## v24 correction: bottom keyboard hierarchy
+
+The user's post-v23 screenshot still showed the old nine-button bottom keyboard.
+The v23 send was accepted, but that did not establish that the client displayed
+the new keyboard. v24 explicitly sends `ReplyKeyboardRemove` and then the new
+`ReplyKeyboardMarkup`, recording success only after both requests succeed.
+The migration marker and runtime log now include the actual button labels.
+See Telegram's [ReplyKeyboardRemove API](https://core.telegram.org/bots/api#replykeyboardremove).
+
+The main bottom keyboard contains 실투자 현황, 모의투자현황, 시장국면 (MAGI1),
+and the combined MAGI 안내·상태. Selecting 모의투자현황 replaces the bottom
+keyboard with 투자결과, 투자전략현황, 투자전략세부 and ↩️ 메인 메뉴.
+Strategy selectors and pagination remain attached to their result messages.
+Pressing a stale FAST/VPD/Indicator/Shadow/strategy button also replaces the bottom
+keyboard and routes to the new PAPER hierarchy. Explicit legacy commands and
+confirmed manual execution remain supported.
+
+`about`, `status` and `system_info` now open one combined role/state page. Network
+checks run in a separate worker, so waiting for MAGI1/MAGI3 does not block the
+Telegram polling loop or trading workers. Repeated requests share one pending
+job. Missing connections remain labeled unavailable. The slash menu advertises
+only the four top-level entries; old help/menu commands still resolve.
+
+Regression coverage includes clear-then-replace order, failure of the second
+send with retry, persistent parent/child/back button transitions, stale-button
+migration, merged asynchronous status and unauthorized callbacks.

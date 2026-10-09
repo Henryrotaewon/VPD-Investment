@@ -51,12 +51,13 @@ def keyboard(section=None, key=None, offset=0, total=0):
 
 
 def menu():
+    from magi2.telegram_ui import paper_keyboard
     return ('모의투자현황 [PAPER]\n\n'
             '투자결과 · 전략별 원금, 평가금액, 수익률, 승률\n'
             '투자전략현황 · 보유, 포착·매수 시각, 목표, 최근 매매\n'
             '투자전략세부 · 포착 조건과 매수·매도 방식\n\n'
             'VPD 자동 리밸런싱: 매일 07:30 KST\n'
-            'FAST base: 재시작 이후 성과 집계', keyboard())
+            'FAST base: 재시작 이후 성과 집계', paper_keyboard())
 
 
 def money(value):
