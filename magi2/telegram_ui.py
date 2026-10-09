@@ -44,8 +44,8 @@ COMMANDS = [
 # Old commands remain accepted, but only the concise navigation is advertised.
 LEGACY_COMMANDS = COMMANDS
 COMMANDS = [('assets','실투자 현황'), ('paper','모의투자현황'),
-            ('regime','시장국면 (MAGI1)'), ('menu','메인 메뉴'), ('help','도움말')]
-MAIN_LABELS = {'실투자 현황':'assets', '모의투자현황':'paper', '시장국면 (MAGI1)':'regime'}
+            ('regime','시장국면 (MAGI1)'), ('system_info','MAGI 안내·상태')]
+MAIN_LABELS = {'실투자 현황':'assets', '모의투자현황':'paper', '시장국면 (MAGI1)':'regime', 'MAGI 안내·상태':'system_info'}
 LABELS = {
     **MAIN_LABELS,
     '⚡ FAST 모의투자': 'fast_paper',
@@ -57,6 +57,8 @@ LABELS = {
 }
 ALIASES = {
     '실투자현황':'assets', '모의투자 현황':'paper', '시장국면':'regime',
+    '↩️ 메인 메뉴':'menu', '메인 메뉴':'menu',
+    'magi 안내·상태':'system_info', 'magi 설명':'system_info', '시스템상태':'system_info',
     '투자결과':'paper_results', '투자전략현황':'paper_status', '투자전략세부':'paper_guide',
     'fast-derivatives':'fast_derivatives', 'fast-bear':'fast_bear',
     '⚡ fast 포착·추적': 'fast_watch',
@@ -114,8 +116,23 @@ def parse_command(text, bot_username=''):
 
 def main_keyboard():
     return {'keyboard': [[{'text': label}] for label in MAIN_LABELS],
-            'resize_keyboard': True, 'is_persistent': True,
+            'resize_keyboard': True, 'is_persistent': True, 'one_time_keyboard': False,
             'input_field_placeholder': '확인할 메뉴를 선택하세요'}
+
+
+def paper_keyboard():
+    return {'keyboard': [[{'text': label}] for label in
+                         ('투자결과','투자전략현황','투자전략세부','↩️ 메인 메뉴')],
+            'resize_keyboard': True, 'is_persistent': True, 'one_time_keyboard': False,
+            'input_field_placeholder': '모의투자 · 확인할 항목을 선택하세요'}
+
+
+# Stale client buttons repair the bottom keyboard and enter the unified view.
+LEGACY_PAPER_BUTTONS = {
+    '⚡ FAST 모의투자':'fast', '📊 VPD 모의투자':'vpd',
+    '지표가속 모의투자':'indicator', '🧭 전략검증':'results',
+    '🧪 shadows 모의투자':'shadow',
+}
 
 
 def clean_markup(markup):
@@ -128,27 +145,14 @@ def clean_markup(markup):
 
 
 def role_text():
-    return ('🧩 MAGI — 시장 관측 · 전략 검증 · 실행 관리\n\n'
-            'MAGI1 · 시장 관측\n시세·체결·호가와 수급 자료를 관측합니다.\n'
-            '온체인 관측은 참고 자료이며 새 지표 전략의 매수 신호와 구분합니다.\n\n'
-            'MAGI2 · 전략 검증\nVPD 분석과 PAPER 모의투자를 수행합니다. '
-            '지표가속은 일봉 회복을 1시간 간격으로 두 번 확인해 진입하고, 추세청산·초기 보호선으로 매도하는 PAPER 전략입니다. '
-            'FAST는 단기 수급 신호로 진입하고 보호선·수급 약화로 청산하는 별도 PAPER 후보 전략입니다. 초기 300만원을 최대 10종목에 배분합니다.\n\n'
-            'MAGI3 · 자산·실행 관리\n실계좌 잔고와 Shadow 모의 체결을 구분합니다. '
-            '실거래 활성화 여부는 시스템 상태에서 확인하세요.\n\n'
-            '아래 조회 메뉴는 매매를 시작하지 않습니다.')
+    return ('MAGI 안내·상태\n\n'
+            'MAGI1 · 시장 관측\n시세·수급·시장국면 분석\n\n'
+            'MAGI2 · 전략 운용\nVPD·FAST·지표가속 등 모의투자와 성과 검증\n\n'
+            'MAGI3 · 자산·실행 관리\n실계좌 조회와 Shadow 모의체결 관리')
 
 
 def role_keyboard():
-    groups = [
-        [('⚡ FAST 모의투자','fast_paper')],
-        [('MAGI2 · VPD 조회','scan'), ('MAGI2 · VPD 모의투자','vpd')],
-        [('MAGI3 · 실계좌 자산','assets'), ('MAGI3 · shadows 모의투자','shadows')],
-        [('🧭 시장 국면 · 투자 참고','regime')],
-        [('MAGI1 상태','status1'), ('MAGI2 상태','status2'), ('MAGI3 상태','status3')],
-    ]
-    return {'inline_keyboard': [[{'text': label, 'callback_data': 'nav:'+cmd}
-                                for label,cmd in row] for row in groups]}
+    return status_keyboard()
 
 
 def shadow_keyboard():
@@ -174,7 +178,8 @@ def status_keyboard():
     return {'inline_keyboard': [[{'text': label, 'callback_data': 'nav:'+command}]
         for label, command in [('MAGI1 · 시세·관측', 'status1'),
                                ('MAGI2 • 전략 • 검증', 'status2'),
-                               ('MAGI3 · 계좌·실행', 'status3')]]}
+                               ('MAGI3 · 계좌·실행', 'status3')]] +
+        [[{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}]]}
 
 
 def scan_keyboard():
@@ -191,10 +196,11 @@ def help_text():
             '  투자전략현황: 보유·포착 시각·목표·최근 매매\n'
             '  투자전략세부: 포착·매수·매도 방식\n'
             '/regime — 시장국면 (MAGI1)\n'
+            '/system_info — MAGI 안내·상태\n'
             '/menu — 메인 메뉴\n/help — 이 안내\n\n'
             'VPD 자동 리밸런싱: 매일 오전 7시 30분 KST\n'
             '수동 운용은 투자전략현황 → VPD/지표가속에서 확인 후 실행합니다.\n'
-            '기존 명령도 계속 사용할 수 있습니다. /status — 시스템 상태')
+            '기존 /about · /status도 MAGI 안내·상태로 연결됩니다.')
 
 
 def observation_text(rows,view='signals'):

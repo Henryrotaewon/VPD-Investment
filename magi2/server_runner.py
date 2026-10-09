@@ -15,7 +15,7 @@ import requests
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from magi2.latency import TimedExecutor, timed, span, emit, trace
-from magi2.telegram_ui import (COMMANDS, Confirmations, clean_markup, help_text, main_keyboard,
+from magi2.telegram_ui import (COMMANDS, LEGACY_PAPER_BUTTONS, Confirmations, clean_markup, help_text, main_keyboard, paper_keyboard,
     scan_keyboard, status_keyboard, vpd_keyboard, shadow_keyboard, role_text, role_keyboard, BOT_NAME, BOT_DESCRIPTION, BOT_SHORT_DESCRIPTION, parse_command, magi3_status, validation_text, observation_text)
 from magi2.strategy_guide import strategy_keyboard, strategy_text
 from magi2.execution_client import view as execution_view
@@ -41,6 +41,8 @@ CONFIRMATIONS=Confirmations()
 EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='paper-engine')
 SCAN_EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='vpd-request-scan')
 REGIME_EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='market-regime-view')
+SYSTEM_EXECUTOR=TimedExecutor(max_workers=1,thread_name_prefix='system-overview')
+SYSTEM_JOB=None
 REGIME_JOB=None
 SCAN_JOB=None
 SCAN_CONTEXT=None
@@ -194,23 +196,28 @@ def setup_telegram_menu():
     # Telegram custom menu buttons are private-chat only; slash commands work in groups too.
     if not ALLOWED_CHAT_ID.startswith('-'):
         telegram_api('setChatMenuButton',{'chat_id':ALLOWED_CHAT_ID,'menu_button':{'type':'commands'}})
-    log('MAGI Telegram menu registered: Korean v23; unified_paper=true; top_menu=3')
+    log('MAGI Telegram menu registered: Korean v24; reply_hierarchy=true; unified_system_info=true')
 
 
 def refresh_telegram_keyboard():
     """Replace a client's persistent legacy keyboard once per menu/chat version."""
     marker=STATE_DIR/'telegram_keyboard.json'
-    expected={'version':'magi-menu-v23','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME}
+    markup=main_keyboard()
+    labels=[b['text'] for row in markup['keyboard'] for b in row]
+    expected={'version':'magi-menu-v24','chat_id':ALLOWED_CHAT_ID,'bot_username':BOT_USERNAME,'buttons':labels}
     try:
         if load_json(marker)==expected: return
     except (OSError,ValueError): pass
     telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
-        'text':'메뉴를 실투자 현황 · 모의투자현황 · 시장국면으로 정리했습니다. 모의투자 아래에서 투자결과·전략현황·전략세부를 확인하세요. VPD는 매일 07:30 KST 자동 리밸런싱합니다.',
-        'reply_markup':main_keyboard()})
+        'text':'이전 하단 버튼을 정리합니다.', 'reply_markup':{'remove_keyboard':True},
+        'disable_notification':True})
+    telegram_api('sendMessage',{'chat_id':ALLOWED_CHAT_ID,
+        'text':'MAGI 하단 메뉴를 교체했습니다.\n모의투자현황을 누르면 투자결과·투자전략현황·투자전략세부 버튼이 열립니다.\nMAGI 설명과 시스템 상태는 MAGI 안내·상태에서 함께 확인하세요.',
+        'reply_markup':markup})
     marker.parent.mkdir(parents=True,exist_ok=True)
     temporary=marker.with_suffix('.tmp')
     temporary.write_text(json.dumps(expected),encoding='utf-8'); temporary.replace(marker)
-    log('MAGI reply keyboard refreshed: magi-menu-v23')
+    log('MAGI reply keyboard replaced: magi-menu-v24; cleared=true; buttons='+json.dumps(labels,ensure_ascii=False))
 
 
 def start_regime_job():
@@ -221,7 +228,7 @@ def start_regime_job():
     # Separate worker: public-data waits never occupy PAPER or FAST workers.
     REGIME_JOB=REGIME_EXECUTOR.submit(regime_view)
     log('market_regime requested: read_only=true')
-    telegram('🧭 최신 일봉으로 시장 국면을 조회하고 있습니다.')
+    telegram('🧭 최신 일봉으로 시장 국면을 조회하고 있습니다.',main_keyboard())
 
 
 def finish_regime_job():
@@ -237,6 +244,45 @@ def finish_regime_job():
     try: telegram(message,regime_keyboard())
     finally: trace.reset(token)
     log('market_regime completed: read_only=true')
+
+
+def system_overview(running):
+    """Slow interface checks stay in their own read-only worker."""
+    path=os.getenv('MAGI1_INTELLIGENCE_PATH','').strip()
+    url=os.getenv('MAGI1_INTELLIGENCE_URL','').strip()
+    try:
+        rows=(load_intelligence(path,int(time.time()*1000)) if path else
+              fetch_intelligence(url,os.getenv('MAGI_INTELLIGENCE_TOKEN',''),int(time.time()*1000)))
+        observation=f'관측 인터페이스 정상 · 최근 {len(rows)}건'
+    except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
+        observation='관측 인터페이스 확인 대기 (연결·자료 시각 점검 필요)'
+    execution=execution_view('magi3')
+    return (role_text()+f'\n\n현재 상태 · {datetime.now(KST):%m/%d %H:%M:%S} KST\n'
+            f'MAGI1: {observation}\n'
+            f'MAGI2: 응답 중 · PAPER 작업 {running} · 모니터 {INTERVAL}초\n'
+            'VPD 자동 리밸런싱: 매일 07:30 KST\n\n'+execution)
+
+
+def start_system_job():
+    global SYSTEM_JOB
+    if SYSTEM_JOB is None:
+        running=ENGINE_MODE if ENGINE_JOB is not None and not ENGINE_JOB.done() else '대기'
+        if SCAN_JOB is not None: running='VPD 스캔 중 / '+str(running)
+        SYSTEM_JOB=SYSTEM_EXECUTOR.submit(system_overview,running)
+        log('system_overview requested: read_only=true; background=true')
+    telegram('MAGI 안내·상태를 확인하고 있습니다.',main_keyboard())
+
+
+def finish_system_job():
+    global SYSTEM_JOB
+    if SYSTEM_JOB is None or not SYSTEM_JOB.done(): return
+    job=SYSTEM_JOB; SYSTEM_JOB=None
+    try: message=job.result()
+    except Exception as exc:
+        log(f'system_overview failed: {type(exc).__name__}')
+        message=role_text()+'\n\n현재 상태 조회 대기 · 아래에서 상세 상태를 확인하세요.'
+    telegram(message,status_keyboard())
+    log('system_overview completed: read_only=true')
 
 
 def start_engine(mode,request_id=None):
@@ -444,6 +490,17 @@ def handle_command(text,chat_id=None,user_id=None):
     cmd=parse_command(text,BOT_USERNAME)
     chat_id=str(chat_id or ALLOWED_CHAT_ID)
     try:
+        if text.strip() in LEGACY_PAPER_BUTTONS:
+            from magi2.paper_dashboard import menu, view
+            key=LEGACY_PAPER_BUTTONS[text.strip()]
+            telegram(*menu())
+            if key=='shadow':
+                telegram('Shadow 검증 · 자산과 최근 매매',shadow_keyboard())
+            else:
+                telegram(*view(STATE_DIR,time.time_ns()//1000000,
+                              'results' if key=='results' else 'status',None if key=='results' else key))
+            log('legacy_reply_button migrated: paper_hierarchy=true')
+            return
         if cmd in ('help','menu'):
             telegram(help_text() if cmd=='help' else 'MAGI 메뉴\n실투자 현황 · 모의투자현황 · 시장국면\n아래에서 확인할 항목을 선택하세요.',main_keyboard())
         elif cmd=='paper':
@@ -456,7 +513,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n매일 07:30 KST 자동 리밸런싱\n'
                      '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\nVPD 재스캔: 현재 시점 분석만 새로 수행 · 매매 없음\n리밸런싱: 요청 시점 새 스캔 후 보유 종목 재조정\n종목 리필: 빈자리 채우기\n전량 교체: 모두 매도 후 새 VPD TOP10으로 균등 재구성\n'
                      '실행 버튼을 누르면 먼저 확인 화면이 열립니다.',vpd_keyboard())
-        elif cmd=='about': telegram(role_text(),role_keyboard())
+        elif cmd in ('system_info','about','status'): start_system_job()
         elif cmd=='scan': telegram('🔎 어떤 VPD 저장본을 조회할까요?',scan_keyboard())
         elif cmd=='morning_scan': return_magi1_state('morning')
         elif cmd=='evening_scan': return_magi1_state('evening')
@@ -490,8 +547,6 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd=='cancel':
             CONFIRMATIONS.cancel(chat_id,user_id)
             telegram('대기 중인 실행 확인을 취소했습니다. 이미 진행 중인 작업은 계속됩니다.')
-        elif cmd=='status':
-            telegram('🤖 시스템 상태 — 확인할 MAGI를 선택하세요.',status_keyboard())
         elif cmd=='status1':
             path=os.getenv('MAGI1_INTELLIGENCE_PATH','').strip()
             url=os.getenv('MAGI1_INTELLIGENCE_URL','').strip()
@@ -524,7 +579,7 @@ def handle_command(text,chat_id=None,user_id=None):
             telegram('🧪 shadows 모의투자\n현재 가상자산·손익과 최근 72시간 매매이력을 확인하세요.\n조회만 수행하며 모의매매를 시작하지 않습니다.',shadow_keyboard())
         elif cmd=='shadow': telegram(execution_view(cmd),shadow_keyboard())
         elif cmd=='orders': send_shadow_orders()
-        elif cmd=='assets': telegram(execution_view(cmd),{'inline_keyboard':[[{'text':'↩️ 메인 메뉴','callback_data':'nav:menu'}]]})
+        elif cmd=='assets': telegram(execution_view(cmd),main_keyboard())
         elif cmd=='strategies':
             from magi2.paper_dashboard import view as performance_view
             telegram(*performance_view(STATE_DIR,time.time_ns()//1000000,'results'))
@@ -672,7 +727,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('paper','paper_results','paper_status','paper_guide','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
+        if command in ('paper','paper_results','paper_status','paper_guide','system_info','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -813,6 +868,7 @@ def main():
         finish_engine_job()
         finish_scan_job()
         finish_regime_job()
+        finish_system_job()
         try: consume_scheduled_rebalance()
         except Exception as exc: log(f'VPD schedule error: {type(exc).__name__}')
         if time.monotonic()>=next_monitor:

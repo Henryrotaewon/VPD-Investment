@@ -59,6 +59,7 @@ class RoutingTests(unittest.TestCase):
         mocks=[p.start() for p in self.patches]
         self.send,self.api,self.start=mocks[-3:]
         self.addCleanup(lambda:[p.stop() for p in reversed(self.patches)])
+        info=patch.object(server,'start_system_job');self.info=info.start();self.addCleanup(info.stop)
 
     def callback(self,data,chat='7',user='7'):
         return {'id':'callback1','data':data,'from':{'id':user},
@@ -140,21 +141,24 @@ class RoutingTests(unittest.TestCase):
         self.start.assert_not_called()
 
     def test_status_selection_is_read_only_and_routes_all_three(self):
-        server.handle_command('status','7','7')
-        buttons=self.send.call_args.args[1]['inline_keyboard']
-        self.assertEqual(len(buttons),3)
+        for command in ('status','about','system_info','MAGI 안내·상태'):
+            server.handle_command(command,'7','7')
+        self.assertEqual(self.info.call_count,4)
+        from magi2.telegram_ui import status_keyboard
+        buttons=status_keyboard()['inline_keyboard']
+        self.assertEqual(len(buttons),4)
         with patch.object(server,'fetch_intelligence',return_value=[]), patch.object(server,'execution_view',return_value='MAGI3') as read:
-            for row in buttons:
+            for row in buttons[:3]:
                 server.handle_callback(self.callback(row[0]['callback_data']))
             read.assert_called_once_with('magi3')
         self.start.assert_not_called()
         labels=[b['text'] for row in main_keyboard()['keyboard'] for b in row]
-        self.assertIn('모의투자현황',labels)
-        self.assertIn('실투자 현황',labels)
-        self.assertNotIn('⚙️ 실행 상태',labels)
+        self.assertIn('MAGI 안내·상태',labels)
+        self.assertNotIn('🤖 시스템 상태',labels)
+        self.assertNotIn('🧩 MAGI 역할',labels)
 
     def test_vpd_submenu_routes_actions_through_confirmation(self):
-        server.handle_command('📊 VPD 모의투자','7','7')
+        server.handle_command('/vpd','7','7')
         self.start.assert_not_called()
         menu=self.send.call_args.args[1]['inline_keyboard']
         self.assertEqual(menu[0][0]['callback_data'],'nav:report')
