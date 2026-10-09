@@ -71,6 +71,10 @@ def view(state_dir, section='fast_paper'):
                           f"예수금 {s['cash']:,.0f}원 · 예약 {reserved:,.0f}원",
                           f"평가 {nav:,.0f}원 · 누적 {(nav/policy['initial']-1)*100:+.2f}%",
                           f"실현손익 {s['realized']:+,.0f}원 · 완료매매 {s['closed']}회"]
+                segment = s.get('review_segment')
+                if segment:
+                    lines.append(f"재개 후 {clock(segment['started_ms'])} · 기준 {segment['equity']:,.0f}원 · {(nav/segment['equity']-1)*100:+.2f}% · 완료 {s['closed']-segment['closed']}회")
+                    lines.append('가속도·체결 지연·보유 중 순평가 진단 수집 중')
                 vacant = policy['slots']-len(positions)-len(pending)
                 if vacant and not s.get('entries_paused'): lines.append(f"다음 배분 {(s['cash']-reserved)/vacant:,.0f}원")
                 for symbol, p in positions.items():
@@ -95,7 +99,8 @@ def experiment_summary(directory, now):
         pair = (status.get('observation') or {}).get('experiment')
         if not pair:
             return []
-        lines = ['\n🧪 조기 진입 비교실험'+(' 중지 · 과거 성과' if status.get('observation',{}).get('fast_disabled') else ' · 각 300만원 독립 계좌'),
+        paused = status.get('observation',{}).get('fast_disabled') or all(r.get('entries_paused') for r in pair.values())
+        lines = ['\n🧪 조기 진입 비교실험'+(' 중지 · 과거 성과' if paused else ' · 각 300만원 독립 계좌'),
                  '완료 5분봉 기준 동일 · 확인 횟수만 비교']
         for key, label in [('control', '기존 조건 2회'), ('early', '조기 조건 1회')]:
             r = pair[key]

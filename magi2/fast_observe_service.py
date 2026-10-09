@@ -41,7 +41,9 @@ class Service:
                               incomplete=self.data.get('incomplete',0)+(value['missing_buckets']>0),last_market=value['symbol'])
                 elif 'market_count' in value:self.save(total=value['market_count'])
                 elif value.get('mode')=='FAST_USER_STOPPED':self.save(fast_disabled=True,last_progress=value)
-                elif value.get('mode')=='PUBLIC_OBSERVE_NO_ORDERS':self.save(phase='OBSERVING',observation=value,observation_ms=int(time.time()*1000))
+                elif value.get('mode')=='FAST_USER_RESUMED':self.save(fast_disabled=False,last_progress=value)
+                elif value.get('mode')=='FAST_LEDGER_REVIEW':self.save(base_review=value)
+                elif value.get('mode')=='PUBLIC_OBSERVE_NO_ORDERS':self.save(phase='OBSERVING',fast_disabled=value.get('fast_disabled',False),observation=value,observation_ms=int(time.time()*1000))
                 elif value.get('mode')=='FAST_REPAIR_PROGRESS':self.save(repair=value,done=value['checked'],total=value['total'],complete=value['states'].get('COMPLETE',0),incomplete=value['states'].get('INCOMPLETE_HISTORY',0)+value['states'].get('RETRY_WAIT',0))
                 else:self.save(last_progress=value)
                 self.log('fast_observe '+json.dumps(value))
@@ -52,8 +54,9 @@ class Service:
     def run(self):
         while not self.stopped.is_set():
             try:
-                self.save(phase='STARTING',detail='공용 시세 수신 시작 · FAST 중지 적용')
-                code=self.worker('magi1.fast_observe','--continuous','--disable-fast',
+                self.save(phase='STARTING',detail='공용 시세 수신 · FAST base 재개 검사')
+                code=self.worker('magi1.fast_observe','--continuous','--repair','--diagnostics',
+                                 '--resume-fast-id','fast-base-review-20261009-v1',
                                  '--paper-db',str(self.directory/'paper-v1.sqlite3'),
                                  '--experiment-dir',str(self.directory/'entry-experiment-v1'),
                                  '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'),
@@ -88,6 +91,13 @@ def view(state_dir):
     repair=data.get('repair') or {}
     if repair and not disabled:lines.append(f"보완 중 {repair.get('states',{}).get('REPAIRING',0)} · 포착 대기 {repair.get('blocked',0)}종목")
     if disabled:lines.append(f"공용 시세 연결 {obs.get('connected_groups',0)}개")
+    universe=obs.get('universe') or {}
+    if universe:
+        lines.append(f"KRW 종목 자동 확인 {universe.get('refresh_seconds',30)}초 · 거래소 {universe.get('listed',0)} / 감시 등록 {universe.get('subscribed',0)}종목")
+        if universe.get('status')=='RETRY':lines.append('종목 목록 갱신 재시도 중 · 기존 시세 감시 유지')
+        for symbol,feed in (universe.get('recent_feeds') or {}).items():
+            ready=feed.get('connected') and feed.get('trade_ms') is not None and feed.get('book_ms') is not None
+            lines.append(f"신규 {symbol} · "+('체결·호가 수신 확인' if ready else '첫 체결·호가 수신 대기'))
     if obs.get('reference_policy') and not disabled:
         lines.append(f"실시간 연결 {obs.get('connected_groups',0)}개 · 감시 {obs.get('symbols',0)}종목")
         blocked=obs.get('blocked_symbols',0)
