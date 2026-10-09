@@ -369,6 +369,7 @@ def daily_rows(result, now):
 def results_keyboard(key=None, offset=0, total=0):
     buttons = [dict(text=NAMES[k]+' 결과', callback_data=f'performance:{k}:0') for k in NAMES]
     rows = [buttons[i:i+2] for i in range(0, len(buttons), 2)]
+    rows.append([dict(text='FAST-DERIVATIVES / FAST-BEAR · MDD 비교',callback_data='nav:fast_models')])
     if key:
         navigation = []
         if offset:
@@ -397,6 +398,9 @@ def view(root, now, key=None, offset=0):
                 lines.append(f'  기록 {clock(r.started)}부터 · 평가 {clock(r.current.ts) if r.current else "대기"}')
             if r.notes and r.initial is None:
                 lines.append('  '+r.notes[0])
+        if (Path(root)/'fast-models-v1').exists():
+            from magi2.fast_models.report import summary
+            lines += ['',summary(root,'derivatives',now),summary(root,'bear',now)]
         lines += ['', '전략별 시작일·운용 이력이 다릅니다.',
                   '승률: 비용 반영 후 전량 청산 기준 · 본전 포함 · 보유분 제외',
                   '수익률: 보유 평가 포함 총자산 / 최초원금 − 1',

@@ -56,7 +56,8 @@ class Service:
                 code=self.worker('magi1.fast_observe','--continuous','--disable-fast',
                                  '--paper-db',str(self.directory/'paper-v1.sqlite3'),
                                  '--experiment-dir',str(self.directory/'entry-experiment-v1'),
-                                 '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'))
+                                 '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'),
+                                 '--models-dir',str(self.directory.parent/'fast-models-v1'))
                 if code:raise RuntimeError('OBSERVE_EXIT_'+str(code))
             except Exception as exc:
                 self.save(phase='RETRY_WAIT',detail=type(exc).__name__+': '+str(exc))

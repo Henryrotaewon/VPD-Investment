@@ -13,7 +13,7 @@ def clock(stamp):
 
 
 def keyboard(home=False):
-    rows = [
+    rows = [[{'text':'🧪 FAST-DERIVATIVES / FAST-BEAR','callback_data':'nav:fast_models'}],
         [{'text':'📊 자산현황','callback_data':'nav:fast_paper_balance'},
          {'text':'🔎 포착·추적','callback_data':'nav:fast_watch'}],
         [{'text':'📒 매매기록','callback_data':'nav:fast_paper_orders'},
