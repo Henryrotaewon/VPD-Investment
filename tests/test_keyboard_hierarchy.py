@@ -15,6 +15,10 @@ class HierarchyTests(unittest.TestCase):
              patch.object(server,'telegram') as send,patch.object(server,'start_engine') as trade:
             server.handle_command('모의투자현황','7','7')
             self.assertEqual(send.call_args.args[1],paper_keyboard())
+            self.assertIn('모의투자현황 · 투자결과',send.call_args.args[0])
+            self.assertIn('투자원금',send.call_args.args[0])
+            self.assertEqual(parse_command('투자전략세부'),'paper_status')
+            self.assertEqual(parse_command('전략 설명'),'paper_guide')
             for row in paper_keyboard()['keyboard'][:3]:
                 label=row[0]['text']
                 self.assertIsNotNone(parse_command(label))

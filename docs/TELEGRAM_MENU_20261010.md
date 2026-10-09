@@ -68,3 +68,23 @@ only the four top-level entries; old help/menu commands still resolve.
 Regression coverage includes clear-then-replace order, failure of the second
 send with retry, persistent parent/child/back button transitions, stale-button
 migration, merged asynchronous status and unauthorized callbacks.
+
+## v25 refinement: report first, holdings under strategy details
+
+Selecting 모의투자현황 now immediately reads the six PAPER ledgers and displays
+capital, valuation, return and completed-trade win rate in one compact report.
+The home page no longer presents an intermediate list of menu descriptions.
+The same overview is available from 투자결과. Detailed result pages retain
+individual timestamps and MDD for the two models; stale/missing valuations are
+still explicitly identified in the overview. FAST retains its restart capital
+anchor and labels it as 기준원금, with an explanatory footnote.
+
+투자전략세부 now routes to holdings, capture/entry times, actual strategy targets
+and recent realized trade history. The old 투자전략현황 label is accepted as an
+alias but removed from the visible bottom keyboard. Strategy methodology is
+labeled 전략 설명. The bottom PAPER keyboard is therefore 투자결과 /
+투자전략세부 / 전략 설명 / 메인 메뉴. v25 reissues this navigation after deployment.
+
+The report entry-point test checks all six strategies' numerical capital,
+valuation, return and win rates, one-message length, and the actual bottom
+keyboard. Existing FAST restart/read-only/authorization regression tests remain.

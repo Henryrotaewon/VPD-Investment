@@ -59,7 +59,7 @@ ALIASES = {
     '실투자현황':'assets', '모의투자 현황':'paper', '시장국면':'regime',
     '↩️ 메인 메뉴':'menu', '메인 메뉴':'menu',
     'magi 안내·상태':'system_info', 'magi 설명':'system_info', '시스템상태':'system_info',
-    '투자결과':'paper_results', '투자전략현황':'paper_status', '투자전략세부':'paper_guide',
+    '투자결과':'paper_results', '투자전략현황':'paper_status', '투자전략세부':'paper_status', '전략 설명':'paper_guide', '전략설명':'paper_guide',
     'fast-derivatives':'fast_derivatives', 'fast-bear':'fast_bear',
     '⚡ fast 포착·추적': 'fast_watch',
     'fast모의투자': 'fast_paper', '⚡ fast 모의투자': 'fast_paper',
@@ -122,7 +122,7 @@ def main_keyboard():
 
 def paper_keyboard():
     return {'keyboard': [[{'text': label}] for label in
-                         ('투자결과','투자전략현황','투자전략세부','↩️ 메인 메뉴')],
+                         ('투자결과','투자전략세부','전략 설명','↩️ 메인 메뉴')],
             'resize_keyboard': True, 'is_persistent': True, 'one_time_keyboard': False,
             'input_field_placeholder': '모의투자 · 확인할 항목을 선택하세요'}
 
@@ -191,15 +191,15 @@ def scan_keyboard():
 def help_text():
     return ('MAGI 메뉴 안내\n\n'
             '/assets — 실투자 현황\n'
-            '/paper — 모의투자현황\n'
+            '/paper — 모의투자현황 · 전략별 성과를 바로 조회\n'
             '  투자결과: 원금·평가금액·수익률·승률\n'
-            '  투자전략현황: 보유·포착 시각·목표·최근 매매\n'
-            '  투자전략세부: 포착·매수·매도 방식\n'
+            '  투자전략세부: 보유·포착 시각·목표·최근 손익매매\n'
+            '  전략 설명: 포착·매수·매도 방식\n'
             '/regime — 시장국면 (MAGI1)\n'
             '/system_info — MAGI 안내·상태\n'
             '/menu — 메인 메뉴\n/help — 이 안내\n\n'
             'VPD 자동 리밸런싱: 매일 오전 7시 30분 KST\n'
-            '수동 운용은 투자전략현황 → VPD/지표가속에서 확인 후 실행합니다.\n'
+            '수동 운용은 투자전략세부 → VPD/지표가속에서 확인 후 실행합니다.\n'
             '기존 /about · /status도 MAGI 안내·상태로 연결됩니다.')
 
 

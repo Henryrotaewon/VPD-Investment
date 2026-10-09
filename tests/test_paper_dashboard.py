@@ -43,7 +43,7 @@ class DashboardTests(unittest.TestCase):
             self.assertIn('2,900,000원',text);self.assertIn('청산 0건',text)
             text,_=dashboard.view(root,t+3,'status','fast')
             self.assertIn('KRW-NEW',text);self.assertIn('포착 10/09 19:52',text)
-            self.assertIn('목표 고정 없음',text);self.assertIn('최근 매매',text)
+            self.assertIn('목표 고정 없음',text);self.assertIn('최근 손익매매이력',text)
             self.assertEqual(p.s,before);self.assertEqual(rows,p.db.execute('SELECT * FROM fills').fetchall())
             p.close(t+4)
 
@@ -71,6 +71,26 @@ class DashboardTests(unittest.TestCase):
                 self.assertIn('순익 +0.5%',dashboard.target('derivatives',{'kind':'BASIS'}))
             finally:
                 for account in (indicator,bollinger,bear,derivatives):account.db.close()
+
+    def test_home_is_one_report_with_all_strategy_numbers_and_paper_keyboard(self):
+        from magi2.paper_performance import Results, Mark, Trade
+        from magi2.telegram_ui import paper_keyboard
+        result=Results('vpd',initial=3000000,started=T,
+                       trades=[Trade(T,100),Trade(T,-50)],current=Mark(T,3150000))
+        metrics=dict(initial=3000000,equity=3060000,valid=True,last_ms=T,started_ms=T,mdd=1,gap=False)
+        with patch.object(dashboard,'load_results',return_value=result), \
+             patch('magi2.fast_models.report.load',return_value=({},metrics,[],[(T,'TEST',10,'{}')])):
+            text,markup=dashboard.menu('.',T+1)
+            self.assertEqual(markup,paper_keyboard())
+            for name in dashboard.NAMES.values():self.assertIn('• '+name,text)
+            self.assertEqual(text.count('3,000,000원'),6)
+            self.assertEqual(text.count('3,150,000원'),4)
+            self.assertEqual(text.count('3,060,000원'),2)
+            self.assertIn('+5.00%',text);self.assertIn('50.0%',text)
+            self.assertIn('+2.00%',text);self.assertIn('100.0%',text)
+            self.assertNotIn('확인할 전략을 선택',text)
+            self.assertNotIn('\n시작 ',text)
+            self.assertLess(len(text),1800)
 
     def test_vpd_legacy_capture_date_not_fabricated_and_target_from_position(self):
         with tempfile.TemporaryDirectory() as tmp:
