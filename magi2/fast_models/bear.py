@@ -114,5 +114,5 @@ class BearPaper(BollingerPaper):
             self.metrics.mark(ts,r['equity'],valid);self.db.commit()
 
     def report(self,ts):
-        return dict(super().report(ts),mode='FAST_BEAR_PAPER_ONLY',regime=self.regime,
+        return dict(super().report(ts),mode='FAST_BEAR_PAPER_ONLY',same_day_reentry=False,regime=self.regime,
                     mdd_pct=self.metrics.s['mdd'] if self.metrics else 0)
