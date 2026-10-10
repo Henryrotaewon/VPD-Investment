@@ -24,6 +24,8 @@ def keyboard(section=None, key=None, offset=0, total=0):
         choices = [button(name, f'paper:{section}:{k}:0') for k, name in NAMES.items()]
         rows += [choices[i:i+2] for i in range(0, len(choices), 2)]
         rows.append([button('Shadow 검증', 'nav:shadows')])
+        if section=='status':
+            rows.append([button('급등 포착 점검','nav:capture_audit'),button('FAST 매매 진단','nav:fast_trade_audit')])
     if key:
         nav = []
         if offset:
@@ -39,6 +41,7 @@ def keyboard(section=None, key=None, offset=0, total=0):
                 rows.append([button('포착 이력', 'nav:fast_captures'), button('수동 운용', 'nav:indicator')])
             elif key == 'fast':
                 rows.append([button('포착·추적', 'nav:fast_watch'), button('매매 상세', 'nav:fast_paper_orders')])
+                rows.append([button('매매 진단','nav:fast_trade_audit')])
             elif key == 'bollinger':
                 rows.append([button('매매 상세', 'nav:bollinger_orders')])
         rows.append([button(label, f'paper:{s}:{key}:0') for s, label in SECTIONS.items() if s != section])

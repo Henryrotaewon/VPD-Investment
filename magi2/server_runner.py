@@ -52,6 +52,7 @@ ENGINE_REQUEST_ID=None
 FAST_OBSERVE_SERVICE=None
 FAST_MONITOR=None
 FAST_PAPER=None
+CAPTURE_AUDIT=None
 WAVE_CLIENT=None
 ALLOWED_USER_IDS={x.strip() for x in os.getenv('TELEGRAM_ALLOWED_USER_IDS','').split(',') if x.strip()}
 
@@ -173,6 +174,16 @@ def telegram(text,reply_markup=None):
             if reply_markup and i==len(chunks)-1: payload['reply_markup']=clean_markup(reply_markup)
             telegram_api('sendMessage',payload)
     except Exception as e: log(f'Telegram send error: {type(e).__name__}')
+
+
+def send_audit_report(text, reply_markup):
+    # Dedicated worker callback: preserve delivery exceptions for durable deduplication.
+    if not BOT_TOKEN or not ALLOWED_CHAT_ID:raise RuntimeError('TELEGRAM_UNAVAILABLE')
+    chunks=[text[i:i+1800] for i in range(0,len(text),1800)]
+    for i,chunk in enumerate(chunks):
+        payload={'chat_id':ALLOWED_CHAT_ID,'text':chunk}
+        if i==len(chunks)-1:payload['reply_markup']=clean_markup(reply_markup)
+        telegram_api('sendMessage',payload)
 
 
 def setup_telegram_menu():
@@ -509,6 +520,9 @@ def handle_command(text,chat_id=None,user_id=None):
         elif cmd in ('paper_results','paper_status','paper_guide'):
             from magi2.paper_dashboard import view
             telegram(*view(STATE_DIR,time.time_ns()//1000000,cmd.removeprefix('paper_')))
+        elif cmd in ('capture_audit','fast_trade_audit'):
+            from magi2.capture_audit import view
+            telegram(*view(STATE_DIR,'daily' if cmd=='capture_audit' else 'trades'))
         elif cmd=='vpd':
             telegram('📊 VPD 모의투자\n가상자금으로 운영하는 PAPER 계정입니다.\n매일 07:30 KST 자동 리밸런싱\n'
                      '현황 보고: 보유 종목·손익 조회\nVPD 조회: 오전·저녁 분석 저장본\nVPD 재스캔: 현재 시점 분석만 새로 수행 · 매매 없음\n리밸런싱: 요청 시점 새 스캔 후 보유 종목 재조정\n종목 리필: 빈자리 채우기\n전량 교체: 모두 매도 후 새 VPD TOP10으로 균등 재구성\n'
@@ -662,7 +676,11 @@ def handle_callback(callback):
     except Exception as e: log(f'Callback acknowledgement failed: {type(e).__name__}')
     if not authorized: return
     data=callback.get('data','')
-    if data.startswith('paper:'):
+    if data.startswith('audit_trade:'):
+        from magi2.capture_audit import view
+        ident=data.removeprefix('audit_trade:')
+        if ident.isdigit() and len(ident)<=18:telegram(*view(STATE_DIR,'trades',int(ident)))
+    elif data.startswith('paper:'):
         from magi2.paper_dashboard import view, NAMES, SECTIONS
         try:
             _,section,key,offset=data.split(':')
@@ -727,7 +745,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('paper','paper_results','paper_status','paper_guide','system_info','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
+        if command in ('capture_audit','fast_trade_audit','paper','paper_results','paper_status','paper_guide','system_info','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
@@ -826,7 +844,7 @@ def poll_updates(offset,timeout=LONG_POLL_SECONDS):
 
 
 def main():
-    global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT,FAST_OBSERVE_SERVICE
+    global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT,FAST_OBSERVE_SERVICE,CAPTURE_AUDIT
     prepare_persistent_state()
     from magi2.fast_observe_service import Service as ObserveService
     FAST_OBSERVE_SERVICE=ObserveService(STATE_DIR,log).start()
@@ -851,6 +869,8 @@ def main():
     log('paper_performance_views_ready strategies=vpd,fast,indicator,bollinger day_start=09:00KST read_only=true')
     FAST_PAPER.start()
     FAST_MONITOR=FastMonitor(STATE_DIR,log,paper=FAST_PAPER);FAST_MONITOR.start()
+    from magi2.capture_audit import Service as CaptureAuditService
+    CAPTURE_AUDIT=CaptureAuditService(STATE_DIR,log,send_audit_report).start()
     consume_startup_rebalance()
     log('VPD daily schedule active: 07:30 KST; window=15m; durable_claim=true; mode=PAPER')
     next_monitor=time.monotonic()+INTERVAL
