@@ -104,11 +104,23 @@ class AuditTests(unittest.TestCase):
             if params['market']=='KRW-NEW':return []
             return [{'candle_date_time_utc':audit.iso(end-audit.DAY).removesuffix('+00:00'),
                      'prev_closing_price':10,'high_price':12,'trade_price':11},
+                    {'candle_date_time_utc':audit.iso(end-2*audit.DAY).removesuffix('+00:00'),
+                     'trade_price':10},
                     {'candle_date_time_utc':audit.iso(end).removesuffix('+00:00'),
                      'prev_closing_price':11,'high_price':100,'trade_price':100}]
         public.get=get
         rows,coverage=public.ranking(end-audit.DAY,end)
         self.assertEqual(len(rows),1);self.assertAlmostEqual(rows[0]['peak_pct'],20)
+        self.assertEqual(coverage['missing'],['KRW-NEW'])
+
+    def test_listing_reference_is_not_a_verified_previous_close(self):
+        public=audit.Public();end=self.start
+        public.get=lambda path,params=None: ([{'market':'KRW-NEW'}] if path=='market/all' else
+            [{'candle_date_time_utc':audit.iso(end-audit.DAY).removesuffix('+00:00'),
+              'prev_closing_price':67,'high_price':92.3,'trade_price':82.9}])
+        rows,coverage=public.ranking(end-audit.DAY,end)
+        self.assertEqual(rows,[])
+        self.assertEqual(coverage['ready'],0)
         self.assertEqual(coverage['missing'],['KRW-NEW'])
 
     def test_daily_delivery_claim_survives_restart_and_uncertain_send(self):

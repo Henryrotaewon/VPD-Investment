@@ -19,6 +19,7 @@ import requests
 DAY = 86400000
 MINUTE = 60000
 KST = ZoneInfo('Asia/Seoul')
+REPORT_VERSION = 2
 NAMES = {'vpd': 'VPD', 'fast': 'FAST', 'indicator': '지표가속',
          'bollinger': '더블볼린저', 'bear': 'FAST-BEAR', 'derivatives': 'FAST-DERIVATIVES'}
 REASONS = {'STALE_FEED': '시세 최신성 부족', 'RELATIVE_VALUE_LOW': '비교 거래대금 부족',
@@ -224,9 +225,11 @@ class Public:
             try:
                 candles = self.get('candles/days',{'market':market,'to':iso(end),'count':2})
                 target = next((x for x in candles if stamp(x['candle_date_time_utc']+'Z')==start),None)
-                if not target or not target.get('prev_closing_price'):
+                previous = next((x for x in candles if stamp(x['candle_date_time_utc']+'Z')==start-DAY),None)
+                # A listing-day API reference price is not a verified prior close.
+                if not target or not previous:
                     missing.append(market);continue
-                prior = float(target['prev_closing_price'])
+                prior = float(previous['trade_price'])
                 high,close = float(target['high_price']),float(target['trade_price'])
                 if not all(math.isfinite(x) and x>0 for x in (prior,high,close)):
                     raise ValueError('INVALID_CANDLE')
@@ -346,7 +349,7 @@ def build_daily(root, archive, public, now):
             try:row['strategies'][strategy]=strategy_evidence(root,archive,strategy,symbol,start,end,crossing,history)
             except (sqlite3.Error,ValueError,KeyError,OSError):
                 row['strategies'][strategy]=dict(status='확인 대기',detail='자료 조회 실패')
-    return dict(version=1,start_ms=start,end_ms=end,generated_ms=now,coverage=coverage,rows=ranked,
+    return dict(version=REPORT_VERSION,start_ms=start,end_ms=end,generated_ms=now,coverage=coverage,rows=ranked,
                 selection='전일 종가 대비 장중 고가 +10% 이상 중 상위 5개',
                 caveat='사후 급등 종목 표본의 포착 점검; 승률·백테스트 아님. 도달 시각은 5분봉 구간. 과거 미보존 사유는 미확인.')
 
@@ -448,7 +451,7 @@ class Service:
                 errors=archive.sync(now)
                 self.trades(archive,now)
                 start,_=closed_session(now)
-                path=archive.directory/(str(start)+'.json')
+                path=archive.directory/(f'v{REPORT_VERSION}-'+str(start)+'.json')
                 if not path.exists() and now-last_attempt>=15*MINUTE:
                     last_attempt=now
                     report=build_daily(self.root,archive,public,now)
