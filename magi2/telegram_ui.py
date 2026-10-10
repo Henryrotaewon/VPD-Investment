@@ -56,6 +56,7 @@ LABELS = {
     '🧩 MAGI 역할': 'about',
 }
 ALIASES = {
+    '급등 포착 점검':'capture_audit', 'fast 매매 진단':'fast_trade_audit',
     '실투자현황':'assets', '모의투자 현황':'paper', '시장국면':'regime',
     '↩️ 메인 메뉴':'menu', '메인 메뉴':'menu',
     'magi 안내·상태':'system_info', 'magi 설명':'system_info', '시스템상태':'system_info',
@@ -111,7 +112,7 @@ def parse_command(text, bot_username=''):
         text = ' '.join([head] + tail)
     text = text.lower()
     text = ALIASES.get(text, text)
-    return text if text in dict(COMMANDS + LEGACY_COMMANDS) or text in ('paper_results','paper_status','paper_guide','execution','magi3','status1','status2','status3','wave') else None
+    return text if text in dict(COMMANDS + LEGACY_COMMANDS) or text in ('capture_audit','fast_trade_audit','paper_results','paper_status','paper_guide','execution','magi3','status1','status2','status3','wave') else None
 
 
 def main_keyboard():
