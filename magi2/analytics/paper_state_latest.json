@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 1411632.0570505643,
+  "cash_krw": 1745341.3422016944,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -2031,7 +2031,7 @@
     },
     "LPT": {
       "market": "KRW-LPT",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-10T21:27:01.742231+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-10-10-REFILL-212701",
@@ -2052,7 +2052,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2408.0,
+      "last_price": 2384.0,
       "peak_price": 2533.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -2079,7 +2079,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_since": "2026-10-11T07:30:00+09:00",
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-11T12:30:21.706129+09:00",
+      "exit_price": 2384.0,
+      "sell_fee_krw": 166.93811163138074,
+      "net_proceeds_krw": 333709.2851511301,
+      "pnl_krw": -21566.494668122556,
+      "return_pct": -6.070353199729672,
+      "exit_reason": "HARD_STOP"
     },
     "AZTEC": {
       "market": "KRW-AZTEC",
@@ -7387,8 +7394,8 @@
       "sl_warning_sent": false
     }
   },
-  "realized_pnl_krw": 23797.21028156794,
-  "lifetime_realized_pnl_krw": 497754.1579684099,
+  "realized_pnl_krw": 2230.7156134453835,
+  "lifetime_realized_pnl_krw": 476187.6633002873,
   "paper_only": true,
   "cohort_id": "2026-10-11-VPD-0730",
   "cohort_date": "2026-10-11",
@@ -7397,7 +7404,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-11T12:15:19.938752+09:00",
+  "updated_at": "2026-10-11T12:30:21.706555+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
