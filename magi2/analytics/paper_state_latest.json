@@ -2386,7 +2386,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 97.2,
+      "last_price": 96.3,
       "peak_price": 99.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -3133,10 +3133,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 87.6,
+      "last_price": 86.1,
       "peak_price": 89.6,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "YGG": {
       "market": "KRW-YGG",
@@ -3772,7 +3772,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 36.5,
+      "last_price": 36.7,
       "peak_price": 39.5,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -7703,10 +7703,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 13.2,
+      "last_price": 12.8,
       "peak_price": 13.4,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     }
   },
   "realized_pnl_krw": -37856.73056957126,
@@ -7719,7 +7719,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-13T08:37:36.224370+09:00",
+  "updated_at": "2026-10-13T09:12:44.914443+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
