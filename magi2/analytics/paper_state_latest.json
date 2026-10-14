@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 2592184.385233922,
+  "cash_krw": 2895761.6774047236,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -2226,7 +2226,7 @@
     },
     "XTZ": {
       "market": "KRW-XTZ",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-14T07:32:28.434598+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-14-VPD-0730",
@@ -2247,10 +2247,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 423.0,
+      "last_price": 414.0,
       "peak_price": 441.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-10-14T23:18:13.627791+09:00",
+      "exit_price": 414.0,
+      "sell_fee_krw": 151.86457837458823,
+      "net_proceeds_krw": 303577.29217080184,
+      "pnl_krw": -20445.7559834384,
+      "return_pct": -6.309969645648749,
+      "exit_reason": "HARD_STOP"
     },
     "HOLO": {
       "market": "KRW-HOLO",
@@ -7788,8 +7795,8 @@
       "weakening_policy": "TREND_PROFIT_V2"
     }
   },
-  "realized_pnl_krw": -18079.379031332268,
-  "lifetime_realized_pnl_krw": 246717.3015024087,
+  "realized_pnl_krw": -38525.13501477067,
+  "lifetime_realized_pnl_krw": 226271.5455189703,
   "paper_only": true,
   "cohort_id": "2026-10-14-VPD-0730",
   "cohort_date": "2026-10-14",
@@ -7798,7 +7805,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-14T21:37:45.738265+09:00",
+  "updated_at": "2026-10-14T23:18:13.628579+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
