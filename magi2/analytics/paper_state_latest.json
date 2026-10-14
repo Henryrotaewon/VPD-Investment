@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 2895761.6774047236,
+  "cash_krw": 2252259.082425896,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -2156,38 +2156,31 @@
     },
     "ELSA": {
       "market": "KRW-ELSA",
-      "status": "CLOSED",
-      "entry_at": "2026-09-29T08:54:49.690497+09:00",
-      "entry_session": "REFILL",
-      "entry_session_id": "2026-09-29-REFILL-085449",
-      "first_selected_date": "2026-09-29",
-      "last_selected_date": "2026-09-29",
+      "status": "OPEN",
+      "entry_at": "2026-10-15T07:32:28.116231+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-15-VPD-0730",
+      "first_selected_date": "2026-10-15",
+      "last_selected_date": "2026-10-15",
       "consecutive_top10_days": 1,
-      "signal_rank": 4,
-      "signal_vpd": 83.0,
-      "signal_entry_score": null,
+      "signal_rank": 3,
+      "signal_vpd": 84.0,
+      "signal_entry_score": 57.92,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
-      "signal_price": 76.2,
-      "entry_market_price": 76.4,
-      "entry_price": 76.4764,
-      "buy_notional_krw": 373259.7224210555,
-      "buy_fee_krw": 186.6298612105311,
-      "qty": 4880.717743265314,
-      "cost_krw": 373446.352282266,
+      "signal_price": 68.5,
+      "entry_market_price": 69.0,
+      "entry_price": 69.06899999999999,
+      "buy_notional_krw": 321590.50223829463,
+      "buy_fee_krw": 160.79525111912517,
+      "qty": 4656.075840656368,
+      "cost_krw": 321751.29748941376,
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 78.5,
-      "peak_price": 81.2,
+      "last_price": 69.0,
+      "peak_price": 69.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false,
-      "exit_at": "2026-09-29T10:00:35.242249+09:00",
-      "exit_price": 78.5,
-      "sell_fee_krw": 191.5681714231636,
-      "net_proceeds_krw": 382944.774674904,
-      "pnl_krw": 9498.422392637993,
-      "return_pct": 2.543450306741435,
-      "exit_reason": "PROFIT_PROTECTION"
+      "sl_warning_sent": false
     },
     "TAIKO": {
       "market": "KRW-TAIKO",
@@ -4754,36 +4747,31 @@
     },
     "BERA": {
       "market": "KRW-BERA",
-      "status": "CLOSED",
-      "entry_at": "2026-09-13T09:15:48.060247+09:00",
-      "entry_session": "AM",
-      "entry_session_id": "2026-09-13-AM-001",
-      "first_selected_date": "2026-09-13",
-      "last_selected_date": "2026-09-13",
+      "status": "OPEN",
+      "entry_at": "2026-10-15T07:32:28.116351+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-15-VPD-0730",
+      "first_selected_date": "2026-10-15",
+      "last_selected_date": "2026-10-15",
       "consecutive_top10_days": 1,
-      "signal_rank": 9,
-      "signal_vpd": 77.0,
-      "signal_price": 263.0,
-      "entry_market_price": 267.0,
-      "entry_price": 267.267,
-      "buy_notional_krw": 314325.13092655427,
-      "buy_fee_krw": 157.16256546328077,
-      "qty": 1176.0716097630993,
-      "cost_krw": 314482.29349201755,
+      "signal_rank": 2,
+      "signal_vpd": 85.0,
+      "signal_entry_score": 57.17,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 326.0,
+      "entry_market_price": 325.0,
+      "entry_price": 325.325,
+      "buy_notional_krw": 321590.50223829463,
+      "buy_fee_krw": 160.79525111912517,
+      "qty": 988.5207169393518,
+      "cost_krw": 321751.29748941376,
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 253.0,
-      "peak_price": 282.0,
+      "last_price": 325.0,
+      "peak_price": 325.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": true,
-      "exit_at": "2026-09-14T07:32:02.860910+09:00",
-      "exit_price": 255.0,
-      "sell_fee_krw": 149.94913024479519,
-      "net_proceeds_krw": 299748.31135934556,
-      "pnl_krw": -14733.982132671983,
-      "return_pct": -4.685154756748167,
-      "exit_reason": "VPD_EXIT"
+      "sl_warning_sent": false
     },
     "USD1": {
       "market": "KRW-USD1",
@@ -7754,8 +7742,8 @@
       "first_selected_date": "2026-10-13",
       "last_selected_date": "2026-10-14",
       "consecutive_top10_days": 2,
-      "signal_rank": 2.0,
-      "signal_vpd": 84.0,
+      "signal_rank": 75.0,
+      "signal_vpd": 45.0,
       "signal_entry_score": null,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 0.000502,
@@ -7768,49 +7756,52 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 0.000494,
+      "last_price": 0.000491,
       "peak_price": 0.000506,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
       "hold_assessment": {
         "observed_peak_price": 0.000506,
-        "net_return_pct": -0.9949713880616828,
+        "net_return_pct": -2.386608336422247,
         "peak_net_return_pct": 0.5954708386361363,
-        "profit_giveback_pct_point": 1.590442226697819,
-        "kind": "TREND",
+        "profit_giveback_pct_point": 2.982079175058383,
+        "kind": "WEAKENING",
         "reasons": [
-          "모멘텀 ↑",
-          "거래대금 6.29배 / 가속 6.30배"
+          "모멘텀 →",
+          "거래대금 0.84배 / 가속 0.44배",
+          "상승 추세 또는 거래대금 지지 부족"
         ],
         "policy": "TREND_PROFIT_V2",
-        "asof": "2026-10-14T07:30:00+09:00"
+        "asof": "2026-10-15T07:30:00+09:00"
       },
       "hold_signal_reasons": [
-        "모멘텀 ↑",
-        "거래대금 6.29배 / 가속 6.30배"
+        "모멘텀 →",
+        "거래대금 0.84배 / 가속 0.44배",
+        "상승 추세 또는 거래대금 지지 부족"
       ],
-      "hold_signal_checked_at": "2026-10-14T07:32:28.434318+09:00",
-      "hold_state": "TREND",
-      "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "hold_signal_checked_at": "2026-10-15T07:32:28.115813+09:00",
+      "hold_state": "WEAKENING",
+      "weakening_count": 1,
+      "weakening_policy": "TREND_PROFIT_V2",
+      "weakening_since": "2026-10-15T07:30:00+09:00"
     }
   },
-  "realized_pnl_krw": -38525.13501477067,
+  "realized_pnl_krw": 0.0,
   "lifetime_realized_pnl_krw": 226271.5455189703,
   "paper_only": true,
-  "cohort_id": "2026-10-14-VPD-0730",
-  "cohort_date": "2026-10-14",
-  "last_rebalance_date": "2026-10-14",
-  "source_snapshot_asof_kst": "2026-10-14 07:30:00 KST",
+  "cohort_id": "2026-10-15-VPD-0730",
+  "cohort_date": "2026-10-15",
+  "last_rebalance_date": "2026-10-15",
+  "source_snapshot_asof_kst": "2026-10-15 07:30:00 KST",
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-14T23:18:13.628579+09:00",
+  "updated_at": "2026-10-15T07:32:28.116428+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
-  "daily_equal_buy_krw": 324023.04815424024,
-  "daily_equal_buy_date": "2026-10-14",
+  "daily_equal_buy_krw": 321751.29748941376,
+  "daily_equal_buy_date": "2026-10-15",
   "daily_equal_buy_source": "MORNING_AVAILABLE_CASH_PER_NEW_SLOT",
   "last_refill_at": "2026-10-13T09:47:36.476056+09:00",
   "last_refill_session_id": "2026-10-13-REFILL-094736",
@@ -11888,132 +11879,199 @@
       "return_pct": 3.958593463840865,
       "exit_reason": "VPD_EXIT",
       "coin": "XTZ"
+    },
+    {
+      "market": "KRW-ELSA",
+      "status": "CLOSED",
+      "entry_at": "2026-09-29T08:54:49.690497+09:00",
+      "entry_session": "REFILL",
+      "entry_session_id": "2026-09-29-REFILL-085449",
+      "first_selected_date": "2026-09-29",
+      "last_selected_date": "2026-09-29",
+      "consecutive_top10_days": 1,
+      "signal_rank": 4,
+      "signal_vpd": 83.0,
+      "signal_entry_score": null,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 76.2,
+      "entry_market_price": 76.4,
+      "entry_price": 76.4764,
+      "buy_notional_krw": 373259.7224210555,
+      "buy_fee_krw": 186.6298612105311,
+      "qty": 4880.717743265314,
+      "cost_krw": 373446.352282266,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 78.5,
+      "peak_price": 81.2,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false,
+      "exit_at": "2026-09-29T10:00:35.242249+09:00",
+      "exit_price": 78.5,
+      "sell_fee_krw": 191.5681714231636,
+      "net_proceeds_krw": 382944.774674904,
+      "pnl_krw": 9498.422392637993,
+      "return_pct": 2.543450306741435,
+      "exit_reason": "PROFIT_PROTECTION",
+      "coin": "ELSA"
+    },
+    {
+      "market": "KRW-BERA",
+      "status": "CLOSED",
+      "entry_at": "2026-09-13T09:15:48.060247+09:00",
+      "entry_session": "AM",
+      "entry_session_id": "2026-09-13-AM-001",
+      "first_selected_date": "2026-09-13",
+      "last_selected_date": "2026-09-13",
+      "consecutive_top10_days": 1,
+      "signal_rank": 9,
+      "signal_vpd": 77.0,
+      "signal_price": 263.0,
+      "entry_market_price": 267.0,
+      "entry_price": 267.267,
+      "buy_notional_krw": 314325.13092655427,
+      "buy_fee_krw": 157.16256546328077,
+      "qty": 1176.0716097630993,
+      "cost_krw": 314482.29349201755,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 253.0,
+      "peak_price": 282.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": true,
+      "exit_at": "2026-09-14T07:32:02.860910+09:00",
+      "exit_price": 255.0,
+      "sell_fee_krw": 149.94913024479519,
+      "net_proceeds_krw": 299748.31135934556,
+      "pnl_krw": -14733.982132671983,
+      "return_pct": -4.685154756748167,
+      "exit_reason": "VPD_EXIT",
+      "coin": "BERA"
     }
   ],
-  "last_rebalance_vpd_asof": "2026-10-14T07:30:00+09:00",
+  "last_rebalance_vpd_asof": "2026-10-15T07:30:00+09:00",
   "source_snapshot_revision": null,
   "last_rebalance_result": {
-    "asof": "2026-10-14T07:30:00+09:00",
-    "kept": [
+    "asof": "2026-10-15T07:30:00+09:00",
+    "kept": [],
+    "weakening": [
       "BTT"
     ],
-    "weakening": [],
-    "sold": [
-      "BORA",
-      "MVL"
-    ],
+    "sold": [],
     "bought": [
-      "XTZ"
+      "ELSA",
+      "BERA"
     ],
     "entry_policy": "ENTRY_SCORE_V1_1",
     "entry_audit": [
       {
-        "coin": "XTZ",
-        "rank": 1,
-        "score": 60.28,
+        "coin": "ELSA",
+        "rank": 3,
+        "score": 57.92,
         "eligible": true,
         "reasons": [
           "PASS"
         ]
       },
       {
-        "coin": "SOMI",
-        "rank": 3,
-        "score": 53.54,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "BTT",
+        "coin": "BERA",
         "rank": 2,
-        "score": 53.37,
-        "eligible": false,
+        "score": 57.17,
+        "eligible": true,
         "reasons": [
-          "ENTRY_SCORE<55"
+          "PASS"
         ]
       },
       {
-        "coin": "NEWT",
+        "coin": "WCT",
         "rank": 4,
-        "score": 51.1,
+        "score": 53.73,
         "eligible": false,
         "reasons": [
           "ENTRY_SCORE<55"
         ]
       },
       {
-        "coin": "BSV",
-        "rank": 9,
-        "score": 48.01,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "DATA",
-        "rank": 6,
-        "score": 47.72,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "BLUR",
-        "rank": 5,
-        "score": 44.23,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "TIA",
-        "rank": 10,
-        "score": 40.03,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "AWE",
+        "coin": "DEEP",
         "rank": 8,
-        "score": 38.79,
+        "score": 51.17,
         "eligible": false,
         "reasons": [
           "ENTRY_SCORE<55"
         ]
       },
       {
-        "coin": "SYRUP",
+        "coin": "G",
+        "rank": 5,
+        "score": 49.69,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "TRAC",
+        "rank": 6,
+        "score": 49.58,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "AXL",
+        "rank": 9,
+        "score": 47.67,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "LINEA",
+        "rank": 10,
+        "score": 41.78,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "XCN",
         "rank": 7,
-        "score": 36.61,
+        "score": 37.7,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "OP",
+        "rank": 1,
+        "score": 35.18,
         "eligible": false,
         "reasons": [
           "ENTRY_SCORE<55"
         ]
       }
     ],
-    "cash_krw": 2592184.39,
+    "cash_krw": 2252259.08,
     "paper_only": true
   },
   "last_rebalance_decisions": [
-    "BORA · VPD 20 (253위) · 신호 약화\n  모멘텀 → · 거래대금 0.34배 / 가속 0.32배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -2.32% · 약화 2회 · 24.0시간 지속 → 청산",
-    "MVL · VPD 48 (103위) · 신호 약화\n  모멘텀 ↑ · 거래대금 0.44배 / 가속 0.18배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -2.92% · 약화 2회 · 24.0시간 지속 → 청산",
-    "BTT · VPD 84 (2위) · 추세 유지\n  모멘텀 ↑ · 거래대금 6.29배 / 가속 6.30배 · 순수익 -0.99%",
-    "XTZ · 신규진입 · EntryScore 60.28 · VPD 85 (1위)",
-    "SOMI · 신규진입 제외 · EntryScore 53.54\n  ENTRY_SCORE<55",
-    "NEWT · 신규진입 제외 · EntryScore 51.10\n  ENTRY_SCORE<55",
-    "BSV · 신규진입 제외 · EntryScore 48.01\n  ENTRY_SCORE<55",
-    "DATA · 신규진입 제외 · EntryScore 47.72\n  ENTRY_SCORE<55",
-    "BLUR · 신규진입 제외 · EntryScore 44.23\n  ENTRY_SCORE<55",
-    "TIA · 신규진입 제외 · EntryScore 40.03\n  ENTRY_SCORE<55",
-    "AWE · 신규진입 제외 · EntryScore 38.79\n  ENTRY_SCORE<55",
-    "SYRUP · 신규진입 제외 · EntryScore 36.61\n  ENTRY_SCORE<55"
+    "BTT · VPD 45 (75위) · 신호 약화\n  모멘텀 → · 거래대금 0.84배 / 가속 0.44배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -2.39% · 약화 1회 · 0.0/24시간 · 매도 유예",
+    "ELSA · 신규진입 · EntryScore 57.92 · VPD 84 (3위)",
+    "BERA · 신규진입 · EntryScore 57.17 · VPD 85 (2위)",
+    "WCT · 신규진입 제외 · EntryScore 53.73\n  ENTRY_SCORE<55",
+    "DEEP · 신규진입 제외 · EntryScore 51.17\n  ENTRY_SCORE<55",
+    "G · 신규진입 제외 · EntryScore 49.69\n  ENTRY_SCORE<55",
+    "TRAC · 신규진입 제외 · EntryScore 49.58\n  ENTRY_SCORE<55",
+    "AXL · 신규진입 제외 · EntryScore 47.67\n  ENTRY_SCORE<55",
+    "LINEA · 신규진입 제외 · EntryScore 41.78\n  ENTRY_SCORE<55",
+    "XCN · 신규진입 제외 · EntryScore 37.70\n  ENTRY_SCORE<55",
+    "OP · 신규진입 제외 · EntryScore 35.18\n  ENTRY_SCORE<55"
   ],
   "hold_policy": "TREND_PROFIT_V2",
   "last_full_rebuild_vpd_asof": "2026-09-19T10:40:00+09:00",
