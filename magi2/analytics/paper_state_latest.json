@@ -1,7 +1,7 @@
 {
   "mode": "PAPER",
   "initial_cash_krw": 3000000,
-  "cash_krw": 2252259.082425896,
+  "cash_krw": 2554595.178139646,
   "positions": {
     "ORCA": {
       "market": "KRW-ORCA",
@@ -2177,7 +2177,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 70.5,
+      "last_price": 70.6,
       "peak_price": 71.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -4747,7 +4747,7 @@
     },
     "BERA": {
       "market": "KRW-BERA",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-15T07:32:28.116351+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-15-VPD-0730",
@@ -4768,10 +4768,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 312.0,
+      "last_price": 306.0,
       "peak_price": 339.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-10-15T19:38:29.456997+09:00",
+      "exit_price": 306.0,
+      "sell_fee_krw": 151.24366969172084,
+      "net_proceeds_krw": 302336.09571374994,
+      "pnl_krw": -19415.201775663823,
+      "return_pct": -6.0342264124988105,
+      "exit_reason": "HARD_STOP"
     },
     "USD1": {
       "market": "KRW-USD1",
@@ -7786,8 +7793,8 @@
       "weakening_since": "2026-10-15T07:30:00+09:00"
     }
   },
-  "realized_pnl_krw": 0.0,
-  "lifetime_realized_pnl_krw": 226271.5455189703,
+  "realized_pnl_krw": -19415.201775663823,
+  "lifetime_realized_pnl_krw": 206856.34374330647,
   "paper_only": true,
   "cohort_id": "2026-10-15-VPD-0730",
   "cohort_date": "2026-10-15",
@@ -7796,7 +7803,7 @@
   "strategy": "VPD_TOP10_EQUAL_WEIGHT",
   "cohort_policy": "ANYTIME_TREND_PROFIT_TIME_GRACE_COMMAND_REFILL",
   "capital_model": "ROLLING_KEEP_DYNAMIC_NEW_SLOT",
-  "updated_at": "2026-10-15T19:23:24.945600+09:00",
+  "updated_at": "2026-10-15T19:38:29.457541+09:00",
   "last_evening_refill_date": "2026-08-31",
   "source_evening_snapshot_asof_kst": "2026-08-31 17:53:48 KST",
   "last_evening_refill_session_id": "2026-08-31-PM-REFILL",
