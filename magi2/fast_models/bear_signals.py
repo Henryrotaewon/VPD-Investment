@@ -16,8 +16,6 @@ def ema(values, period):
 
 def evaluate(rows, now, regime):
     """Rows: native venue [open-ms,o,h,l,c,base-volume,quote-turnover]."""
-    if regime.get('state')!='DOWN' or not 0<=now-regime.get('ts',0)<360000:
-        return dict(ready=False,reason='BTC_NOT_DOWN')
     rows=sorted(r for r in rows if r[0]+FIVE<=now-2500)
     if len(rows)<65:
         return dict(ready=False,reason='NATIVE_PERP_HISTORY_SHORT')
@@ -36,6 +34,8 @@ def evaluate(rows, now, regime):
     atr=statistics.fmean(ranges[-14:]);last=rows[-1]
     result=dict(ready=True,reason='NO_PATTERN',signal_bar=last[0],close=last[4],ema20=e20[-1],
                 ema50=e50[-1],atr=atr,signals=[])
+    if regime.get('state')!='DOWN' or not 0<=now-regime.get('ts',0)<360000:
+        result['reason']='BTC_NOT_DOWN';return result
     if not (atr>0 and last[4]<e20[-1]<e50[-1] and e20[-1]<e20[-4]):
         result['reason']='NATIVE_TREND_NOT_DOWN';return result
     if e20[-1]-last[4]>2*atr:

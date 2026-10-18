@@ -57,6 +57,15 @@ class CompactHistoryTests(unittest.TestCase):
 
 
 class DecodeTests(unittest.TestCase):
+    def test_bithumb_candle_boundary_is_exclusive_kst_without_utc_suffix(self):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        client=CandleClient('bithumb');calls=[]
+        client.get=lambda url,params:calls.append(params) or []
+        client.candles('KRW-Q',T)
+        self.assertEqual(calls[0]['to'],datetime.fromtimestamp(T/1000,ZoneInfo('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M:%S'))
+        self.assertFalse(calls[0]['to'].endswith('Z'))
+
     def test_bithumb_native_trade_side_and_microseconds(self):
         d=Decoder('bithumb')
         row=d.decode(dict(type='trade',code='KRW-Q',trade_timestamp=T*1000,
