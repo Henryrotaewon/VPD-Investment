@@ -117,6 +117,8 @@ def missing_plan(db,symbol,cutoff):
     expected=set(range(start,end,FIVE))
     # Recent detailed data is also required; turnover alone is not sufficient.
     known={r[0] for r in db.execute('SELECT bucket FROM baseline WHERE symbol=? AND bucket>=? AND bucket<?',(symbol,start,end))}
+    from magi1.fast_candle_store import known as compact_known
+    known |= compact_known(db, symbol, start, end)
     details={r[0] for r in db.execute('SELECT bucket FROM recent5m WHERE symbol=? AND bucket>=? AND bucket<?',(symbol,end-DAY,end))}
     missing=(expected-known)| (set(range(end-DAY,end,FIVE))-details)
     missing |= {r[0] for r in db.execute("SELECT bucket FROM recent5m WHERE symbol=? AND source='LIVE_RECEIVE_TIME' AND bucket>=? AND bucket<?",(symbol,start,end))}
@@ -138,6 +140,8 @@ def apply_page(db,symbol,cutoff,rows,cursor,missing):
                 if t>=cutoff-DAY:
                     db.execute('INSERT OR REPLACE INTO recent5m VALUES(?,?,NULL,NULL,NULL,NULL,0,0,?)',(symbol,t,'API_NO_TRADE'))
             covered.add(t)
+        from magi1.fast_candle_store import compact
+        compact(db, cutoff)
     return covered
 
 

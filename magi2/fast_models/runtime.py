@@ -24,11 +24,12 @@ class Models:
                 try:
                     books,fx=await self.collector.poll()
                     ts=now_ms();self.bear.regime=dict(self.collector.regime)
+                    self.derivatives.native_candles=self.collector.native_candles
                     self.derivatives.tick(books,fx,self.collector.funding,self.collector.regime,self.bear,ts)
                     status=dict(ts=ts,bear=self.bear.report(ts),derivatives=self.derivatives.report(ts),
                         feeds=self.collector.health,fx=fx,quote_ready=sum(fresh(q,ts) for q in books.values()),
                         quote_total=len(books),regime=self.collector.regime,
-                        pairs=self.derivatives.audit)
+                        pairs=self.derivatives.audit,short_signals=self.derivatives.short_audit)
                     tmp=self.root/'status.tmp';tmp.write_text(json.dumps(status,allow_nan=False));tmp.replace(self.root/'status.json')
                     if ts-self.last_log>=60_000:
                         self.last_log=ts

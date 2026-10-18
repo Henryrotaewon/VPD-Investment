@@ -14,7 +14,8 @@ def clock(stamp):
 
 
 def keyboard(home=False):
-    rows = [[{'text':'🧪 FAST-DERIVATIVES / FAST-BEAR','callback_data':'nav:fast_models'}],
+    rows = [[{'text':'거래소별 FAST 운용','callback_data':'nav:fast_venues'}],
+        [{'text':'🧪 FAST-DERIVATIVES / FAST-BEAR','callback_data':'nav:fast_models'}],
         [{'text':'📊 자산현황','callback_data':'nav:fast_paper_balance'},
          {'text':'🔎 포착·추적','callback_data':'nav:fast_watch'}],
         [{'text':'📒 매매기록','callback_data':'nav:fast_paper_orders'},
@@ -27,8 +28,9 @@ def keyboard(home=False):
 
 def menu():
     return ('⚡ FAST 모의투자 [PAPER]\n'
-            '업비트 · FAST base · 최대 10종목 분할\n\n'
-            '자산현황: 예수금·보유 종목·수익률\n'
+            '업비트·빗썸·바이낸스·크라켄 · 거래소별 최대 10종목\n\n'
+            '거래소별 FAST 운용: 감시 범위·준비 상태·각 계좌 성과\n'
+            '자산현황: 기존 업비트 계좌 예수금·보유 종목·수익률\n'
             '포착·추적: 포착 종목과 이후 가격 변화\n'
             '매매기록: 체결 내역·매수 제외 사유\n'
             '일별평가: 날짜별 평가금액·누적손익\n\n'

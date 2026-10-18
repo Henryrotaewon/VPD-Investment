@@ -37,6 +37,8 @@ class Derivatives:
           CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY,payload TEXT);
           CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY,ts INTEGER,kind TEXT,payload TEXT);
           CREATE TABLE IF NOT EXISTS quotes(ts INTEGER,instrument TEXT,payload TEXT,PRIMARY KEY(ts,instrument));
+          CREATE TABLE IF NOT EXISTS short_assessments(instrument TEXT,bar INTEGER,first_ts INTEGER,last_ts INTEGER,payload TEXT,
+            PRIMARY KEY(instrument,bar));
         ''')
         row=self.db.execute('SELECT payload FROM state WHERE id=1').fetchone()
         self.s=json.loads(row[0]) if row else dict(version=VERSION,started_ms=stamp,initial=INITIAL,
@@ -45,6 +47,7 @@ class Derivatives:
         if self.s['version']!=VERSION:raise ValueError('COHORT_MISMATCH')
         self.metrics=Metrics(self.db,self.s['started_ms']);self.history=defaultdict(lambda:deque(maxlen=2160))
         self.audit={};self.last_snapshot=0;self.history_ts={}
+        self.native_candles={};self.short_audit={}
         if row:
             self.s['pending']={}
             self.event(stamp,'RESTART',{'positions':len(self.s['positions']),'entry_warmup':True})
@@ -122,10 +125,25 @@ class Derivatives:
         return (total if valid else None),valid
 
     def reserve(self,ident,kind,spot,perp,qty,fx,ts,features):
-        if ident in self.s['pending'] or ident in self.s['positions'] or len(self.s['pending'])+len(self.s['positions'])>=10:return
-        if self.s['entry_days'].get(perp['asset'])==ts//DAY:return
-        if any(p['asset']==perp['asset'] for p in list(self.s['pending'].values())+list(self.s['positions'].values())):return
-        if any(w.get('debt',0)>0 for w in self.s['wallets'].values()):return
+        self.last_reserve_reason='RESERVED'
+        def reject(reason):self.last_reserve_reason=reason
+        if ident in self.s['pending'] or ident in self.s['positions']:return reject('HOLDING_OR_PENDING')
+        if len(self.s['pending'])+len(self.s['positions'])>=10:return reject('ALL_SLOTS_USED')
+        if self.s['entry_days'].get(perp['asset'])==ts//DAY:return reject('SAME_DAY_REENTRY')
+        if any(p['asset']==perp['asset'] for p in list(self.s['pending'].values())+list(self.s['positions'].values())):return reject('ASSET_ALREADY_USED')
+        if any(w.get('debt',0)>0 for w in self.s['wallets'].values()):return reject('ACCOUNT_DEBT')
+        if kind.startswith('SHORT'):
+            active=[p for p in list(self.s['pending'].values())+list(self.s['positions'].values()) if p['kind'].startswith('SHORT')]
+            if len(active)>=2:return reject('SHORT_POSITION_LIMIT')
+            daily=self.db.execute('SELECT sum(pnl) FROM model_trades WHERE ts>=?',(ts//DAY*DAY,)).fetchone()[0] or 0.
+            day=self.db.execute('SELECT payload FROM model_days WHERE day=?',(ts//DAY,)).fetchone()
+            base=json.loads(day[0]).get('base') if day else None
+            if base is None:return reject('DAY_BASE_UNKNOWN')
+            equity,valid=self.value(self._risk_books,fx,ts) if hasattr(self,'_risk_books') else (self.metrics.s['equity'],self.metrics.s['valid'])
+            if not valid:return reject('ACCOUNT_VALUATION_STALE')
+            if daily<=-.02*base or equity<=.98*base:return reject('DAILY_LOSS_LIMIT')
+            risk=qty*perp['bids'][0][0]*fx[perp['quote']]['ask']*(features.get('stop_distance',.015)+2*perp['fee']+2*SLIP)
+            if risk>INITIAL*.003:return reject('SHORT_RISK_LIMIT')
         legs=[];reserves={}
         for q in ([spot] if spot else [])+[perp]:
             px=fill(q,'BUY' if q['kind']=='spot' else 'SELL',qty)
@@ -133,10 +151,10 @@ class Derivatives:
             capital=qty*px*(1+q['fee'] if q['kind']=='spot' else 1.2+q['fee'])
             wallet=q['venue']+':'+q['kind']
             reserves[wallet]=reserves.get(wallet,0)+capital
-            if qty<q['min_qty'] or qty*px<q['min_notional']:return
+            if qty<q['min_qty'] or qty*px<q['min_notional']:return reject('MIN_ORDER_LIMIT')
             legs.append(dict(instrument=q['id'],quote=q['quote'],kind=q['kind'],wallet=wallet,reference=px))
-        if sum(r*fx[self.s['wallets'][w]['currency']]['ask'] for w,r in reserves.items())>300000:return
-        if any(self.available(w)<r for w,r in reserves.items()):return
+        if sum(r*fx[self.s['wallets'][w]['currency']]['ask'] for w,r in reserves.items())>300000:return reject('SLOT_CAPITAL_LIMIT')
+        if any(self.available(w)<r for w,r in reserves.items()):return reject('VENUE_CASH_LIMIT')
         self.s['pending'][ident]=dict(id=ident,kind=kind,asset=perp['asset'],qty=qty,legs=legs,
             decision_ms=ts,reserves=reserves,features=features,expires=ts+30_000)
         self.event(ts,'SIGNAL',self.s['pending'][ident])
@@ -146,8 +164,18 @@ class Derivatives:
             if ts>p['expires']:
                 del self.s['pending'][ident];self.event(ts,'SKIP',dict(id=ident,reason='QUOTE_TIMEOUT'));continue
             if ts<=p['decision_ms']:continue
-            if p['kind']=='SHORT' and (not regime or regime['state']!='DOWN' or ts-regime['ts']>=360000):
+            if p['kind'].startswith('SHORT') and (not regime or regime['state']!='DOWN' or not 0<=ts-regime['ts']<360000):
                 del self.s['pending'][ident];continue
+            if p['kind'].startswith('SHORT'):
+                day=self.db.execute('SELECT payload FROM model_days WHERE day=?',(ts//DAY,)).fetchone()
+                base=json.loads(day[0]).get('base') if day else None
+                daily=self.db.execute('SELECT sum(pnl) FROM model_trades WHERE ts>=?',(ts//DAY*DAY,)).fetchone()[0] or 0.
+                equity,valid=self.value(books,fx,ts)
+                if base is None or (valid and (daily<=-.02*base or equity<=.98*base)):
+                    del self.s['pending'][ident]
+                    self.event(ts,'SKIP',dict(id=ident,reason='DAILY_LOSS_LIMIT_OR_UNKNOWN_BASE'))
+                    continue
+                if not valid:continue
             if any(not self.valid_quote(l['instrument'],books,fx,ts) or books[l['instrument']]['ts']<=p['decision_ms'] for l in p['legs']):continue
             d=feeds.get(p['legs'][-1]['instrument'])
             if not d or ts-d['ts']>180000:continue
@@ -170,6 +198,12 @@ class Derivatives:
                     edge=perp_leg['entry']*fx[perp_leg['quote']]['bid']/(spot_leg['entry']*fx[spot_leg['quote']]['ask'])-1
                     fees=sum(2*books[l['instrument']]['fee'] for l in legs)
                     if edge-fees-2*SLIP-.002<.003:raise ValueError('PAIR_EDGE_LOST')
+                if p['kind'] in ('SHORT_RETEST','SHORT_BREAKDOWN'):
+                    distance=p['features']['stop_price']/legs[-1]['entry']-1
+                    if not .004<=distance<=.015:raise ValueError('TECHNICAL_STOP_INVALID_AT_FILL')
+                    p['features'].update(stop_distance=distance,target_distance=2*distance)
+                    if p['qty']*legs[-1]['entry']*fx[legs[-1]['quote']]['ask']*(distance+2*books[legs[-1]['instrument']]['fee']+2*SLIP)>INITIAL*.003:
+                        raise ValueError('SHORT_RISK_LIMIT')
                 if any(self.s['wallets'][w]['cash']-sum(x['reserves'].get(w,0) for i,x in self.s['pending'].items() if i!=ident)<c for w,c in spent.items()):raise ValueError('WALLET_LIMIT')
             except ValueError as e:
                 failed=True;self.event(ts,'SKIP',dict(id=ident,reason=str(e)))
@@ -222,9 +256,14 @@ class Derivatives:
                     if spread<=p['features']['mean']:reason='BASIS_CONVERGENCE'
             else:
                 move=1-q['asks'][0][0]/leg['entry']
-                if move<=-.015:reason='SHORT_STOP'
-                elif move>=.03:reason='SHORT_PROFIT'
-                elif ts-p['entry_ms']>=14_400_000:reason='SHORT_TIME_LIMIT'
+                rules=p.get('features',{})
+                stop=rules.get('stop_distance',.015);target=rules.get('target_distance',.03)
+                if move<=-stop:reason='SHORT_STOP'
+                elif move>=target:reason='SHORT_PROFIT'
+                elif ts-p['entry_ms']>=rules.get('max_hold_ms',14_400_000):reason='SHORT_TIME_LIMIT'
+                if p['kind'] in ('SHORT_RETEST','SHORT_BREAKDOWN'):
+                    p['best_short_move']=max(p.get('best_short_move',0.),move)
+                    if p['best_short_move']>=1.5*stop and move<=.5*stop:reason='SHORT_PROFIT_PROTECTION'
             if reason:
                 # Persist exit intent first; fill from the next independent observation.
                 if not p.get('exit'):p['exit']=dict(ts=ts,reason=reason)
@@ -234,10 +273,26 @@ class Derivatives:
 
     def scan(self,books,fx,feeds,regime,bear,ts):
         audit={};candidates=[]
+        self._risk_books=books
+        self.short_audit={}
         for a in ASSETS:
             for v in ('binance','kraken'):
                 pk=key(v,'perp',a);perp=books.get(pk);d=feeds.get(pk)
                 if not self.valid_quote(pk,books,fx,ts) or not d or ts-d['ts']>180000:continue
+                native=self.native_candles.get(pk,{})
+                from .bear_signals import evaluate
+                signal=evaluate(native.get('rows',[]),ts,regime) if 0<=ts-native.get('ts',0)<180000 else dict(ready=False,reason='NATIVE_PERP_FEED_UNAVAILABLE')
+                self.short_audit[pk]=dict(signal,turnover_proxy=native.get('turnover_proxy',False))
+                for f in signal.get('signals',[]):
+                    if f['signal_bar']+300000<self.s['started_ms']:continue
+                    # Negative funding is a debit to a short. Screen the next
+                    # settlement/hours conservatively; actual rates still settle
+                    # through the existing idempotent venue-specific ledger.
+                    cost=max(0.,-d['rate'])*(2 if v=='kraken' else int(d['next']<=ts+f['max_hold_ms']))
+                    if 2*perp['fee']+2*SLIP+cost>f['target_distance']/3:
+                        self.short_audit[pk]['entry_reason']='COST_OR_NEGATIVE_FUNDING';continue
+                    f=dict(f,regime=regime,estimated_funding_cost=cost,turnover_proxy=native.get('turnover_proxy',False))
+                    candidates.append((1. if f['model']=='SHORT_RETEST' else .9,f['model']+'|'+pk,f['model'],None,perp,f))
                 for sv in ('upbit','bithumb','binance','kraken'):
                     sk=key(sv,'spot',a);spot=books.get(sk);ident=sk+'|'+pk
                     if not self.valid_quote(sk,books,fx,ts) or abs(spot['ts']-perp['ts'])>3000:continue
@@ -264,8 +319,18 @@ class Derivatives:
             unit=perp['bids'][0][0]*fx[perp['quote']]['ask']*1.202
             if spot:unit+=spot['asks'][0][0]*fx[spot['quote']]['ask']*(1+spot['fee']+.002)
             qty=quantize(300000/unit,[x['step'] for x in ([spot] if spot else [])+[perp]])
-            try:self.reserve(ident,kind,spot,perp,qty,fx,ts,f)
-            except ValueError:pass
+            try:
+                self.reserve(ident,kind,spot,perp,qty,fx,ts,f)
+                if kind in ('SHORT_RETEST','SHORT_BREAKDOWN'):
+                    self.short_audit[perp['id']].setdefault('entries',[]).append(dict(model=kind,reason=self.last_reserve_reason))
+            except ValueError as exc:
+                if kind in ('SHORT_RETEST','SHORT_BREAKDOWN'):
+                    self.short_audit[perp['id']]['entry_reason']=str(exc)
+        for instrument,row in self.short_audit.items():
+            bar=row.get('signal_bar',(ts//300000-1)*300000)
+            self.db.execute('INSERT INTO short_assessments VALUES(?,?,?,?,?) ON CONFLICT(instrument,bar) DO UPDATE SET last_ts=excluded.last_ts,payload=excluded.payload',
+                            (instrument,bar,ts,ts,json.dumps(row,allow_nan=False)))
+        self.db.execute('DELETE FROM short_assessments WHERE bar<?',(ts-3*DAY,))
         self.audit=audit
 
     def tick(self,books,fx,feeds,regime,bear,ts):
@@ -296,4 +361,6 @@ class Derivatives:
     def report(self,ts):
         return dict(mode='FAST_DERIVATIVES_PAPER_ONLY',started_ms=self.s['started_ms'],initial=INITIAL,
             equity=self.s['equity'],valid=self.s['valid'],positions=len(self.s['positions']),pending=len(self.s['pending']),
-            funded=bool(self.s['wallets']),mdd_pct=self.metrics.s['mdd'],pairs=len(self.audit),asof_ms=ts)
+            funded=bool(self.s['wallets']),mdd_pct=self.metrics.s['mdd'],pairs=len(self.audit),asof_ms=ts,
+            native_perp_ready=sum(x.get('ready',False) for x in self.short_audit.values()),
+            native_perp_total=len(self.short_audit),short_models=['SHORT_BREAKDOWN','SHORT_RETEST'])

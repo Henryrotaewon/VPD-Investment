@@ -571,6 +571,9 @@ def handle_command(text,chat_id=None,user_id=None):
             except (OSError,ValueError,KeyError,TypeError,requests.RequestException):
                 message='최신 관측 인터페이스: 확인 불가 (연결·만료·형식 점검 필요)'
             telegram('MAGI1 · 시세·관측 상태\n'+message+'\n개별 거래소 수집기 상태와 전체 데이터 품질은 이 조회만으로 판정하지 않습니다.',status_keyboard())
+        elif cmd=='fast_venues':
+            from magi2.fast_venue_report import view as fast_venue_view
+            telegram(*fast_venue_view(STATE_DIR))
         elif cmd=='fast_watch':
             from magi2.fast_observe_service import view as fast_watch_view
             from magi2.fast_flow_paper_report import keyboard as fast_paper_keyboard
@@ -745,7 +748,7 @@ def handle_callback(callback):
             telegram(strategy_text(name),strategy_keyboard(detail=True,fast=name=='fast'))
     elif data.startswith('nav:'):
         command=data[4:]
-        if command in ('capture_audit','fast_trade_audit','paper','paper_results','paper_status','paper_guide','system_info','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
+        if command in ('fast_venues','capture_audit','fast_trade_audit','paper','paper_results','paper_status','paper_guide','system_info','fast_models','fast_derivatives','fast_bear','fast_model_daily','fast_model_data','morning_scan','evening_scan','rescan','menu','help','about','status','status1','status2','status3','indicator','indicator_rebuild','indicator_refill','fast','fast_captures','fast_start','fast_clear','fast_report','fast_orders','fast_daily','fast_balance','fast_replay','fast_compare','fast_watch','fast_paper','fast_paper_balance','fast_paper_orders','fast_paper_daily','wave','scan','report','assets','shadow','shadows','orders','vpd','morning','refill','rebuild','strategies','regime','bollinger_orders'):
             handle_command(command,chat_id,user_id)
     elif data.startswith(('confirm:','cancel:')):
         prefix,token=data.split(':',1)
