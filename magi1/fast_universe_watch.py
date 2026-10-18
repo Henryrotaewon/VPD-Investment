@@ -38,12 +38,13 @@ async def fetch_markets(session):
 
 
 class UniverseWatch:
-    def __init__(self, observer, symbols, stream, clock, emit=None):
+    def __init__(self, observer, symbols, stream, clock, emit=None, fetcher=None):
         self.observer = observer
         # Shared mutable list: Bollinger and FAST-BEAR warmers see additions.
         self.symbols = symbols
         self.stream = stream
         self.clock = clock
+        self.fetcher = fetcher
         self.emit = emit or (lambda row: print(json.dumps(row), flush=True))
         self.tasks = {}
         previous = observer.db.execute(
@@ -103,7 +104,7 @@ class UniverseWatch:
 
     async def check(self, session):
         try:
-            listed = await fetch_markets(session)
+            listed = await (self.fetcher(session) if self.fetcher else fetch_markets(session))
         except Exception as exc:
             self.observer.universe_status.update(status='RETRY', error=type(exc).__name__)
             self.observer.event(self.clock(), 'UNIVERSE_REFRESH_ERROR', '',

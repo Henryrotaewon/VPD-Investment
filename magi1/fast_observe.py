@@ -320,7 +320,9 @@ class Observer:
                 windows = [json.loads(x[0]) for x in values]
                 total = sum(x['value'] for x in windows)
                 if connected <= bucket and len(values) == 30:
-                    self.db.execute('INSERT OR IGNORE INTO baseline VALUES(?,?,?)', (s, bucket, total))
+                    from magi1.fast_candle_store import historical
+                    if bucket not in historical(self.db, s, [bucket]):
+                        self.db.execute('INSERT OR IGNORE INTO baseline VALUES(?,?,?)', (s, bucket, total))
                     traded = [x for x in windows if x.get('o') is not None]
                     ohlcv = ([traded[0]['o'],max(x['h'] for x in traded),min(x['l'] for x in traded),traded[-1]['c'],sum(x.get('volume',0) for x in traded)] if traded else [None,None,None,None,0])
                     self.db.execute('INSERT OR IGNORE INTO recent5m VALUES(?,?,?,?,?,?,?,?,?)',(s,bucket,*ohlcv,total,'LIVE_RECEIVE_TIME'))

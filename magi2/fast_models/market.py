@@ -38,6 +38,7 @@ class Collector:
     def __init__(self,session):
         self.session=session;self.books={};self.metadata={};self.funding={};self.health={};self.until={}
         self.meta_ts=0;self.fund_ts=0;self.regime={'state':'UNAVAILABLE','ts':0}
+        self.native_candles={};self.candle_ts=0
 
     async def get(self,url,params=None):
         host=url.split('/')[2]
@@ -167,6 +168,34 @@ class Collector:
             close=rows[-1][1],ema20=ema,previous_ema20=previous,bar_end=rows[-1][0]+14_400_000,
             source='UPBIT_COMPLETED_4H_EMA20')
 
+    async def perpetual_candles(self):
+        """Signals use each traded contract's own completed candles."""
+        semaphore=asyncio.Semaphore(3)
+        async def one(venue,asset):
+            async with semaphore:
+                k=key(venue,'perp',asset);m=self.metadata.get(k)
+                if not m:return
+                if venue=='binance':
+                    data,t,_=await self.get('https://fapi.binance.com/fapi/v1/klines',
+                                            {'symbol':m['symbol'],'interval':'5m','limit':100})
+                    rows=[[int(r[0]),*map(float,r[1:6]),float(r[7])] for r in data]
+                else:
+                    data,t,_=await self.get('https://futures.kraken.com/api/charts/v1/trade/'+m['symbol']+'/5m',
+                                            {'from':(now_ms()-101*300000)//1000,'to':now_ms()//1000})
+                    rows=[]
+                    for r in data['candles']:
+                        stamp=int(r['time']);stamp=stamp*1000 if stamp<10**12 else stamp
+                        # Kraken trade-chart volume is base contracts. Its
+                        # quote turnover is estimated and marked as a proxy.
+                        volume=float(r['volume']);close=float(r['close'])
+                        rows.append([stamp,float(r['open']),float(r['high']),float(r['low']),close,volume,volume*close])
+                rows=sorted(r for r in rows if r[0]+300000<=t-2500)[-100:]
+                self.native_candles[k]=dict(ts=t,rows=rows,source=venue+'_PERPETUAL_TRADE_5M',
+                                            turnover_proxy=venue=='kraken')
+        await asyncio.gather(*(self.guarded(v+'_perp_candles_'+a,lambda v=v,a=a:one(v,a))
+                              for v in ('binance','kraken') for a in ASSETS))
+        self.candle_ts=now_ms()
+
     async def poll(self):
         if now_ms()-self.meta_ts>3_600_000:await self.meta()
         tasks=[self.guarded(v+'_spot',lambda v=v:self.domestic(v)) for v in ('upbit','bithumb')]
@@ -178,5 +207,6 @@ class Collector:
         tasks.extend(book(v,k,a) for v in ('binance','kraken') for k in ('spot','perp') for a in ASSETS)
         if now_ms()-self.fund_ts>60_000:tasks.append(self.funding_data())
         if now_ms()-self.regime['ts']>300_000:tasks.append(self.guarded('btc_regime',self.btc_regime))
+        if now_ms()-self.candle_ts>60000:tasks.append(self.perpetual_candles())
         await asyncio.gather(*tasks)
         return self.books,self.fx(now_ms())

@@ -15,8 +15,11 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 class Service:
-    def __init__(self,state_dir,log):
-        self.directory=Path(state_dir)/'fast-observe';self.directory.mkdir(parents=True,exist_ok=True)
+    def __init__(self,state_dir,log,venue='upbit'):
+        self.venue=venue;self.state_dir=Path(state_dir);self.children=[]
+        self.directory=Path(state_dir)/'fast-observe'
+        if venue!='upbit':self.directory=self.directory/'venues'/venue
+        self.directory.mkdir(parents=True,exist_ok=True)
         self.db=self.directory/'observe.sqlite3';self.status=self.directory/'status.json'
         self.log=log;self.child=None;self.stopped=threading.Event();self.data={}
         atexit.register(self.stop)
@@ -25,6 +28,7 @@ class Service:
         temp=self.status.with_suffix('.tmp');temp.write_text(json.dumps(self.data));temp.replace(self.status)
     def stop(self):
         self.stopped.set()
+        for service in self.children:service.stop()
         if self.child and self.child.poll() is None:self.child.terminate()
     def worker(self,module,*args):
         env={k:v for k,v in os.environ.items() if k in ('PATH','LANG','TZ','SSL_CERT_FILE','SSL_CERT_DIR','HOME','PYTHONPATH')}
@@ -46,7 +50,7 @@ class Service:
                 elif value.get('mode')=='PUBLIC_OBSERVE_NO_ORDERS':self.save(phase='OBSERVING',fast_disabled=value.get('fast_disabled',False),observation=value,observation_ms=int(time.time()*1000))
                 elif value.get('mode')=='FAST_REPAIR_PROGRESS':self.save(repair=value,done=value['checked'],total=value['total'],complete=value['states'].get('COMPLETE',0),incomplete=value['states'].get('INCOMPLETE_HISTORY',0)+value['states'].get('RETRY_WAIT',0))
                 else:self.save(last_progress=value)
-                self.log('fast_observe '+json.dumps(value))
+                self.log(('fast_observe ' if self.venue=='upbit' else 'fast_venue '+self.venue+' ')+json.dumps(value))
             except (ValueError,TypeError):
                 self.log('fast_observe_worker '+line.strip()[:300])
         code=self.child.wait();self.child=None
@@ -54,6 +58,12 @@ class Service:
     def run(self):
         while not self.stopped.is_set():
             try:
+                if self.venue!='upbit':
+                    self.save(venue=self.venue,phase='STARTING',detail='거래소별 시세·기준자료·PAPER 연결')
+                    code=self.worker('magi1.fast_venue','--venue',self.venue,'--continuous',
+                                     '--paper-db',str(self.directory/'paper-v1.sqlite3'))
+                    if code:raise RuntimeError('OBSERVE_EXIT_'+str(code))
+                    continue
                 self.save(phase='STARTING',detail='공용 시세 수신 · FAST base 재개 검사')
                 code=self.worker('magi1.fast_observe','--continuous','--repair','--diagnostics',
                                  '--resume-fast-id','fast-base-review-20261009-v1',
@@ -68,6 +78,11 @@ class Service:
                 if self.stopped.wait(60):break
     def start(self):
         threading.Thread(target=self.run,name='fast-observe-supervisor',daemon=True).start()
+        if self.venue=='upbit':
+            for venue in ('bithumb','binance','kraken'):
+                service=Service(self.state_dir,self.log,venue)
+                self.children.append(service)
+                service.start()
         return self
 
 
@@ -79,7 +94,7 @@ def view(state_dir):
     obs=data.get('observation') or {}
     disabled=data.get('fast_disabled') or obs.get('fast_disabled')
     phase={'STARTING':'관측·종목별 보완 시작', 'REPAIRING':'기준자료 적재·누락 보완','OBSERVING':'포착·추적 중','RETRY_WAIT':'오류 후 재시도 대기'}.get(data['phase'],data['phase'])
-    lines=['⚡ FAST 포착·추적 · 주문 없음',f'상태: {phase} · 갱신 {age}초 전']
+    lines=['⚡ FAST 포착·추적 · 업비트 · 주문 없음',f'상태: {phase} · 갱신 {age}초 전']
     if disabled:
         lines=['⚡ FAST 포착·매매 중지',f'사용자 요청으로 중지 · 갱신 {age}초 전',
                '신규 포착·매수 없음 · 기존 보유 보호청산 및 더블볼린저 공용 시세 유지']
@@ -127,4 +142,6 @@ def view(state_dir):
         db.close()
     except sqlite3.Error:lines.append('원장 조회 대기 · 잠시 후 다시 조회')
     lines.append('가격변화 관측값 · 체결수익률 아님\n'+('과거 포착·성과 이력 보존' if disabled else '정상 종목은 계속 관측 · 기준자료가 부족한 종목만 포착 대기'))
+    from magi2.fast_venue_report import summary_lines
+    lines += ['',*summary_lines(state_dir)]
     return '\n'.join(lines)

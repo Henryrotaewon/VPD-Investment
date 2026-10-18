@@ -40,6 +40,7 @@ def keyboard(section=None, key=None, offset=0, total=0):
             elif key == 'indicator':
                 rows.append([button('포착 이력', 'nav:fast_captures'), button('수동 운용', 'nav:indicator')])
             elif key == 'fast':
+                rows.append([button('거래소별 운용', 'nav:fast_venues')])
                 rows.append([button('포착·추적', 'nav:fast_watch'), button('매매 상세', 'nav:fast_paper_orders')])
                 rows.append([button('매매 진단','nav:fast_trade_audit')])
             elif key == 'bollinger':
@@ -86,11 +87,18 @@ def result_lines(root, key, now, compact=False):
     lines += [f'{base_label} {money(r.initial)} · 평가 {money(equity)}',
               f'수익률 {return_text(r.current,r.initial)} · 승률 {win_text(r.trades,r.wins_complete)}']
     if compact:
+        if key == 'fast':
+            from magi2.fast_venue_report import result_lines as venue_results
+            lines[0]='• FAST base · 업비트'
+            lines += venue_results(root,now)
         return lines
     if r.started:
         lines.append(f'시작 {clock(r.started)} · 평가 {clock(r.current.ts) if r.current else "대기"}')
     if key == 'fast':
         lines.append('재시작 기준 · 과거 성과 제외' if any('재개 이후' in note for note in r.notes) else '현재 원장 기준')
+        from magi2.fast_venue_report import result_lines as venue_results
+        lines[0]='• FAST base · 업비트'
+        lines += venue_results(root,now)
     if r.current and not r.current.valid:
         lines.append('최근 관측값 · 시세 갱신 대기')
     return lines
@@ -159,6 +167,9 @@ def target(key, p):
     if key == 'bear':
         return '목표 +4% (가격 기준) · +2%부터 +1% 보호'
     if key == 'derivatives':
+        if p.get('kind') in ('SHORT_RETEST','SHORT_BREAKDOWN'):
+            f=p.get('features',{})
+            return f"목표 가격 하락 {f.get('target_distance',0)*100:.2f}% · 기술적 손절 {f.get('stop_distance',0)*100:.2f}%"
         return '목표 가격 하락 3%' if p.get('kind') == 'SHORT' else '목표 순익 +0.5% 또는 가격차 수렴'
     return '목표 고정 없음 · '+('추세·보호선 청산' if key == 'indicator' else '수급·보호선 청산' if key == 'fast' else '밴드·보호선 청산')
 
@@ -246,7 +257,7 @@ def view(root, now, section, key=None, offset=0):
     if section == 'results':
         for k in ([key] if key else NAMES):
             lines += result_lines(root,k,now,compact=key is None)+['']
-        lines += ['* FAST base 원금·성과는 재시작 기준',
+        lines += ['* 업비트 FAST base 원금·성과는 재시작 기준 · 추가 거래소는 독립 계좌',
                   '수익률: 보유평가 포함 · 승률: 비용 차감 후 전량 청산 기준']
         markup = keyboard(section,key)
         if key in ('vpd','fast','indicator','bollinger'):

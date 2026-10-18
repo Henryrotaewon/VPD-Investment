@@ -68,14 +68,14 @@ def view(root,now,section='fast_models'):
         k='bear' if section=='fast_bear' else 'derivatives'
         lines.append(summary(root,k,now))
         lines+=['',('완료 5분봉 RSI 회복 → 다음 봉 VWAP·매수세 확인\n손절 최대 1.5% · +2%부터 +1% 보호 · +4% 또는 반등 실패 청산' if k=='bear' else
-            '하락 추세 숏 + 현물·선물 가격차 수렴\n현물 4거래소 · 바이낸스/크라켄 선형 무기한 · BTC/ETH/XRP/SOL/NEAR\n6개 가상 지갑 각 50만원 선배치 · 계좌 간 담보 합산 없음')]
+            '하락 추세 돌파 숏 + 반등 실패 숏 + 기존 숏/현선물 차익\n현물 4거래소 · 바이낸스/크라켄 선형 무기한 · BTC/ETH/XRP/SOL/NEAR\n총 300만원 공유 · 6개 가상 지갑 각 50만원 선배치\n신규 숏은 해당 선물의 완료 5분봉으로 판단\n신규 숏 최대 2건 · 건별 예상 위험 0.3% · 당일 계좌 −2% 신규 진입 보류\n기술적 손절 0.4~1.5% · 목표 2R · 최대 2시간 · 담보 120% 모의 선배치')]
         try:
             s,m,days,trades=load(root,k)
             for name,p in list(s['positions'].items())[:10]:
                 label=p.get('kind','REBOUND');entry=p.get('entry_ms',0)
                 lines.append(f"{p.get('asset',name)} · {label} · {clock(entry)} 진입")
             if k=='derivatives':
-                for kind,label in [('SHORT','추세 숏'),('BASIS','현선물 쌍')]:
+                for kind,label in [('SHORT_BREAKDOWN','하락 추세 돌파 숏'),('SHORT_RETEST','반등 실패 숏'),('SHORT','기존 추세 숏'),('BASIS','현선물 쌍')]:
                     rows=[t for t in trades if t[1]==kind]
                     lines.append(f"{label}: {wins(rows)} · 실현 {int(sum(t[2] for t in rows)):+,}원")
             lines.append('\n최근 완료매매')
@@ -88,11 +88,14 @@ def view(root,now,section='fast_models'):
             lines+=['',f"수집 갱신 {clock(data['ts'])} · 최신 호가 {data['quote_ready']}/{data['quote_total']}",
                     f"BTC 4시간 국면: {data['regime']['state']} · DOWN일 때 반등·숏 진입 검토",
                     f"현선물 비교 조합 {data['derivatives']['pairs']}개"]
+            lines.append(f"신규 파생 판단 준비 {data['derivatives'].get('native_perp_ready',0)}/{data['derivatives'].get('native_perp_total',0)}계약")
             if section=='fast_model_data':
                 for v in ('upbit','bithumb','binance','kraken'):
                     feeds=[(k,r) for k,r in data['feeds'].items() if k.startswith(v)]
                     fail=[k for k,r in feeds if r['state']!='OK']
                     lines.append(v+': '+('정상' if feeds and not fail else '일부 수집 대기: '+', '.join(fail)))
+                for instrument,row in data.get('short_signals',{}).items():
+                    lines.append(instrument+': '+row['reason']+(' · 거래대금은 종가×수량 근사' if row.get('turnover_proxy') else ''))
                 for k,row in sorted(data['pairs'].items(),key=lambda x:-x[1]['net_edge_bps'])[:5]:
                     lines.append(f"{k}\n  가격차 {row['edge_bps']:.1f}bp / 비용후 {row['net_edge_bps']:.1f}bp · 기준표본 {row['samples']}")
                 lines+=['업비트·빗썸은 KRW 현물만 사용', 'USD·USDT는 별도 환산 · 수수료는 보수적 모의 가정',

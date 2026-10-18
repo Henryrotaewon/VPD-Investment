@@ -357,6 +357,7 @@ def build_daily(root, archive, public, now):
 def daily_text(report):
     coverage=report['coverage']
     lines=['급등 포착 점검 [PAPER / 사후분석]',f"{clock(report['start_ms'])} ~ {clock(report['end_ms'])} KST",
+           '분석 범위: 업비트 원화시장 · 추가 거래소는 FAST 거래소별 운용에서 확인',
            '조회 성공 시장 중 장중 +10% 이상 · 상승폭 상위 5개',
            f"조회 {coverage['ready']}/{coverage['universe']}시장 · 누락 {len(coverage['missing'])}"]
     for r in report['rows']:

@@ -21,6 +21,8 @@ def reference_state(db, symbol, cutoff):
     keys = [full - k * DAY for k in range(1, 11)]
     past = dict(db.execute('SELECT bucket,value FROM baseline WHERE symbol=? AND bucket IN ('
                           + ','.join('?' * 10) + ')', (symbol, *keys)))
+    from magi1.fast_candle_store import historical
+    past = historical(db, symbol, keys) | past
     reasons = []
     if current is None:
         reasons.append('CURRENT_BAR_MISSING')

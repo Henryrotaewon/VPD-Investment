@@ -112,7 +112,7 @@ def parse_command(text, bot_username=''):
         text = ' '.join([head] + tail)
     text = text.lower()
     text = ALIASES.get(text, text)
-    return text if text in dict(COMMANDS + LEGACY_COMMANDS) or text in ('capture_audit','fast_trade_audit','paper_results','paper_status','paper_guide','execution','magi3','status1','status2','status3','wave') else None
+    return text if text in dict(COMMANDS + LEGACY_COMMANDS) or text in ('fast_venues','capture_audit','fast_trade_audit','paper_results','paper_status','paper_guide','execution','magi3','status1','status2','status3','wave') else None
 
 
 def main_keyboard():

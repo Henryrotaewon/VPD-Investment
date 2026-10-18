@@ -130,7 +130,7 @@ class Paper:
         free = self.s['cash'] - sum(x['budget'] for x in pending.values())
         budget = free / vacant if vacant > 0 else 0.
         reason = ('ALREADY_HELD' if symbol in positions or symbol in pending else
-                  'NO_SLOT' if vacant <= 0 else 'INSUFFICIENT_CASH' if budget < 5000 else
+                  'NO_SLOT' if vacant <= 0 else 'INSUFFICIENT_CASH' if budget < self.policy.get('min_budget', 5000) else
                   'INVALID_PROTECTION' if low is None or low <= 0 or low >= price else '')
         if previous:
             self.event(ts, 'PRIOR_SIGNAL', symbol, dict(ts=previous[0], status=previous[1],
