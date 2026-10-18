@@ -14,6 +14,7 @@ import sqlite3
 import time
 import uuid
 import zlib
+from zoneinfo import ZoneInfo
 
 import aiohttp
 import requests
@@ -102,7 +103,9 @@ class CandleClient:
 
     def candles(self, symbol, cursor):
         if self.venue == 'bithumb':
-            to = datetime.fromtimestamp(cursor / 1000, timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+            # Bithumb defines `to` as an exclusive KST wall-clock boundary;
+            # unlike Upbit it rejects a UTC Z-suffixed value.
+            to = datetime.fromtimestamp(cursor / 1000, ZoneInfo('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M:%S')
             return self.get('https://api.bithumb.com/v1/candles/minutes/5',
                             dict(market=symbol, to=to, count=200))
         if self.venue == 'binance':
