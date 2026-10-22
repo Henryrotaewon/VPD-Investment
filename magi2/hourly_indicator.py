@@ -5,6 +5,7 @@ from threading import RLock, Event, Thread
 from zoneinfo import ZoneInfo
 import json
 import math
+import os
 import shutil
 import sqlite3
 import time
@@ -44,6 +45,20 @@ def clock(t): return datetime.fromtimestamp(t/1000,KST).strftime('%m/%d %H:%M:%S
 def date(t): return datetime.fromtimestamp(t/1000,KST).date().isoformat()
 
 def iso(t): return datetime.fromtimestamp(t/1000,timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+def initial_state(stamp):
+    cfg=json.loads(Path(__file__).with_name('config.json').read_text())
+    if cfg['mode']!='PAPER':raise ValueError('PAPER_ONLY')
+    capital=float(cfg['initial_cash_krw']);slots=int(cfg['session']['top_n'])
+    return dict(cohort=COHORT,initial=capital,slots=slots,cash=capital,realized=0.,positions={},pending={},
+                previous={},used_day={},last_exit={},prices={},enabled=True,generation=1,resumed_ms=stamp,
+                started_ms=stamp,fee=.0005,slip=.0005,scan={},reset_done=False)
+
+
+def fill_error(log,prefix,symbol,order,stamp,stage,exc):
+    log(prefix+' '+json.dumps(dict(market=symbol,side=order['side'],stage=stage,
+        type=type(exc).__name__,reason=str(exc)[:160],earliest_ms=order['earliest'],
+        decision_ms=order['decision_ms'],observed_ms=stamp)))
 
 def normalized(payload):
     result=[]
@@ -105,11 +120,20 @@ class PublicCandles:
         hours=normalized(self.get('candles/minutes/60',{'market':symbol,'to':iso(boundary),'count':200}))
         return recovery_point(self.cache[symbol]['rows'],hours,boundary)
     def fills(self,symbol,earliest,stamp):
-        rows=normalized(self.get('candles/minutes/5',{'market':symbol,'to':iso(stamp),'count':200}))
-        found=[r for r in rows if earliest<=r[0]<stamp]
-        # Never invent a fill in an unobserved gap outside the returned window.
-        if rows and rows[0][0]>earliest and len(rows)>=200: raise ValueError('FILL_WINDOW_MISSING')
-        return found[0] if found else None
+        if earliest%STEP:raise ValueError('INVALID_FILL_BOUNDARY')
+        # Anchor each request at the decision, not now. A window contains at most
+        # 200 possible 5m candles, so count cannot truncate its first real trade.
+        # Walk empty windows forward; never fabricate candles for no-trade gaps.
+        start=earliest
+        while start<stamp:
+            end=min(stamp,start+200*STEP)
+            count=min(200,max(1,math.ceil((end-start)/STEP)))
+            rows=normalized(self.get('candles/minutes/5',{'market':symbol,'to':iso(end),'count':count}))
+            if any(r[0]%STEP or r[0]>=end for r in rows):raise ValueError('INVALID_FILL_WINDOW')
+            found=[r for r in rows if start<=r[0]<end]
+            if found:return found[0]
+            start=end
+        return None
     def prices(self,symbols):
         out={}
         for i in range(0,len(symbols),80):
@@ -134,13 +158,12 @@ class HourlyLedger:
         row=self.db.execute('SELECT payload FROM state WHERE id=1').fetchone()
         if row:self.s=json.loads(row[0])
         else:
-            cfg=json.loads(Path(__file__).with_name('config.json').read_text())
-            if cfg['mode']!='PAPER':raise ValueError('PAPER_ONLY')
-            capital=float(cfg['initial_cash_krw']);slots=int(cfg['session']['top_n'])
-            self.s=dict(cohort=COHORT,initial=capital,slots=slots,cash=capital,realized=0.,positions={},pending={},
-                        previous={},used_day={},last_exit={},prices={},enabled=True,generation=1,resumed_ms=stamp,
-                        started_ms=stamp,fee=.0005,slip=.0005,scan={},reset_done=False)
+            self.s=initial_state(stamp)
             self.save()
+        requested=os.getenv('MAGI2_INDICATOR_RESET_ONCE','').strip()
+        if requested:
+            from magi2.indicator_reset import reset_once
+            reset_once(self,requested,stamp,log)
         if not self.s['reset_done']:
             removed=[]
             for old in parent.iterdir():
@@ -344,12 +367,14 @@ class HourlyMonitor:
             if order['side']!='SELL':continue
             stamp=self.clock()
             if stamp<=order['earliest']:continue
+            stage='fill_candles_5m'
             try:
                 bar=market.fills(symbol,order['earliest'],stamp)
+                stage='paper_ledger'
                 if bar and self.ledger.execute(symbol,order,bar,stamp):
                     self.log(f'indicator_paper_fill side=SELL market={symbol} price={bar[1]} reason={order["reason"]} signal={clock(order["signal_ms"])} fill={clock(bar[0])}')
             except PublicPauseError:raise
-            except Exception as exc:self.log(f'indicator_risk_fill_error market={symbol} type={type(exc).__name__}')
+            except Exception as exc:fill_error(self.log,'indicator_risk_fill_error',symbol,order,stamp,stage,exc)
         return len(expected),unavailable
     def risk_worker(self):
         market=self.market_factory();last_status=0
@@ -376,10 +401,10 @@ class HourlyMonitor:
                     self.log(f'indicator_universe venue=upbit count={len(names)} basis=ALL_KRW')
                 boundary=ts//HOUR*HOUR;control=self.ledger.control()
                 if boundary>last_boundary and control['enabled']:
-                    ready=0;errors={};last_boundary=boundary
+                    ready=0;errors={};error_samples={};last_boundary=boundary
                     # Bootstrap history only: no trades or confirmation from before activation.
                     bootstrap=boundary<control['resumed_ms']
-                    self.update(status='WARMING' if bootstrap else 'SCANNING',boundary=boundary,checked=0,errors={})
+                    self.update(status='WARMING' if bootstrap else 'SCANNING',boundary=boundary,checked=0,errors={},error_samples={})
                     for i,symbol in enumerate(sorted(names)):
                         if self.stop.is_set():return
                         try:
@@ -389,11 +414,12 @@ class HourlyMonitor:
                             raise
                         except Exception as exc:
                             key=type(exc).__name__+':'+str(exc)[:90];errors[key]=errors.get(key,0)+1
-                        if i%20==0:self.update(checked=i+1,ready=ready,errors=errors)
-                    self.update(status='MONITORING' if ready else 'DATA_UNAVAILABLE',checked=len(names),ready=ready,errors=errors,last_scan_ms=self.clock(),bootstrap=bootstrap)
+                            if len(error_samples.setdefault(key,[]))<3:error_samples[key].append(symbol)
+                        if i%20==0:self.update(checked=i+1,ready=ready,errors=errors,error_samples=error_samples)
+                    self.update(status='MONITORING' if ready else 'DATA_UNAVAILABLE',checked=len(names),ready=ready,errors=errors,error_samples=error_samples,last_scan_ms=self.clock(),bootstrap=bootstrap)
                     from magi2.indicator_rebalance import candidates
                     with self.ledger.lock:eligible=len(candidates(self.ledger,self.clock()))
-                    self.log('indicator_hourly_scan '+json.dumps(dict(boundary=clock(boundary),universe=len(names),ready=ready,errors=errors,bootstrap=bootstrap,eligible=eligible)))
+                    self.log('indicator_hourly_scan '+json.dumps(dict(boundary=clock(boundary),universe=len(names),ready=ready,errors=errors,error_samples=error_samples,bootstrap=bootstrap,eligible=eligible)))
                 advance_rebalance(self.ledger,self.clock())
                 # Pending orders use an actual candle that starts AFTER the observed decision.
                 for symbol,order in sorted(self.ledger.pending().items(),key=lambda x:(x[1]['side']=='BUY',x[1]['signal_ms'],x[0])):
@@ -404,12 +430,14 @@ class HourlyMonitor:
                             if self.ledger.s['pending'].get(symbol)==order:
                                 cancel_entry(self.ledger,symbol,order,ts,'STALE_UNFILLED')
                         continue
+                    stage='fill_candles_5m'
                     try:
                         bar=market.fills(symbol,order['earliest'],ts)
+                        stage='paper_ledger'
                         if bar and self.ledger.execute(symbol,order,bar,ts):self.log(f'indicator_paper_fill side={order["side"]} market={symbol} price={bar[1]} reason={order["reason"]} signal={clock(order["signal_ms"])} fill={clock(bar[0])}')
                     except PublicPauseError:
                         raise
-                    except Exception as exc:self.log(f'indicator_fill_error market={symbol} type={type(exc).__name__}')
+                    except Exception as exc:fill_error(self.log,'indicator_fill_error',symbol,order,ts,stage,exc)
                 advance_rebalance(self.ledger,self.clock())
                 if self.clock()-last_mark>=60000:
                     with self.ledger.lock:symbols=list(self.ledger.s['positions'])
