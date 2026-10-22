@@ -267,6 +267,7 @@ def public_paper_results(path, key, now):
             result.notes += [
                 f"신호 준비 {ready}/{o.get('symbols',0)}종목 · 수축 관찰 {o.get('watches',0)}종목",
                 f"과거봉 준비 {counts.get('HISTORY_WARMUP',0)} · 새 완료봉 대기 {counts.get('LIVE_BAR_WARMUP',0)} · 봉 부족 {counts.get('INCOMPLETE_CANDLES',0)} · 재시도 {counts.get('HISTORY_RETRY',0)}",
+                f"봉 점검: 누락 재조회 {o.get('gap_reasons',{}).get('REST_REPAIR_PENDING',0)} · 실제 무거래 구간 {o.get('gap_reasons',{}).get('CONFIRMED_NO_TRADE',0)}종목",
                 f"보유 {len(state['positions'])}종목 · 매수 대기 {len(state['pending'])}종목",
                 '독립 모의자금 300만원 · 최대 10종목 · 매수·매도 각각 수수료 0.05% + 슬리피지 0.05%',
                 '완료 5분봉 BB(20,2)·BB(60,2) + CCI(10) · 과거 신호 소급매수 없음',

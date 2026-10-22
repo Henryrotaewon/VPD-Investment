@@ -76,6 +76,14 @@ def features(rows):
 
 
 class BollingerPaper(Paper):
+    history_required = HISTORY
+
+    def init_history_audit(self):
+        self.history_no_trade = defaultdict(set)
+        self.history_audited = set()
+        self.history_details = {}
+        self.history_repaired = 0
+
     def __init__(self, path, stamp):
         # Initialized before Paper restores positions and calls gap().
         self.history = defaultdict(list)
@@ -90,6 +98,7 @@ class BollingerPaper(Paper):
         self.history_pages = 0
         self.history_updated = None
         self.last_processed = {}
+        self.init_history_audit()
         super().__init__(path, stamp, POLICY)
         self.db.executescript('''
           CREATE TABLE IF NOT EXISTS candles(symbol TEXT,bucket INTEGER,o REAL,
@@ -127,6 +136,31 @@ class BollingerPaper(Paper):
         self.ready_since.pop(symbol, None)
         self.needs_history.add(symbol)
         self.states[symbol] = 'HISTORY_WARMUP'
+        self.history_details.pop(symbol, None)
+
+    def history_gaps(self, symbol, bucket):
+        floor = bucket-(self.history_required-1)*FIVE
+        present = {r[0] for r in self.history[symbol]}
+        missing = set(range(floor, bucket+FIVE, FIVE))-present
+        known = self.history_no_trade[symbol]
+        known.intersection_update(range(floor, bucket+FIVE, FIVE))
+        return missing, missing & known
+
+    def incomplete(self, symbol, bucket):
+        self.watch.pop(symbol, None)
+        self.states[symbol] = 'INCOMPLETE_CANDLES'
+        missing, no_trade = self.history_gaps(symbol, bucket)
+        unknown = missing-no_trade
+        self.history_details[symbol] = dict(
+            reason='REST_REPAIR_PENDING' if unknown else
+                   'CONFIRMED_NO_TRADE' if no_trade else 'INDICATOR_UNAVAILABLE',
+            missing=len(missing), confirmed_no_trade=len(no_trade),
+            first_missing_ms=min(missing) if missing else None,
+            last_missing_ms=max(missing) if missing else None)
+        # A missed live candle used to remain broken until it aged out of the
+        # entire indicator window. Reconcile native candles, never synthesize.
+        if unknown:
+            self.needs_history.add(symbol)
 
     def gap(self, symbols, ts, reason):
         symbols = list(symbols)
@@ -158,6 +192,7 @@ class BollingerPaper(Paper):
         # REST history and the next live bar (a false 29-hour warmup).
         self.ready_since[symbol] = ts
         self.states[symbol] = 'LIVE_BAR_WARMUP'
+        self.history_details.pop(symbol, None)
         self.history_updated = ts
         self.db.commit()
 
@@ -185,10 +220,10 @@ class BollingerPaper(Paper):
         rows = [r for r in self.history[symbol] if r[0] <= bucket]
         f = features(rows) if rows and rows[-1][0] == bucket else None
         if f is None:
-            self.watch.pop(symbol, None)
-            self.states[symbol] = 'INCOMPLETE_CANDLES'
+            self.incomplete(symbol, bucket)
             return
         self.states[symbol] = 'READY'
+        self.history_details.pop(symbol, None)
         pos = self.s['positions'].get(symbol)
         if pos:
             self.watch.pop(symbol, None)
@@ -231,8 +266,7 @@ class BollingerPaper(Paper):
                             and 0 <= ts-end <= 10000):
                         self.assess(symbol, bucket, ts)
                 elif bucket >= self.active_since[symbol]:
-                    self.watch.pop(symbol, None)
-                    self.states[symbol] = 'INCOMPLETE_CANDLES'
+                    self.incomplete(symbol, bucket)
                 self.last_processed[symbol] = bucket
                 self.live[symbol] = {t: b for t, b in self.live[symbol].items() if t > bucket}
             self.db.commit()
@@ -243,7 +277,12 @@ class BollingerPaper(Paper):
     def observation(self):
         return dict(symbols=len(self.states), states=dict(Counter(self.states.values())),
                     watches=len(self.watch), history_pages=self.history_pages,
-                    history_updated_ms=self.history_updated)
+                    history_updated_ms=self.history_updated,
+                    history_required=self.history_required,
+                    history_repaired_bars=self.history_repaired,
+                    history_queue=len(self.needs_history),
+                    gap_reasons=dict(Counter(d['reason'] for d in self.history_details.values())),
+                    gap_samples={s: self.history_details[s] for s in sorted(self.history_details)[:5]})
 
     def report(self, ts):
         return dict(super().report(ts), mode='DOUBLE_BOLLINGER_PAPER_ONLY',
@@ -256,7 +295,9 @@ async def warm_history(paper, symbols, clock, client=None):
     retries = {}
     while True:
         for symbol in symbols:
-            if symbol not in paper.needs_history or clock() < retries.get(symbol, 0):
+            retry_at, retry_generation = retries.get(symbol, (0, None))
+            if (symbol not in paper.needs_history or
+                    (clock() < retry_at and paper.active_since.get(symbol) == retry_generation)):
                 continue
             # Fetch AFTER the partial connection/reconnection candle closes.
             # REST bridges that excluded candle to the first full live candle.
@@ -264,27 +305,50 @@ async def warm_history(paper, symbols, clock, client=None):
                 continue
             cutoff = clock()//FIVE*FIVE
             cursor, collected = cutoff, []
+            missing, known_empty = paper.history_gaps(symbol, cutoff-FIVE)
+            # Audit the full required window once per process. Thereafter fetch
+            # just the bridge or the oldest unresolved hole, at most two pages.
+            floor = (cutoff-paper.history_required*FIVE if symbol not in paper.history_audited
+                     else min(missing-known_empty, default=cutoff-FIVE))
+            empty = set()
             generation = paper.active_since.get(symbol)
             try:
-                # Two pages provide 400 bars. Missing/no-trade bars stay missing.
+                # BB needs 348 bars; BEAR uses at most 60. Real no-trade slots
+                # are classified only inside the interval proven by a page.
                 for _ in range(2):
                     payload = await asyncio.to_thread(client.candles, symbol, cursor)
                     page = api_rows(payload, cursor)
                     paper.history_pages += 1
                     collected.extend(page)
+                    if page:
+                        present = {r[0] for r in page}
+                        empty.update(set(range(max(floor, min(present)), cursor, FIVE))-present)
                     await asyncio.sleep(1)  # Additional REST load capped at 1 request/sec.
                     if not page:
                         break
                     cursor = min(r[0] for r in page)
-                    if cursor <= cutoff-HISTORY*FIVE:
+                    if cursor <= floor:
                         break
                 if paper.active_since.get(symbol) == generation:
+                    before = {r[0] for r in paper.history[symbol]}
+                    if before:
+                        paper.history_repaired += len({r[0] for r in collected} & missing)
+                    paper.history_no_trade[symbol].update(empty)
+                    paper.history_no_trade[symbol].difference_update(r[0] for r in collected)
+                    paper.history_audited.add(symbol)
                     paper.seed(symbol, collected, clock())
+                    # No decisions here: even repaired history must be followed
+                    # by a fresh, fully observed bar. Keep diagnostics visible.
+                    remaining, no_trade = paper.history_gaps(symbol, cutoff-FIVE)
+                    if remaining:
+                        paper.incomplete(symbol, cutoff-FIVE)
+                        if remaining-no_trade:
+                            retries[symbol] = (clock()+30*60_000, generation)
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 paper.states[symbol] = 'HISTORY_RETRY'
-                retries[symbol] = clock()+60000
+                retries[symbol] = (clock()+60000, generation)
                 paper.event(clock(), 'HISTORY_ERROR', symbol, {'type': type(exc).__name__})
                 paper.db.commit()
                 status = getattr(getattr(exc, 'response', None), 'status_code', None)
