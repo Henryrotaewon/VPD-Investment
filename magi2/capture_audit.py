@@ -145,8 +145,13 @@ class Evidence:
         ''')
 
     def add(self, source, ident, ts, symbol, kind, payload):
+        # Immutable evidence: the same identity is never rewritten. Avoid
+        # JSON/zlib work on the three-day assessment replay every minute.
+        if self.db.execute('SELECT 1 FROM evidence WHERE source=? AND ident=?',
+                           (source,str(ident))).fetchone():
+            return
         self.db.execute('INSERT OR IGNORE INTO evidence VALUES(?,?,?,?,?,?)',
-            (source,str(ident),ts,symbol,kind,zlib.compress(json.dumps(payload,ensure_ascii=False).encode())))
+            (source,str(ident),ts,symbol,kind,zlib.compress(json.dumps(payload,ensure_ascii=False,separators=(',', ':')).encode())))
 
     def sync(self, now):
         sources = [('observer',self.root/'fast-observe/observe.sqlite3'),

@@ -298,8 +298,6 @@ class VenueObserver(Observer):
 
     def evaluate(self, end):
         super().evaluate(end)
-        if end % FIVE == 0:
-            compact(self.db, end)
 
     def report(self):
         result = super().report()

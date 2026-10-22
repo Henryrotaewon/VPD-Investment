@@ -55,7 +55,9 @@ class ArchiveTests(unittest.TestCase):
     def test_verified_analysis_allows_expiry_after_seven_days(self):
         p=self.raw(10); end=hour_end(p)
         self.storage.checkpoint('analysis_coverage_v1',{'start':end-7200,'through':end+7200})
-        drive=FakeDrive();asyncio.run(Archiver(self.storage).cycle(drive))
+        drive=FakeDrive()
+        with patch.dict('os.environ', {'MAGI1_ARCHIVE_DELETE_REMOTE':'1'}):
+            asyncio.run(Archiver(self.storage).cycle(drive))
         self.assertEqual(len(drive.deleted),1)
     def test_research_retains_recent_and_archives_old_before_purge(self):
         old=int((time.time()-31*86400)*1000); recent=int(time.time()*1000)
