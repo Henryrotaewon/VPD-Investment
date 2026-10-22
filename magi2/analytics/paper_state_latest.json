@@ -66,7 +66,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 90.4,
+      "last_price": 90.1,
       "peak_price": 93.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -94,10 +94,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 35.9,
+      "last_price": 35.5,
       "peak_price": 37.5,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "ARKM": {
       "market": "KRW-ARKM",
@@ -150,7 +150,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 344.0,
+      "last_price": 343.0,
       "peak_price": 353.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -178,7 +178,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 604.0,
+      "last_price": 601.0,
       "peak_price": 619.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -241,7 +241,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2484.0,
+      "last_price": 2479.0,
       "peak_price": 2484.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -250,7 +250,7 @@
   "closed_positions": [],
   "realized_pnl_krw": -15621.21560314158,
   "lifetime_realized_pnl_krw": -15621.21560314158,
-  "updated_at": "2026-10-23T01:19:55.071321+09:00",
+  "updated_at": "2026-10-23T02:05:07.222028+09:00",
   "cohort_id": "2026-10-22-VPD-2117",
   "cohort_date": "2026-10-22",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
