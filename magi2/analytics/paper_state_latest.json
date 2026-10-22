@@ -59,7 +59,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 90.8,
+      "last_price": 90.6,
       "peak_price": 91.8,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -87,7 +87,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 37.1,
+      "last_price": 36.2,
       "peak_price": 37.1,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -143,7 +143,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 351.0,
+      "last_price": 353.0,
       "peak_price": 353.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -171,7 +171,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 606.0,
+      "last_price": 610.0,
       "peak_price": 616.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -199,8 +199,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 13.8,
-      "peak_price": 13.8,
+      "last_price": 13.9,
+      "peak_price": 13.9,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -227,7 +227,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2446.0,
+      "last_price": 2434.0,
       "peak_price": 2446.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -236,7 +236,7 @@
   "closed_positions": [],
   "realized_pnl_krw": 0.0,
   "lifetime_realized_pnl_krw": 0,
-  "updated_at": "2026-10-22T21:40:59.628331+09:00",
+  "updated_at": "2026-10-22T21:46:00.507353+09:00",
   "cohort_id": "2026-10-22-VPD-2117",
   "cohort_date": "2026-10-22",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
