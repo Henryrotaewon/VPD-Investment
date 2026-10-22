@@ -23,14 +23,17 @@ def reference_state(db, symbol, cutoff):
                           + ','.join('?' * 10) + ')', (symbol, *keys)))
     from magi1.fast_candle_store import historical
     past = historical(db, symbol, keys) | past
+    # SQLite's legacy index reads chronological buckets. Keep that summation
+    # order across mixed/packed layouts (Python 3.11 sum is order-sensitive).
+    total = sum(past[k] for k in sorted(past))
     reasons = []
     if current is None:
         reasons.append('CURRENT_BAR_MISSING')
     if len(past) != 10:
         reasons.append('HISTORY_INCOMPLETE')
-    elif sum(past.values()) <= 0:
+    elif total <= 0:
         reasons.append('HISTORY_ZERO_VALUE')
-    ratio = current[0] / (sum(past.values()) / 10) if not reasons else None
+    ratio = current[0] / (total / 10) if not reasons else None
     return dict(ready=not reasons, reasons=reasons, five_minute_start=full,
                 current_value=current[0] if current else None,
                 current_source=current[1] if current else None,
