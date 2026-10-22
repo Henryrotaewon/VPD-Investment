@@ -66,7 +66,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 90.6,
+      "last_price": 90.4,
       "peak_price": 93.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -122,10 +122,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 174.0,
+      "last_price": 177.0,
       "peak_price": 183.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": false
     },
     "WAVES": {
       "market": "KRW-WAVES",
@@ -150,7 +150,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 343.0,
+      "last_price": 344.0,
       "peak_price": 353.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -178,7 +178,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 587.0,
+      "last_price": 586.0,
       "peak_price": 619.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -234,7 +234,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2466.0,
+      "last_price": 2464.0,
       "peak_price": 2470.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -243,7 +243,7 @@
   "closed_positions": [],
   "realized_pnl_krw": 4504.171036813816,
   "lifetime_realized_pnl_krw": 4504.171036813816,
-  "updated_at": "2026-10-22T23:49:33.621778+09:00",
+  "updated_at": "2026-10-22T23:54:35.182204+09:00",
   "cohort_id": "2026-10-22-VPD-2117",
   "cohort_date": "2026-10-22",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
