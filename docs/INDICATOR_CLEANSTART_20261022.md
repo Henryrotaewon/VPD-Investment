@@ -40,17 +40,24 @@ daily performance views' source rows. Fresh PAPER capital is 3,000,000 KRW,
 enabled with zero holdings/orders and a new start time. Past orders are discarded,
 not recorded as invented sells. Entry still needs two fresh hourly observations.
 
+Shared capture-audit evidence/cursors are cleared only for `source=indicator`.
+Cached daily comparison reports replace only the indicator result with a reset
+label; all other strategy results and delivery receipts remain unchanged.
+This cache cleanup is retryable before workers start and has its own completion
+flag, so interruption never resets the new capital a second time.
+
 The durable receipt is in the same state transaction, so redeploying with the
 same environment setting cannot reset new trades again. A failed transaction
-preserves the old state/history. VPD, FAST, Bollinger, MAGI1 and MAGI3 data are not
-opened by the reset. No remote archive, database transfer or VACUUM is required;
+preserves the old state/history. VPD, FAST, Bollinger, MAGI1 and MAGI3 ledgers are
+not opened by the reset. No remote archive, database transfer or VACUUM is required;
 SQLite pages become available for reuse. Historical Railway logs are retained.
 
 ## Verification
 
-68 targeted tests pass: historical first-fill recovery, sparse markets, reduced
+69 targeted tests pass: historical first-fill recovery, sparse markets, reduced
 short-window payloads, malformed/future candle rejection, reset isolation,
-transaction rollback, restart idempotency, detailed error logs, hourly signals,
+transaction rollback, restart idempotency, interrupted shared-cache cleanup,
+other strategies' cached results, detailed error logs, hourly signals,
 independent risk exits, rebalance and performance views. CI runs the new tests.
 
 Operational completion requires the new deployment to succeed, the reset receipt

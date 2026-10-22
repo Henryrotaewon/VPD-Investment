@@ -9,6 +9,7 @@ from magi2.hourly_indicator import (HourlyLedger,HourlyMonitor,PublicCandles,
     DAY,HOUR,STEP,iso)
 from magi2.indicator_reset import RESET_ID,reset_once
 from magi2.paper_performance import indicator_results
+from magi2.capture_audit import Evidence
 
 T=200*DAY+HOUR
 
@@ -102,6 +103,36 @@ class ResetTests(unittest.TestCase):
         self.assertEqual(json.loads(self.l.db.execute('SELECT payload FROM state').fetchone()[0]),before)
         self.assertEqual(counts,[self.l.db.execute('SELECT count(*) FROM '+t).fetchone()[0] for t in ('events','marks')])
         self.assertFalse(any('reset_completed' in line for line in self.logs))
+
+    def test_shared_audit_removes_indicator_only_and_resumes_interrupted_cleanup(self):
+        archive=Evidence(self.root)
+        archive.add('indicator','old',T,'KRW-A','SIGNAL',{'old':True})
+        archive.add('vpd','keep',T,'KRW-A','SNAPSHOT',{'VPD':88})
+        archive.db.execute("INSERT INTO meta VALUES('indicator','100')")
+        archive.db.execute("INSERT INTO deliveries VALUES(1,'SENT')")
+        archive.db.commit()
+        report={'rows':[{'symbol':'KRW-A','strategies':{'indicator':{'status':'old'},'vpd':{'status':'keep'}}}],
+                'evidence_errors':{'indicator':'old','vpd':'keep'}}
+        for name in ('latest.json','v2-123.json'):
+            (archive.directory/name).write_text(json.dumps(report))
+        (archive.directory/'fast_trades.json').write_text('untouched')
+        with patch('magi2.indicator_reset.clean_audit_cache',side_effect=RuntimeError('interrupted')):
+            with self.assertRaisesRegex(RuntimeError,'interrupted'):
+                reset_once(self.l,RESET_ID,T+1000*STEP,self.logs.append,self.market)
+        self.assertEqual(self.l.s['cash'],3000000)
+        started=self.l.s['started_ms']
+        self.assertFalse(reset_once(self.l,RESET_ID,T+1001*STEP,self.logs.append,self.market))
+        self.assertEqual(self.l.s['started_ms'],started)
+        self.assertTrue(self.l.s['reset_receipt']['audit_cleaned'])
+        self.assertEqual(archive.db.execute('SELECT source FROM evidence').fetchall(),[('vpd',)])
+        self.assertEqual(archive.db.execute('SELECT * FROM deliveries').fetchall(),[(1,'SENT')])
+        for name in ('latest.json','v2-123.json'):
+            after=json.loads((archive.directory/name).read_text())
+            self.assertEqual(after['rows'][0]['strategies']['indicator']['status'],'초기화')
+            self.assertEqual(after['rows'][0]['strategies']['vpd'],{'status':'keep'})
+            self.assertEqual(after['evidence_errors'],{'vpd':'keep'})
+        self.assertEqual((archive.directory/'fast_trades.json').read_text(),'untouched')
+        archive.db.close()
 
     def test_unknown_request_rejected_and_network_error_does_not_block_authorized_reset(self):
         with self.assertRaisesRegex(ValueError,'INVALID_INDICATOR_RESET_REQUEST'):
