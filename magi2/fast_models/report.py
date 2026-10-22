@@ -90,6 +90,8 @@ def view(root,now,section='fast_models'):
                     f"현선물 비교 조합 {data['derivatives']['pairs']}개"]
             lines.append(f"신규 파생 판단 준비 {data['derivatives'].get('native_perp_ready',0)}/{data['derivatives'].get('native_perp_total',0)}계약")
             if section=='fast_model_data':
+                o=data.get('bear',{}).get('observation',{});counts=o.get('states',{});reasons=o.get('gap_reasons',{})
+                lines.append(f"BEAR 봉 준비 {counts.get('READY',0)+counts.get('REGIME_WAIT',0)}/{o.get('symbols',0)} · 누락 재조회 {reasons.get('REST_REPAIR_PENDING',0)} · 실제 무거래 구간 {reasons.get('CONFIRMED_NO_TRADE',0)}종목")
                 for v in ('upbit','bithumb','binance','kraken'):
                     feeds=[(k,r) for k,r in data['feeds'].items() if k.startswith(v)]
                     fail=[k for k,r in feeds if r['state']!='OK']

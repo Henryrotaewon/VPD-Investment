@@ -35,11 +35,14 @@ def features(rows):
 
 
 class BearPaper(BollingerPaper):
+    history_required = 60
+
     def __init__(self,path,stamp):
         self.history=defaultdict(list);self.live=defaultdict(dict);self.active_since={}
         self.ready_since={};self.watch={};self.states={};self.loaded=set();self.needs_history=set()
         self.last_cycle=stamp//FIVE*FIVE;self.history_pages=0;self.history_updated=None
         self.last_processed={};self.flow=defaultdict(lambda:defaultdict(lambda:[0.,0.,0]))
+        self.init_history_audit()
         self.regime={'state':'UNAVAILABLE','ts':0};self.metrics=None
         Paper.__init__(self,path,stamp,POLICY)
         self.db.executescript('''
@@ -68,9 +71,10 @@ class BearPaper(BollingerPaper):
         flow=self.flow[symbol].get(bucket,[0,0,0])
         self.flow[symbol]={k:v for k,v in self.flow[symbol].items() if k>=bucket}
         if f is None:
-            self.watch.pop(symbol,None);self.states[symbol]='INCOMPLETE_CANDLES';return
+            self.incomplete(symbol,bucket);return
         f.update(buy_share=flow[1]/flow[0] if flow[0] else 0,trades=flow[2],regime=self.regime['state'])
         self.states[symbol]='READY' if self.bearish(ts) else 'REGIME_WAIT'
+        self.history_details.pop(symbol,None)
         p=self.s['positions'].get(symbol)
         if p:
             if f['close']<f['vwap'] and f['buy_share']<.4:
