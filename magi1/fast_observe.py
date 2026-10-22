@@ -57,6 +57,11 @@ class Observer:
           CREATE TABLE IF NOT EXISTS outcomes(capture_id INTEGER,horizon INTEGER,status TEXT,
             ts INTEGER,price REAL,return_pct REAL,PRIMARY KEY(capture_id,horizon));
         ''')
+        # Reopening a migrated DB must use its packed history even in tools
+        # that do not explicitly request migration.
+        if self.db.execute("SELECT 1 FROM sqlite_master WHERE name='turnover_days'").fetchone():
+            from magi1.fast_candle_store import enable
+            enable(self.db)
         policy = json.dumps(POLICY, sort_keys=True)
         old = self.db.execute("SELECT value FROM meta WHERE key='policy'").fetchone()
         if old and old[0] != policy:
@@ -131,7 +136,7 @@ class Observer:
 
     def event(self, ts, kind, symbol, payload):
         self.db.execute('INSERT INTO events(ts,kind,symbol,payload) VALUES(?,?,?,?)',
-                        (ts, kind, symbol, json.dumps(payload, allow_nan=False)))
+                        (ts, kind, symbol, json.dumps(payload, allow_nan=False, separators=(',', ':'))))
 
     def connected(self, group, symbols, ts):
         self.groups[group] = ts
@@ -405,6 +410,8 @@ class Observer:
             self.db.execute('DELETE FROM recent5m WHERE bucket<?', (end-DAY,))
             self.db.execute("DELETE FROM events WHERE kind='WINDOW' AND ts<?", (end-FIVE,))
             self.db.execute("DELETE FROM events WHERE kind!='CAPTURE' AND ts<?", (end-DAY,))
+            from magi1.fast_candle_store import compact
+            compact(self.db, end)
 
     def refresh_reference(self, symbol, cutoff):
         ref = reference_state(self.db, symbol, cutoff)
@@ -453,6 +460,11 @@ class Observer:
 
 async def run(args):
     observer = Observer(args.db, now_ms())
+    from magi1.fast_candle_store import enable
+    enable(observer.db)
+    observer.db.commit()
+    print(json.dumps(dict(mode='STORAGE_POLICY', turnover='lossless_float64_days',
+                          migration_batch=4096, retention_days=10, external_transfer=False)), flush=True)
     if getattr(args, 'paper_db', None):
         from magi1.fast_paper import Paper
         observer.paper = Paper(args.paper_db, now_ms())

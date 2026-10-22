@@ -77,9 +77,14 @@ class App:
             if self.tick_count%30==0:
                 self.engine.checkpoint()
                 self.storage.checkpoint('analysis_coverage_v1', {'start':self.analysis_started,'through':value/1000})
-                feeds=self.collector.diagnostics();diag={'event_ts_ms':value,'feeds':feeds,'pair_timing_resolution':pair_resolution_matrix(feeds),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status,'evaluation_version':VERSION,'quality':quality_summary(self.storage)}
-                if self.tick_count%300==0:self.storage.append('diagnostics',diag)
-                LOG.info('feed_diagnostics=%s',json.dumps(diag))
+                feeds=self.collector.diagnostics()
+                if self.tick_count%300==0:
+                    diag={'event_ts_ms':value,'feeds':feeds,'pair_timing_resolution':pair_resolution_matrix(feeds),'queue_depth':self.queue.qsize(),'storage':self.storage.summary(),'onchain':self.onchain_status,'derivatives':self.derivative_status,'evaluation_version':VERSION,'quality':quality_summary(self.storage)}
+                    self.storage.append('diagnostics',diag)
+                    LOG.info('feed_diagnostics=%s',json.dumps(diag,separators=(',', ':')))
+                else:
+                    health={'event_ts_ms':value,'feeds':{k:{f:v.get(f) for f in ('connected','stale','message_age_ms','reconnects','parse_errors')} for k,v in feeds.items()},'queue_depth':self.queue.qsize(),'storage':self.storage.health()}
+                    LOG.info('feed_health=%s',json.dumps(health,separators=(',', ':')))
                 cutoff=report_cutoff(datetime.now(KST)).isoformat()
                 if self.engine.wave_enabled and self.storage.restore('last_report')!=cutoff:
                     path=build_daily(self.storage);self.storage.checkpoint('last_report',cutoff);LOG.info('daily_report=%s',path)

@@ -1,7 +1,7 @@
 """Compact, exact five-minute turnover for additional FAST venues.
 
 Each day contains 288 doubles; NaN denotes unknown, and zero denotes a
-validated no-trade interval. Existing Upbit databases keep their old layout.
+validated no-trade interval. Legacy rows remain readable during migration.
 """
 from collections import defaultdict
 import math
@@ -50,18 +50,35 @@ def known(db, symbol, start, end):
             if math.isfinite(value) and start <= day + i * FIVE < end}
 
 
-def compact(db, cutoff):
+def compact(db, cutoff, batch_size=4096):
     if db not in _enabled:
         return
+    # Bound memory and WAL work on the live event-loop writer. Remaining legacy
+    # rows are still read by reference_state and subsequent batches migrate them.
+    batch = db.execute('SELECT symbol,bucket,value FROM baseline ORDER BY symbol,bucket LIMIT ?',
+                       (batch_size,)).fetchall()
     grouped = defaultdict(list)
-    for symbol, bucket, value in db.execute('SELECT symbol,bucket,value FROM baseline'):
+    for symbol, bucket, value in batch:
         grouped[symbol, bucket // DAY * DAY].append((bucket % DAY // FIVE, value))
-    for (symbol, day), rows in grouped.items():
-        old = db.execute('SELECT values_blob FROM turnover_days WHERE symbol=? AND day=?', (symbol, day)).fetchone()
-        values = unpack(old[0]) if old else [float('nan')] * 288
-        for slot, value in rows:
-            values[slot] = value
-        db.execute('INSERT OR REPLACE INTO turnover_days VALUES(?,?,?)',
-                   (symbol, day, zlib.compress(struct.pack('<288d', *values))))
-    db.execute('DELETE FROM baseline')
-    db.execute('DELETE FROM turnover_days WHERE day<?', ((cutoff - FIVE - 10 * DAY) // DAY * DAY,))
+    db.execute('SAVEPOINT compact_turnover')
+    try:
+        for (symbol, day), rows in grouped.items():
+            old = db.execute('SELECT values_blob FROM turnover_days WHERE symbol=? AND day=?', (symbol, day)).fetchone()
+            values = unpack(old[0]) if old else [float('nan')] * 288
+            for slot, value in rows:
+                if not math.isfinite(value) or value < 0:
+                    raise ValueError('INVALID_TURNOVER_MIGRATION')
+                values[slot] = value
+            encoded = struct.pack('<288d', *values)
+            blob = zlib.compress(encoded)
+            if zlib.decompress(blob) != encoded:
+                raise ValueError('TURNOVER_ROUNDTRIP_FAILED')
+            db.execute('INSERT OR REPLACE INTO turnover_days VALUES(?,?,?)', (symbol, day, blob))
+        db.executemany('DELETE FROM baseline WHERE symbol=? AND bucket=?',
+                       [(symbol, bucket) for symbol, bucket, _ in batch])
+        db.execute('DELETE FROM turnover_days WHERE day<?', ((cutoff - FIVE - 10 * DAY) // DAY * DAY,))
+    except BaseException:
+        db.execute('ROLLBACK TO compact_turnover')
+        raise
+    finally:
+        db.execute('RELEASE compact_turnover')

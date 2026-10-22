@@ -166,7 +166,6 @@ class Archiver:
     def __init__(self, storage):
         self.storage = storage
         self.started = time.time()
-        self.needs_compaction = True
         self.state = storage.restore('drive_archive_v1', {'files': {}})
 
     async def cycle(self, drive):
@@ -178,7 +177,10 @@ class Archiver:
                       if hour_end(p) is not None and hour_end(p) < now - 3600 and p.stat().st_mtime < now - 300]
         pending = [p for p in candidates if p.name not in self.state['files']][:12]
         day = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        if pending or self.state.get('research_day') != day or self.needs_compaction:
+        # Raw batches are immutable and independently checksum verified. Do not
+        # upload/download the whole research history for every twelve raw files
+        # or every restart. Its durable daily snapshot is a separate operation.
+        if self.state.get('research_day') != day or not self.state.get('research_id'):
             tmp = self.storage.root / 'archive_work'
             tmp.mkdir(exist_ok=True)
             dest = tmp / ('research-%s.db' % time.time_ns())
@@ -186,21 +188,24 @@ class Archiver:
             compressed = Path(str(dest) + '.gz')
             try:
                 proof = await drive.upload(compressed, folder, {'kind': 'research', 'permanent': 'true'})
-                if hasattr(drive,'session'):
+                if hasattr(drive,'session') and os.getenv('MAGI1_ARCHIVE_COMPACT_REMOTE') == '1':
                     from .compact import compact_backups
                     result=await compact_backups(drive,folder,proof,compressed,tmp)
                     self.storage.checkpoint('archive_compaction_latest',result)
-                self.needs_compaction=False
             finally:
                 compressed.unlink(missing_ok=True)
             self.state['research_day'] = day
             self.state['research_id'] = proof['id']
+            self.state['research_coverage'] = dict(coverage)
             self.storage.checkpoint('drive_archive_v1', self.state)
             await asyncio.to_thread(prune_research, self.storage, maximum, int((now - 30 * 86400) * 1000))
             LOG.info('archive_research_verified id=%s', proof['id'])
         for p in pending:
             end = hour_end(p)
-            covered = coverage.get('start', now) <= end - 3600 and coverage.get('through', 0) >= end + 3600
+            # Only the coverage inside the uploaded snapshot can authorize
+            # expiry, not analyses produced since that snapshot was captured.
+            proof_coverage = self.state.get('research_coverage', {})
+            covered = proof_coverage.get('start', now) <= end - 3600 and proof_coverage.get('through', 0) >= end + 3600
             props = {'kind': 'raw', 'end': str(int(end)), 'analysis_verified': str(covered).lower(), 'research_id': self.state['research_id']}
             row = await drive.upload(p, folder, props)
             self.state['files'][p.name] = {'id': row['id'], 'md5': row['md5Checksum'], 'size': int(row['size'])}
@@ -215,7 +220,11 @@ class Archiver:
             if not remote.get('trashed') and remote.get('md5Checksum') == await asyncio.to_thread(digest, p) and int(remote.get('size', -1)) == p.stat().st_size:
                 p.unlink()
         # Scope permanent deletion strictly to our own tagged raw files with analysis proof.
-        rows = await drive.list("trashed=false and '%s' in parents and appProperties has { key='kind' and value='raw' }" % folder)
+        # Remote permanent deletion is opt-in, independent of archival. Avoid
+        # repeatedly listing/re-downloading archives solely to save cents.
+        rows = []
+        if os.getenv('MAGI1_ARCHIVE_DELETE_REMOTE') == '1':
+            rows = await drive.list("trashed=false and '%s' in parents and appProperties has { key='kind' and value='raw' }" % folder)
         for row in rows:
             props = row.get('appProperties', {})
             if props.get('analysis_verified') != 'true' or int(props.get('end', now)) >= now - 7 * 86400:
@@ -233,10 +242,14 @@ class Archiver:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=300)) as session:
             drive = Drive(session)
             while True:
+                delay = 300
                 try:
                     await self.cycle(drive)
                 except Exception as exc:
                     # Never stringify arbitrary HTTP errors which might include tokenized URLs.
                     message = str(exc) if isinstance(exc, RuntimeError) and str(exc).startswith('Drive ') else type(exc).__name__
                     LOG.error('archive_cycle_failed reason=%s local_data_retained=true', message)
-                await asyncio.sleep(300)
+                    if any('code=' + code + ' ' in message for code in
+                           ('invalid_grant', 'invalid_client', 'unauthorized_client')):
+                        delay = 3600  # Requires credentials to change; no retry storm.
+                await asyncio.sleep(delay)
