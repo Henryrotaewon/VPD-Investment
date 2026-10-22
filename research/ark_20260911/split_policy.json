@@ -1,0 +1,19 @@
+{
+  "mode": "RESEARCH_ONLY_DESCRIPTIVE_NOT_RUNTIME",
+  "market": "KRW-ARK",
+  "entry_case": "User-selected Sep 11 signal example, enter Sep 12 09:00 KST. Not a whole-month detector backtest.",
+  "entry_utc": "2026-09-12T00:00:00+00:00",
+  "initial_capital_krw": 3000000,
+  "partial_fraction_of_original_quantity": 0.5,
+  "partial_exit": "Prior study C: running high reaches +12%, then completed 5m close at or below 95% of running high; use next actual 5m open.",
+  "remaining_exit": "Prior study A: at least two of MACD histogram, RSI14, Williams14 daily first differences are negative; use next actual 5m open after daily close.",
+  "priority": "If A occurs before or simultaneously with C, liquidate the full remaining quantity under A. Otherwise C sells half once, then A sells the remaining half.",
+  "study_endpoint": "Same five-day window as the prior study; report any endpoint exit separately from a signal exit.",
+  "reentry": false,
+  "proceeds_reinvested": false,
+  "additional_stop_loss": false,
+  "fee_per_side": 0.0005,
+  "slippage_per_side": 0.0005,
+  "quantity_rounding": "Fractional quantity without exchange size rounding; illustrative cash ledger, no historical order-book reconstruction.",
+  "interpretation": "Chosen after reviewing the prior ARK and ten-case results. Illustrative combination, not independent validation or fitted high-price execution. No runtime changes."
+}

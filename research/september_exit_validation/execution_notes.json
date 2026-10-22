@@ -1,0 +1,10 @@
+{
+  "revision": "native-no-trade-candle-clarification-v1",
+  "timing": "Defined after data coverage checks and before the first return calculation.",
+  "reason": "Upbit omits 5-minute candles with no trades. Every observed daily OHLCV aggregate matches its independent daily candle. Empty buckets are not filled with synthetic trade prices.",
+  "source": "https://docs.upbit.com/kr/docs/how-to-download-candle-data",
+  "supersedes": "The word contiguous in policy.json execution wording does not apply to no-trade gaps.",
+  "effective_execution": "After a completed signal candle or daily boundary, use the first actual five-minute candle at or after the decision time, and only its opening price. Its precise first-trade timestamp and order-book depth are unavailable. Record bucket-level execution delay.",
+  "atr": "ATR14 is computed on the 14-period sequence of actual Upbit 5-minute candles. Its wall-clock span can exceed 70 minutes. Use only ATR from before the just-completed signal candle; never add flat synthetic candles.",
+  "unchanged": "Sample selection, entry rules, A/B/C/D thresholds, activation, horizon and costs remain exactly as frozen before data collection."
+}

@@ -1,0 +1,6266 @@
+{
+  "started": "2026-09-25T16:54:04.559367+00:00",
+  "finished": "2026-09-25T16:59:49.672441+00:00",
+  "policy": {
+    "mode": "RESEARCH_ONLY_NOT_APPROVED_FOR_RUNTIME",
+    "version": "september-exit-comparison-v1",
+    "daily_to_exclusive": "2026-09-25T00:00:00Z",
+    "signal_start": "2026-08-31",
+    "signal_end": "2026-09-19",
+    "entry_start": "2026-09-01",
+    "entry_end": "2026-09-20",
+    "sample_size": 10,
+    "history_count": 200,
+    "minimum_history": 150,
+    "excluded_assets": [
+      "ARK",
+      "BTC",
+      "USDT",
+      "USDC",
+      "USDE",
+      "USDS",
+      "DAI",
+      "XAUT",
+      "PAXG"
+    ],
+    "selection": {
+      "description": "First eligible event per distinct current KRW market, chronological; same-day ties by prior-20-day median KRW turnover descending then market name. No future return filter.",
+      "price_features": "MACD histogram acceleration > 0; RSI and Williams velocity > 0 and acceleration > 0",
+      "previous_volume_over_prior20_median_min": 2.0,
+      "current_volume_less_than_previous": true,
+      "prior20_median_daily_turnover_min_krw": 1000000000,
+      "epsilon": 1e-10,
+      "caveat": "Provisional entry proxy; numeric thresholds are research assumptions. Current market list creates survivorship coverage limits. Not a validated detector backtest."
+    },
+    "bar_minutes": 5,
+    "warmup_hours": 8,
+    "evaluation_days": 5,
+    "entry_reference": "First five-minute open at D+1 daily boundary",
+    "execution": "Decide only after a complete candle; sell at next contiguous five-minute open reference with cost scenario. No fills at stop/high or same-bar favorable ordering.",
+    "A": "At least two of MACD histogram, RSI14, Williams14 daily first differences are negative",
+    "B": "A AND daily close strictly below previous daily low",
+    "C": {
+      "activation_gross_pct": 12,
+      "trailing_drawdown_pct": 5,
+      "trigger": "completed five-minute close at or below running-high trail"
+    },
+    "D": {
+      "activation_gross_pct": 12,
+      "atr_period": 14,
+      "atr_multiple": 3,
+      "trigger": "completed five-minute close at or below non-decreasing running-high minus prior-completed-bar ATR trail"
+    },
+    "terminal_rule": "Uniform five-day study endpoint liquidates any remaining case position for comparison; not an approved operating holding limit.",
+    "fee_per_side": 0.0005,
+    "slippage_per_side": 0.0005,
+    "cost_caveat": "Scenario only; no authenticated fees, historical book depth or execution latency.",
+    "reentry": false,
+    "other_take_profit_or_stop": false,
+    "ark_reference_entry": "2026-09-12"
+  },
+  "source": "https://api.upbit.com/v1/",
+  "columns": [
+    "open_ms",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "turnover"
+  ],
+  "current_krw_markets": [
+    {
+      "market": "KRW-0G",
+      "korean_name": "제로지",
+      "english_name": "0G"
+    },
+    {
+      "market": "KRW-1INCH",
+      "korean_name": "1인치네트워크",
+      "english_name": "1inch Network"
+    },
+    {
+      "market": "KRW-2Z",
+      "korean_name": "더블제로",
+      "english_name": "DoubleZero"
+    },
+    {
+      "market": "KRW-A",
+      "korean_name": "볼타",
+      "english_name": "Vaulta"
+    },
+    {
+      "market": "KRW-AAVE",
+      "korean_name": "에이브",
+      "english_name": "Aave"
+    },
+    {
+      "market": "KRW-ADA",
+      "korean_name": "에이다",
+      "english_name": "Ada"
+    },
+    {
+      "market": "KRW-AERO",
+      "korean_name": "에어로드롬파이낸스",
+      "english_name": "Aerodrome Finance"
+    },
+    {
+      "market": "KRW-AGLD",
+      "korean_name": "어드벤처골드",
+      "english_name": "Adventure Gold"
+    },
+    {
+      "market": "KRW-AHT",
+      "korean_name": "아하토큰",
+      "english_name": "AhaToken"
+    },
+    {
+      "market": "KRW-AI",
+      "korean_name": "젠신",
+      "english_name": "Gensyn"
+    },
+    {
+      "market": "KRW-AKT",
+      "korean_name": "아카시네트워크",
+      "english_name": "Akash Network"
+    },
+    {
+      "market": "KRW-ALGO",
+      "korean_name": "알고랜드",
+      "english_name": "Algorand"
+    },
+    {
+      "market": "KRW-ALT",
+      "korean_name": "알트레이어",
+      "english_name": "Altlayer"
+    },
+    {
+      "market": "KRW-ANIME",
+      "korean_name": "애니메코인",
+      "english_name": "Animecoin"
+    },
+    {
+      "market": "KRW-ANKR",
+      "korean_name": "앵커",
+      "english_name": "Ankr"
+    },
+    {
+      "market": "KRW-API3",
+      "korean_name": "에이피아이쓰리",
+      "english_name": "API3"
+    },
+    {
+      "market": "KRW-APT",
+      "korean_name": "앱토스",
+      "english_name": "Aptos"
+    },
+    {
+      "market": "KRW-ARB",
+      "korean_name": "아비트럼",
+      "english_name": "Arbitrum"
+    },
+    {
+      "market": "KRW-ARDR",
+      "korean_name": "아더",
+      "english_name": "Ardor"
+    },
+    {
+      "market": "KRW-ARK",
+      "korean_name": "아크",
+      "english_name": "Ark"
+    },
+    {
+      "market": "KRW-ARKM",
+      "korean_name": "아캄",
+      "english_name": "Arkham"
+    },
+    {
+      "market": "KRW-ARX",
+      "korean_name": "아르키움",
+      "english_name": "Arcium"
+    },
+    {
+      "market": "KRW-ASTR",
+      "korean_name": "아스타",
+      "english_name": "Astar"
+    },
+    {
+      "market": "KRW-ATH",
+      "korean_name": "에이셔",
+      "english_name": "Aethir"
+    },
+    {
+      "market": "KRW-ATOM",
+      "korean_name": "코스모스",
+      "english_name": "Cosmos"
+    },
+    {
+      "market": "KRW-AUCTION",
+      "korean_name": "바운스토큰",
+      "english_name": "Bounce"
+    },
+    {
+      "market": "KRW-AVAX",
+      "korean_name": "아발란체",
+      "english_name": "Avalanche"
+    },
+    {
+      "market": "KRW-AVNT",
+      "korean_name": "아반티스",
+      "english_name": "Avantis"
+    },
+    {
+      "market": "KRW-AWE",
+      "korean_name": "에이더블유이",
+      "english_name": "AWE Network"
+    },
+    {
+      "market": "KRW-AXL",
+      "korean_name": "엑셀라",
+      "english_name": "Axelar"
+    },
+    {
+      "market": "KRW-AXS",
+      "korean_name": "엑시인피니티",
+      "english_name": "Axie Infinity"
+    },
+    {
+      "market": "KRW-AZTEC",
+      "korean_name": "아즈텍",
+      "english_name": "Aztec"
+    },
+    {
+      "market": "KRW-B3",
+      "korean_name": "비쓰리",
+      "english_name": "B3"
+    },
+    {
+      "market": "KRW-BABY",
+      "korean_name": "바빌론",
+      "english_name": "Babylon"
+    },
+    {
+      "market": "KRW-BARD",
+      "korean_name": "롬바드",
+      "english_name": "Lombard"
+    },
+    {
+      "market": "KRW-BAT",
+      "korean_name": "베이직어텐션토큰",
+      "english_name": "Basic Attention Token"
+    },
+    {
+      "market": "KRW-BCH",
+      "korean_name": "비트코인캐시",
+      "english_name": "Bitcoin Cash"
+    },
+    {
+      "market": "KRW-BEAM",
+      "korean_name": "빔",
+      "english_name": "Beam"
+    },
+    {
+      "market": "KRW-BERA",
+      "korean_name": "베라체인",
+      "english_name": "Berachain"
+    },
+    {
+      "market": "KRW-BFC",
+      "korean_name": "바이프로스트",
+      "english_name": "Bifrost"
+    },
+    {
+      "market": "KRW-BIGTIME",
+      "korean_name": "빅타임",
+      "english_name": "Big Time"
+    },
+    {
+      "market": "KRW-BIO",
+      "korean_name": "바이오프로토콜",
+      "english_name": "Bio Protocol"
+    },
+    {
+      "market": "KRW-BIRB",
+      "korean_name": "문버드",
+      "english_name": "Moonbirds"
+    },
+    {
+      "market": "KRW-BLAST",
+      "korean_name": "블라스트",
+      "english_name": "Blast"
+    },
+    {
+      "market": "KRW-BLEND",
+      "korean_name": "플루언트",
+      "english_name": "Fluent"
+    },
+    {
+      "market": "KRW-BLUR",
+      "korean_name": "블러",
+      "english_name": "Blur"
+    },
+    {
+      "market": "KRW-BORA",
+      "korean_name": "보라",
+      "english_name": "BORA"
+    },
+    {
+      "market": "KRW-BOUNTY",
+      "korean_name": "체인바운티",
+      "english_name": "Chainbounty"
+    },
+    {
+      "market": "KRW-BREV",
+      "korean_name": "브레비스",
+      "english_name": "Brevis"
+    },
+    {
+      "market": "KRW-BSB",
+      "korean_name": "블록스트리트",
+      "english_name": "Block Street"
+    },
+    {
+      "market": "KRW-BSV",
+      "korean_name": "비트코인에스브이",
+      "english_name": "Bitcoin SV"
+    },
+    {
+      "market": "KRW-BTC",
+      "korean_name": "비트코인",
+      "english_name": "Bitcoin"
+    },
+    {
+      "market": "KRW-BTT",
+      "korean_name": "비트토렌트",
+      "english_name": "BitTorrent"
+    },
+    {
+      "market": "KRW-CAP",
+      "korean_name": "캡",
+      "english_name": "Cap"
+    },
+    {
+      "market": "KRW-CARV",
+      "korean_name": "카브",
+      "english_name": "CARV"
+    },
+    {
+      "market": "KRW-CBK",
+      "korean_name": "코박토큰",
+      "english_name": "Cobak Token"
+    },
+    {
+      "market": "KRW-CC",
+      "korean_name": "캔톤",
+      "english_name": "Canton"
+    },
+    {
+      "market": "KRW-CELO",
+      "korean_name": "셀로",
+      "english_name": "Celo"
+    },
+    {
+      "market": "KRW-CFG",
+      "korean_name": "센트리퓨즈",
+      "english_name": "Centrifuge"
+    },
+    {
+      "market": "KRW-CFX",
+      "korean_name": "콘플럭스",
+      "english_name": "Conflux"
+    },
+    {
+      "market": "KRW-CHIP",
+      "korean_name": "유에스디에이아이",
+      "english_name": "USD.AI"
+    },
+    {
+      "market": "KRW-CHZ",
+      "korean_name": "칠리즈",
+      "english_name": "Chiliz"
+    },
+    {
+      "market": "KRW-CKB",
+      "korean_name": "너보스",
+      "english_name": "Nervos Network"
+    },
+    {
+      "market": "KRW-COMP",
+      "korean_name": "컴파운드",
+      "english_name": "Compound"
+    },
+    {
+      "market": "KRW-COW",
+      "korean_name": "카우프로토콜",
+      "english_name": "CoW Protocol"
+    },
+    {
+      "market": "KRW-CP",
+      "korean_name": "클러스터프로토콜",
+      "english_name": "Cluster Protocol"
+    },
+    {
+      "market": "KRW-CPOOL",
+      "korean_name": "클리어풀",
+      "english_name": "Clearpool"
+    },
+    {
+      "market": "KRW-CRO",
+      "korean_name": "크로노스",
+      "english_name": "Cronos"
+    },
+    {
+      "market": "KRW-CRV",
+      "korean_name": "커브",
+      "english_name": "Curve"
+    },
+    {
+      "market": "KRW-CTC",
+      "korean_name": "크레딧코인",
+      "english_name": "Creditcoin"
+    },
+    {
+      "market": "KRW-CVC",
+      "korean_name": "시빅",
+      "english_name": "Civic"
+    },
+    {
+      "market": "KRW-CYBER",
+      "korean_name": "사이버",
+      "english_name": "Cyber"
+    },
+    {
+      "market": "KRW-DATA",
+      "korean_name": "데이터네트워크",
+      "english_name": "Data Network"
+    },
+    {
+      "market": "KRW-DEEP",
+      "korean_name": "딥북",
+      "english_name": "DeepBook"
+    },
+    {
+      "market": "KRW-DKA",
+      "korean_name": "디카르고",
+      "english_name": "dKargo"
+    },
+    {
+      "market": "KRW-DOGE",
+      "korean_name": "도지코인",
+      "english_name": "Dogecoin"
+    },
+    {
+      "market": "KRW-DOOD",
+      "korean_name": "두들즈",
+      "english_name": "Doodles"
+    },
+    {
+      "market": "KRW-DOS",
+      "korean_name": "댑오에스",
+      "english_name": "DAPPOS"
+    },
+    {
+      "market": "KRW-DOT",
+      "korean_name": "폴카닷",
+      "english_name": "Polkadot"
+    },
+    {
+      "market": "KRW-DRV",
+      "korean_name": "디라이브",
+      "english_name": "Derive"
+    },
+    {
+      "market": "KRW-EDGE",
+      "korean_name": "디피니티브",
+      "english_name": "Definitive"
+    },
+    {
+      "market": "KRW-EGLD",
+      "korean_name": "멀티버스엑스",
+      "english_name": "MultiversX"
+    },
+    {
+      "market": "KRW-ELF",
+      "korean_name": "엘프",
+      "english_name": "aelf"
+    },
+    {
+      "market": "KRW-ELSA",
+      "korean_name": "헤이엘사",
+      "english_name": "HeyElsa"
+    },
+    {
+      "market": "KRW-ENA",
+      "korean_name": "에테나",
+      "english_name": "Ethena"
+    },
+    {
+      "market": "KRW-ENS",
+      "korean_name": "이더리움네임서비스",
+      "english_name": "Ethereum Name Service"
+    },
+    {
+      "market": "KRW-ENSO",
+      "korean_name": "엔소",
+      "english_name": "Enso"
+    },
+    {
+      "market": "KRW-ERA",
+      "korean_name": "칼데라",
+      "english_name": "Caldera"
+    },
+    {
+      "market": "KRW-ESP",
+      "korean_name": "에스프레소",
+      "english_name": "Espresso"
+    },
+    {
+      "market": "KRW-ETC",
+      "korean_name": "이더리움클래식",
+      "english_name": "Ethereum Classic"
+    },
+    {
+      "market": "KRW-ETH",
+      "korean_name": "이더리움",
+      "english_name": "Ethereum"
+    },
+    {
+      "market": "KRW-ETHFI",
+      "korean_name": "이더파이",
+      "english_name": "Ether.fi"
+    },
+    {
+      "market": "KRW-EUL",
+      "korean_name": "오일러",
+      "english_name": "Euler"
+    },
+    {
+      "market": "KRW-EURC",
+      "korean_name": "이유알코인",
+      "english_name": "EURC"
+    },
+    {
+      "market": "KRW-F",
+      "korean_name": "신퓨처스",
+      "english_name": "SynFutures"
+    },
+    {
+      "market": "KRW-FCT2",
+      "korean_name": "피르마체인",
+      "english_name": "FirmaChain"
+    },
+    {
+      "market": "KRW-FF",
+      "korean_name": "팔콘파이낸스",
+      "english_name": "Falcon Finance"
+    },
+    {
+      "market": "KRW-FIL",
+      "korean_name": "파일코인",
+      "english_name": "Filecoin"
+    },
+    {
+      "market": "KRW-FLOCK",
+      "korean_name": "플록",
+      "english_name": "FLock.io"
+    },
+    {
+      "market": "KRW-FLUID",
+      "korean_name": "플루이드",
+      "english_name": "Fluid"
+    },
+    {
+      "market": "KRW-FOLD",
+      "korean_name": "인터폴드",
+      "english_name": "The Interfold"
+    },
+    {
+      "market": "KRW-G",
+      "korean_name": "그래비티",
+      "english_name": "Gravity"
+    },
+    {
+      "market": "KRW-GAME2",
+      "korean_name": "게임빌드",
+      "english_name": "GameBuild"
+    },
+    {
+      "market": "KRW-GAS",
+      "korean_name": "가스",
+      "english_name": "GAS"
+    },
+    {
+      "market": "KRW-GEOD",
+      "korean_name": "지오드넷",
+      "english_name": "GEODNET"
+    },
+    {
+      "market": "KRW-GLM",
+      "korean_name": "골렘",
+      "english_name": "Golem"
+    },
+    {
+      "market": "KRW-GMT",
+      "korean_name": "스테픈",
+      "english_name": "Stepn"
+    },
+    {
+      "market": "KRW-GRT",
+      "korean_name": "더그래프",
+      "english_name": "The Graph"
+    },
+    {
+      "market": "KRW-GRVT",
+      "korean_name": "그래비티토큰",
+      "english_name": "Grvt"
+    },
+    {
+      "market": "KRW-HBAR",
+      "korean_name": "헤데라",
+      "english_name": "Hedera"
+    },
+    {
+      "market": "KRW-HIVE",
+      "korean_name": "하이브",
+      "english_name": "Hive"
+    },
+    {
+      "market": "KRW-HOLO",
+      "korean_name": "홀로월드에이아이",
+      "english_name": "Holoworld AI"
+    },
+    {
+      "market": "KRW-HOME",
+      "korean_name": "디파이앱",
+      "english_name": "Defi App"
+    },
+    {
+      "market": "KRW-HP",
+      "korean_name": "히포프로토콜",
+      "english_name": "Hippo Protocol"
+    },
+    {
+      "market": "KRW-HUNT",
+      "korean_name": "헌트",
+      "english_name": "HUNT"
+    },
+    {
+      "market": "KRW-HYPER",
+      "korean_name": "하이퍼레인",
+      "english_name": "Hyperlane"
+    },
+    {
+      "market": "KRW-ICP",
+      "korean_name": "인터넷컴퓨터",
+      "english_name": "Internet Computer"
+    },
+    {
+      "market": "KRW-ICX",
+      "korean_name": "아이콘",
+      "english_name": "Icon"
+    },
+    {
+      "market": "KRW-ID",
+      "korean_name": "스페이스아이디",
+      "english_name": "SPACE ID"
+    },
+    {
+      "market": "KRW-IMX",
+      "korean_name": "이뮤터블엑스",
+      "english_name": "Immutable X"
+    },
+    {
+      "market": "KRW-IN",
+      "korean_name": "인피닛",
+      "english_name": "Infinit"
+    },
+    {
+      "market": "KRW-INJ",
+      "korean_name": "인젝티브",
+      "english_name": "Injective"
+    },
+    {
+      "market": "KRW-IO",
+      "korean_name": "아이오넷",
+      "english_name": "io.net"
+    },
+    {
+      "market": "KRW-IOST",
+      "korean_name": "아이오에스티",
+      "english_name": "IOST"
+    },
+    {
+      "market": "KRW-IOTA",
+      "korean_name": "아이오타",
+      "english_name": "IOTA"
+    },
+    {
+      "market": "KRW-IQ",
+      "korean_name": "아이큐",
+      "english_name": "IQ.wiki"
+    },
+    {
+      "market": "KRW-IRYS",
+      "korean_name": "아이리스",
+      "english_name": "Irys"
+    },
+    {
+      "market": "KRW-JPYC",
+      "korean_name": "제이피와이코인",
+      "english_name": "JPY Coin"
+    },
+    {
+      "market": "KRW-JST",
+      "korean_name": "저스트",
+      "english_name": "JUST"
+    },
+    {
+      "market": "KRW-JTO",
+      "korean_name": "지토",
+      "english_name": "Jito"
+    },
+    {
+      "market": "KRW-JUP",
+      "korean_name": "주피터",
+      "english_name": "Jupiter"
+    },
+    {
+      "market": "KRW-KAITO",
+      "korean_name": "카이토",
+      "english_name": "KAITO"
+    },
+    {
+      "market": "KRW-KAT",
+      "korean_name": "카타나",
+      "english_name": "Katana"
+    },
+    {
+      "market": "KRW-KAVA",
+      "korean_name": "카바",
+      "english_name": "Kava"
+    },
+    {
+      "market": "KRW-KERNEL",
+      "korean_name": "커널다오",
+      "english_name": "KernelDAO"
+    },
+    {
+      "market": "KRW-KITE",
+      "korean_name": "카이트",
+      "english_name": "Kite"
+    },
+    {
+      "market": "KRW-KMNO",
+      "korean_name": "카미노파이낸스",
+      "english_name": "Kamino Finance"
+    },
+    {
+      "market": "KRW-KNC",
+      "korean_name": "카이버네트워크",
+      "english_name": "Kyber Network"
+    },
+    {
+      "market": "KRW-LA",
+      "korean_name": "라그랑주",
+      "english_name": "Lagrange"
+    },
+    {
+      "market": "KRW-LAYER",
+      "korean_name": "솔레이어",
+      "english_name": "Solayer"
+    },
+    {
+      "market": "KRW-LINEA",
+      "korean_name": "리네아",
+      "english_name": "Linea"
+    },
+    {
+      "market": "KRW-LINK",
+      "korean_name": "체인링크",
+      "english_name": "Chainlink"
+    },
+    {
+      "market": "KRW-LIT",
+      "korean_name": "라이터",
+      "english_name": "Lighter"
+    },
+    {
+      "market": "KRW-LPT",
+      "korean_name": "라이브피어",
+      "english_name": "Livepeer"
+    },
+    {
+      "market": "KRW-LSK",
+      "korean_name": "리스크",
+      "english_name": "Lisk"
+    },
+    {
+      "market": "KRW-MANA",
+      "korean_name": "디센트럴랜드",
+      "english_name": "Decentraland"
+    },
+    {
+      "market": "KRW-MANTRA",
+      "korean_name": "만트라",
+      "english_name": "MANTRA"
+    },
+    {
+      "market": "KRW-MASK",
+      "korean_name": "마스크네트워크",
+      "english_name": "Mask Network"
+    },
+    {
+      "market": "KRW-MBL",
+      "korean_name": "무비블록",
+      "english_name": "MovieBloc"
+    },
+    {
+      "market": "KRW-ME",
+      "korean_name": "매직에덴",
+      "english_name": "Magic Eden"
+    },
+    {
+      "market": "KRW-MED",
+      "korean_name": "메디블록",
+      "english_name": "MediBloc"
+    },
+    {
+      "market": "KRW-MEGA",
+      "korean_name": "메가이더",
+      "english_name": "MegaETH"
+    },
+    {
+      "market": "KRW-MET2",
+      "korean_name": "메테오라",
+      "english_name": "Meteora"
+    },
+    {
+      "market": "KRW-META",
+      "korean_name": "메타디움",
+      "english_name": "Metadium"
+    },
+    {
+      "market": "KRW-META2",
+      "korean_name": "메타다오",
+      "english_name": "MetaDAO"
+    },
+    {
+      "market": "KRW-MEW",
+      "korean_name": "캣인어독스월드",
+      "english_name": "cat in a dogs world"
+    },
+    {
+      "market": "KRW-MINA",
+      "korean_name": "미나",
+      "english_name": "Mina"
+    },
+    {
+      "market": "KRW-MIRA",
+      "korean_name": "미라네트워크",
+      "english_name": "Mira Network"
+    },
+    {
+      "market": "KRW-MLK",
+      "korean_name": "밀크",
+      "english_name": "MiL.k"
+    },
+    {
+      "market": "KRW-MMT",
+      "korean_name": "모멘텀",
+      "english_name": "Momentum"
+    },
+    {
+      "market": "KRW-MNT",
+      "korean_name": "맨틀",
+      "english_name": "Mantle"
+    },
+    {
+      "market": "KRW-MOC",
+      "korean_name": "모스코인",
+      "english_name": "Moss Coin"
+    },
+    {
+      "market": "KRW-MOCA",
+      "korean_name": "모카네트워크",
+      "english_name": "Moca Network"
+    },
+    {
+      "market": "KRW-MON",
+      "korean_name": "모나드",
+      "english_name": "Monad"
+    },
+    {
+      "market": "KRW-MOODENG",
+      "korean_name": "무뎅",
+      "english_name": "Moo Deng"
+    },
+    {
+      "market": "KRW-MORPHO",
+      "korean_name": "모포",
+      "english_name": "Morpho"
+    },
+    {
+      "market": "KRW-MOVE",
+      "korean_name": "무브먼트",
+      "english_name": "Movement"
+    },
+    {
+      "market": "KRW-MTL",
+      "korean_name": "메탈",
+      "english_name": "Metal"
+    },
+    {
+      "market": "KRW-MVL",
+      "korean_name": "엠블",
+      "english_name": "MVL"
+    },
+    {
+      "market": "KRW-NCT",
+      "korean_name": "폴리스웜",
+      "english_name": "Polyswarm"
+    },
+    {
+      "market": "KRW-NEAR",
+      "korean_name": "니어프로토콜",
+      "english_name": "NEAR Protocol"
+    },
+    {
+      "market": "KRW-NEO",
+      "korean_name": "네오",
+      "english_name": "NEO"
+    },
+    {
+      "market": "KRW-NEWT",
+      "korean_name": "뉴턴프로토콜",
+      "english_name": "Newton Protocol"
+    },
+    {
+      "market": "KRW-NXPC",
+      "korean_name": "넥스페이스",
+      "english_name": "Nexpace"
+    },
+    {
+      "market": "KRW-O",
+      "korean_name": "오원익스체인지",
+      "english_name": "o1.exchange"
+    },
+    {
+      "market": "KRW-ONDO",
+      "korean_name": "온도파이낸스",
+      "english_name": "Ondo Finance"
+    },
+    {
+      "market": "KRW-ONG",
+      "korean_name": "온톨로지가스",
+      "english_name": "ONG"
+    },
+    {
+      "market": "KRW-ONT",
+      "korean_name": "온톨로지",
+      "english_name": "Ontology"
+    },
+    {
+      "market": "KRW-OP",
+      "korean_name": "옵티미즘",
+      "english_name": "Optimism"
+    },
+    {
+      "market": "KRW-OPEN",
+      "korean_name": "오픈렛저",
+      "english_name": "OpenLedger"
+    },
+    {
+      "market": "KRW-OPG",
+      "korean_name": "오픈그라디언트",
+      "english_name": "OpenGradient"
+    },
+    {
+      "market": "KRW-ORBS",
+      "korean_name": "오브스",
+      "english_name": "Orbs"
+    },
+    {
+      "market": "KRW-ORCA",
+      "korean_name": "오르카",
+      "english_name": "Orca"
+    },
+    {
+      "market": "KRW-ORDER",
+      "korean_name": "오덜리",
+      "english_name": "Orderly"
+    },
+    {
+      "market": "KRW-PENDLE",
+      "korean_name": "펜들",
+      "english_name": "Pendle"
+    },
+    {
+      "market": "KRW-PENGU",
+      "korean_name": "펏지펭귄",
+      "english_name": "Pudgy Penguins"
+    },
+    {
+      "market": "KRW-PEPE",
+      "korean_name": "페페",
+      "english_name": "Pepe"
+    },
+    {
+      "market": "KRW-PIEVERSE",
+      "korean_name": "파이버스",
+      "english_name": "Pieverse"
+    },
+    {
+      "market": "KRW-PLUME",
+      "korean_name": "플룸",
+      "english_name": "Plume"
+    },
+    {
+      "market": "KRW-POKT",
+      "korean_name": "포켓네트워크",
+      "english_name": "Pocket Network"
+    },
+    {
+      "market": "KRW-POL",
+      "korean_name": "폴리곤에코시스템토큰",
+      "english_name": "Polygon Ecosystem Token"
+    },
+    {
+      "market": "KRW-POLYX",
+      "korean_name": "폴리매쉬",
+      "english_name": "Polymesh"
+    },
+    {
+      "market": "KRW-POWR",
+      "korean_name": "파워렛저",
+      "english_name": "Power ledger"
+    },
+    {
+      "market": "KRW-PRL",
+      "korean_name": "펄",
+      "english_name": "Perle"
+    },
+    {
+      "market": "KRW-PROM",
+      "korean_name": "프롬",
+      "english_name": "Prom"
+    },
+    {
+      "market": "KRW-PROS",
+      "korean_name": "파로스",
+      "english_name": "Pharos"
+    },
+    {
+      "market": "KRW-PROVE",
+      "korean_name": "서싱트",
+      "english_name": "Succinct"
+    },
+    {
+      "market": "KRW-PUMP",
+      "korean_name": "펌프펀",
+      "english_name": "Pump.fun"
+    },
+    {
+      "market": "KRW-PUNDIX",
+      "korean_name": "펀디엑스",
+      "english_name": "Pundi X"
+    },
+    {
+      "market": "KRW-PYTH",
+      "korean_name": "피스네트워크",
+      "english_name": "Pyth Network"
+    },
+    {
+      "market": "KRW-PYUSD",
+      "korean_name": "페이팔유에스디",
+      "english_name": "PayPal USD"
+    },
+    {
+      "market": "KRW-QKC",
+      "korean_name": "쿼크체인",
+      "english_name": "QuarkChain"
+    },
+    {
+      "market": "KRW-QTUM",
+      "korean_name": "퀀텀",
+      "english_name": "Qtum"
+    },
+    {
+      "market": "KRW-QUID",
+      "korean_name": "스퀴드",
+      "english_name": "Squid"
+    },
+    {
+      "market": "KRW-RAY",
+      "korean_name": "레이디움",
+      "english_name": "Raydium"
+    },
+    {
+      "market": "KRW-RE",
+      "korean_name": "리",
+      "english_name": "Re"
+    },
+    {
+      "market": "KRW-RED",
+      "korean_name": "레드스톤",
+      "english_name": "RedStone"
+    },
+    {
+      "market": "KRW-RENDER",
+      "korean_name": "렌더토큰",
+      "english_name": "Render Token"
+    },
+    {
+      "market": "KRW-RLUSD",
+      "korean_name": "리플유에스디",
+      "english_name": "Ripple USD"
+    },
+    {
+      "market": "KRW-RVN",
+      "korean_name": "레이븐코인",
+      "english_name": "Ravencoin"
+    },
+    {
+      "market": "KRW-SAFE",
+      "korean_name": "세이프",
+      "english_name": "Safe"
+    },
+    {
+      "market": "KRW-SAHARA",
+      "korean_name": "사하라에이아이",
+      "english_name": "Sahara AI"
+    },
+    {
+      "market": "KRW-SAND",
+      "korean_name": "샌드박스",
+      "english_name": "The Sandbox"
+    },
+    {
+      "market": "KRW-SC",
+      "korean_name": "시아코인",
+      "english_name": "Siacoin"
+    },
+    {
+      "market": "KRW-SEI",
+      "korean_name": "세이",
+      "english_name": "Sei"
+    },
+    {
+      "market": "KRW-SENT",
+      "korean_name": "센티언트",
+      "english_name": "Sentient"
+    },
+    {
+      "market": "KRW-SHIB",
+      "korean_name": "시바이누",
+      "english_name": "Shiba Inu"
+    },
+    {
+      "market": "KRW-SIGN",
+      "korean_name": "사인",
+      "english_name": "Sign"
+    },
+    {
+      "market": "KRW-SKR",
+      "korean_name": "시커",
+      "english_name": "Seeker"
+    },
+    {
+      "market": "KRW-SKY",
+      "korean_name": "스카이프로토콜",
+      "english_name": "Sky Protocol"
+    },
+    {
+      "market": "KRW-SLX",
+      "korean_name": "솔스티스",
+      "english_name": "Solstice"
+    },
+    {
+      "market": "KRW-SNT",
+      "korean_name": "스테이터스네트워크토큰",
+      "english_name": "Status Network Token"
+    },
+    {
+      "market": "KRW-SOL",
+      "korean_name": "솔라나",
+      "english_name": "Solana"
+    },
+    {
+      "market": "KRW-SOMI",
+      "korean_name": "솜니아",
+      "english_name": "Somnia"
+    },
+    {
+      "market": "KRW-SONIC",
+      "korean_name": "소닉SVM",
+      "english_name": "Sonic SVM"
+    },
+    {
+      "market": "KRW-SOON",
+      "korean_name": "쑨",
+      "english_name": "SOON"
+    },
+    {
+      "market": "KRW-SOPH",
+      "korean_name": "소폰",
+      "english_name": "Sophon"
+    },
+    {
+      "market": "KRW-SPK",
+      "korean_name": "스파크",
+      "english_name": "Spark"
+    },
+    {
+      "market": "KRW-SPX",
+      "korean_name": "에스피엑스6900",
+      "english_name": "SPX6900"
+    },
+    {
+      "market": "KRW-STEEM",
+      "korean_name": "스팀",
+      "english_name": "Steem"
+    },
+    {
+      "market": "KRW-STRAX",
+      "korean_name": "저트라",
+      "english_name": "Xertra"
+    },
+    {
+      "market": "KRW-STX",
+      "korean_name": "스택스",
+      "english_name": "Stacks"
+    },
+    {
+      "market": "KRW-SUI",
+      "korean_name": "수이",
+      "english_name": "Sui"
+    },
+    {
+      "market": "KRW-SUN",
+      "korean_name": "썬",
+      "english_name": "SUN"
+    },
+    {
+      "market": "KRW-SUPER",
+      "korean_name": "슈퍼버스",
+      "english_name": "SuperVerse"
+    },
+    {
+      "market": "KRW-SYRUP",
+      "korean_name": "메이플파이낸스",
+      "english_name": "Maple Finance"
+    },
+    {
+      "market": "KRW-T",
+      "korean_name": "쓰레스홀드",
+      "english_name": "Threshold"
+    },
+    {
+      "market": "KRW-TAIKO",
+      "korean_name": "타이코",
+      "english_name": "Taiko"
+    },
+    {
+      "market": "KRW-TAO",
+      "korean_name": "비트텐서",
+      "english_name": "Bittensor"
+    },
+    {
+      "market": "KRW-TFUEL",
+      "korean_name": "쎄타퓨엘",
+      "english_name": "Theta Fuel"
+    },
+    {
+      "market": "KRW-THETA",
+      "korean_name": "쎄타토큰",
+      "english_name": "Theta Token"
+    },
+    {
+      "market": "KRW-TIA",
+      "korean_name": "셀레스티아",
+      "english_name": "Celestia"
+    },
+    {
+      "market": "KRW-TOKAMAK",
+      "korean_name": "토카막네트워크",
+      "english_name": "Tokamak Network"
+    },
+    {
+      "market": "KRW-TOSHI",
+      "korean_name": "토시",
+      "english_name": "Toshi"
+    },
+    {
+      "market": "KRW-TRAC",
+      "korean_name": "오리진트레일",
+      "english_name": "OriginTrail"
+    },
+    {
+      "market": "KRW-TREE",
+      "korean_name": "트리하우스",
+      "english_name": "Treehouse"
+    },
+    {
+      "market": "KRW-TRUMP",
+      "korean_name": "오피셜트럼프",
+      "english_name": "Official Trump"
+    },
+    {
+      "market": "KRW-TRUST",
+      "korean_name": "인튜이션",
+      "english_name": "Intuition"
+    },
+    {
+      "market": "KRW-TRX",
+      "korean_name": "트론",
+      "english_name": "TRON"
+    },
+    {
+      "market": "KRW-UNI",
+      "korean_name": "유니스왑",
+      "english_name": "Uniswap"
+    },
+    {
+      "market": "KRW-UP2",
+      "korean_name": "슈퍼폼",
+      "english_name": "Superform"
+    },
+    {
+      "market": "KRW-USD1",
+      "korean_name": "월드리버티파이낸셜유에스디",
+      "english_name": "World Liberty Financial USD"
+    },
+    {
+      "market": "KRW-USDC",
+      "korean_name": "유에스디코인",
+      "english_name": "USD Coin"
+    },
+    {
+      "market": "KRW-USDE",
+      "korean_name": "유에스디이",
+      "english_name": "Ethena USDe"
+    },
+    {
+      "market": "KRW-USDG",
+      "korean_name": "글로벌달러",
+      "english_name": "Global Dollar"
+    },
+    {
+      "market": "KRW-USDS",
+      "korean_name": "유에스디에스",
+      "english_name": "USDS"
+    },
+    {
+      "market": "KRW-USDT",
+      "korean_name": "테더",
+      "english_name": "Tether"
+    },
+    {
+      "market": "KRW-VANA",
+      "korean_name": "바나",
+      "english_name": "Vana"
+    },
+    {
+      "market": "KRW-VET",
+      "korean_name": "비체인",
+      "english_name": "VeChain"
+    },
+    {
+      "market": "KRW-VIRTUAL",
+      "korean_name": "버추얼프로토콜",
+      "english_name": "Virtuals Protocol"
+    },
+    {
+      "market": "KRW-VTHO",
+      "korean_name": "비토르토큰",
+      "english_name": "VeThor Token"
+    },
+    {
+      "market": "KRW-VVV",
+      "korean_name": "베니스토큰",
+      "english_name": "Venice Token"
+    },
+    {
+      "market": "KRW-W",
+      "korean_name": "웜홀",
+      "english_name": "Wormhole"
+    },
+    {
+      "market": "KRW-WAL",
+      "korean_name": "월러스",
+      "english_name": "Walrus"
+    },
+    {
+      "market": "KRW-WAVES",
+      "korean_name": "웨이브",
+      "english_name": "Waves"
+    },
+    {
+      "market": "KRW-WAXP",
+      "korean_name": "왁스",
+      "english_name": "WAX"
+    },
+    {
+      "market": "KRW-WCT",
+      "korean_name": "월렛커넥트",
+      "english_name": "WalletConnect"
+    },
+    {
+      "market": "KRW-WET",
+      "korean_name": "휴미디파이",
+      "english_name": "HumidiFi"
+    },
+    {
+      "market": "KRW-WIF",
+      "korean_name": "도그위프햇",
+      "english_name": "dogwifhat"
+    },
+    {
+      "market": "KRW-WLD",
+      "korean_name": "월드코인",
+      "english_name": "Worldcoin"
+    },
+    {
+      "market": "KRW-WLFI",
+      "korean_name": "월드리버티파이낸셜",
+      "english_name": "World Liberty Financial"
+    },
+    {
+      "market": "KRW-XAUT",
+      "korean_name": "테더골드",
+      "english_name": "Tether Gold"
+    },
+    {
+      "market": "KRW-XCN",
+      "korean_name": "오닉스코인",
+      "english_name": "Onyxcoin"
+    },
+    {
+      "market": "KRW-XEC",
+      "korean_name": "이캐시",
+      "english_name": "eCash"
+    },
+    {
+      "market": "KRW-XLM",
+      "korean_name": "스텔라루멘",
+      "english_name": "Lumen"
+    },
+    {
+      "market": "KRW-XPL",
+      "korean_name": "플라즈마",
+      "english_name": "Plasma"
+    },
+    {
+      "market": "KRW-XRP",
+      "korean_name": "엑스알피(리플)",
+      "english_name": "XRP"
+    },
+    {
+      "market": "KRW-XTZ",
+      "korean_name": "테조스",
+      "english_name": "Tezos"
+    },
+    {
+      "market": "KRW-YGG",
+      "korean_name": "일드길드게임즈",
+      "english_name": "Yield Guild Games"
+    },
+    {
+      "market": "KRW-ZAMA",
+      "korean_name": "자마",
+      "english_name": "Zama"
+    },
+    {
+      "market": "KRW-ZBT",
+      "korean_name": "제로베이스",
+      "english_name": "ZEROBASE"
+    },
+    {
+      "market": "KRW-ZETA",
+      "korean_name": "제타체인",
+      "english_name": "ZetaChain"
+    },
+    {
+      "market": "KRW-ZIL",
+      "korean_name": "질리카",
+      "english_name": "Zilliqa"
+    },
+    {
+      "market": "KRW-ZK",
+      "korean_name": "지케이싱크",
+      "english_name": "ZKsync"
+    },
+    {
+      "market": "KRW-ZKC",
+      "korean_name": "바운드리스",
+      "english_name": "Boundless"
+    },
+    {
+      "market": "KRW-ZKP",
+      "korean_name": "지케이패스",
+      "english_name": "zkPass"
+    },
+    {
+      "market": "KRW-ZORA",
+      "korean_name": "조라",
+      "english_name": "Zora"
+    },
+    {
+      "market": "KRW-ZRO",
+      "korean_name": "레이어제로",
+      "english_name": "LayerZero"
+    },
+    {
+      "market": "KRW-ZRX",
+      "korean_name": "제로엑스",
+      "english_name": "0x Protocol"
+    }
+  ],
+  "daily_markets_collected": 283,
+  "failures": [],
+  "candidate_events": [
+    {
+      "market": "KRW-TRUMP",
+      "signal_day": "2026-08-31",
+      "entry_ms": 1788220800000,
+      "median_turnover_krw": 29150578337.843838,
+      "prior_volume_ratio": 3.085102486175882,
+      "volume_change_pct": -30.97866556016505,
+      "values": {
+        "macd_hist": 66.99807366787456,
+        "rsi": 60.56761985415414,
+        "williams": -54.826254826254825
+      },
+      "velocity": {
+        "macd_hist": -29.796943453006236,
+        "rsi": 1.34308616773896,
+        "williams": 2.7992277992278005
+      },
+      "acceleration": {
+        "macd_hist": 14.585144577566155,
+        "rsi": 13.704506532993683,
+        "williams": 18.082368082368085
+      }
+    },
+    {
+      "market": "KRW-SAND",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 2550790879.1729193,
+      "prior_volume_ratio": 6.869635229718429,
+      "volume_change_pct": -42.89003384641313,
+      "values": {
+        "macd_hist": -0.04610415051091277,
+        "rsi": 42.474300999957045,
+        "williams": -77.64227642276423
+      },
+      "velocity": {
+        "macd_hist": 0.20603211588665316,
+        "rsi": 2.6151018607165213,
+        "williams": 4.471544715447166
+      },
+      "acceleration": {
+        "macd_hist": 0.0522525461090142,
+        "rsi": 2.3834219599771487,
+        "williams": 4.065040650406516
+      }
+    },
+    {
+      "market": "KRW-ARB",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 2063045470.6216145,
+      "prior_volume_ratio": 4.110721969985765,
+      "volume_change_pct": -20.53093987828959,
+      "values": {
+        "macd_hist": 4.140080702017878,
+        "rsi": 76.09843541634655,
+        "williams": -6.779661016949152
+      },
+      "velocity": {
+        "macd_hist": 1.6457868396605457,
+        "rsi": 6.220377996180758,
+        "williams": 13.220338983050848
+      },
+      "acceleration": {
+        "macd_hist": 0.5923650040890633,
+        "rsi": 5.38925181033224,
+        "williams": 31.179522656520238
+      }
+    },
+    {
+      "market": "KRW-ALGO",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 1341131597.1250184,
+      "prior_volume_ratio": 2.0869709188508905,
+      "volume_change_pct": -22.598977202250627,
+      "values": {
+        "macd_hist": 0.22081888396188787,
+        "rsi": 57.486335880499304,
+        "williams": -51.61290322580645
+      },
+      "velocity": {
+        "macd_hist": 0.42144115831935614,
+        "rsi": 6.474099304336669,
+        "williams": 11.244239631336406
+      },
+      "acceleration": {
+        "macd_hist": 0.3675159764590278,
+        "rsi": 1.3753474213952046,
+        "williams": 1.8791602662570313
+      }
+    },
+    {
+      "market": "KRW-TREE",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 1140483956.5181646,
+      "prior_volume_ratio": 3.2496047344544383,
+      "volume_change_pct": -18.86599325595767,
+      "values": {
+        "macd_hist": 0.6850640392279301,
+        "rsi": 60.25942045537251,
+        "williams": -23.728813559322017
+      },
+      "velocity": {
+        "macd_hist": 0.07958666829435623,
+        "rsi": 5.137066972580463,
+        "williams": 34.48014166455857
+      },
+      "acceleration": {
+        "macd_hist": 0.13732701776800083,
+        "rsi": 10.159150841861582,
+        "williams": 44.36373803676448
+      }
+    },
+    {
+      "market": "KRW-UNI",
+      "signal_day": "2026-09-03",
+      "entry_ms": 1788480000000,
+      "median_turnover_krw": 2835958285.0507255,
+      "prior_volume_ratio": 4.814963055757336,
+      "volume_change_pct": -30.7617853157629,
+      "values": {
+        "macd_hist": 287.6895767179782,
+        "rsi": 81.01252496058288,
+        "williams": -6.854838709677419
+      },
+      "velocity": {
+        "macd_hist": 29.48062684603775,
+        "rsi": 3.0856661463717785,
+        "williams": 11.749812453113279
+      },
+      "acceleration": {
+        "macd_hist": 12.322562241879496,
+        "rsi": 3.6189929283405036,
+        "williams": 26.14936323608846
+      }
+    },
+    {
+      "market": "KRW-AAVE",
+      "signal_day": "2026-09-03",
+      "entry_ms": 1788480000000,
+      "median_turnover_krw": 2415911192.056541,
+      "prior_volume_ratio": 2.2906182243550823,
+      "volume_change_pct": -44.05789688820625,
+      "values": {
+        "macd_hist": 397.703422096607,
+        "rsi": 65.45010852837669,
+        "williams": -28.07017543859649
+      },
+      "velocity": {
+        "macd_hist": -24.614163086063854,
+        "rsi": 3.018227303948784,
+        "williams": 6.892787524366472
+      },
+      "acceleration": {
+        "macd_hist": 433.9451457940777,
+        "rsi": 4.664232109944564,
+        "williams": 13.526768764091834
+      }
+    },
+    {
+      "market": "KRW-0G",
+      "signal_day": "2026-09-03",
+      "entry_ms": 1788480000000,
+      "median_turnover_krw": 1305822801.8702025,
+      "prior_volume_ratio": 5.167853202044348,
+      "volume_change_pct": -52.184291673409724,
+      "values": {
+        "macd_hist": 6.090589831833038,
+        "rsi": 56.110153597768736,
+        "williams": -61.935483870967744
+      },
+      "velocity": {
+        "macd_hist": -0.7279586392293584,
+        "rsi": 1.5462237142503241,
+        "williams": 4.516129032258064
+      },
+      "acceleration": {
+        "macd_hist": 0.5597711706868278,
+        "rsi": 6.55769222321868,
+        "williams": 20.372503840245777
+      }
+    },
+    {
+      "market": "KRW-LA",
+      "signal_day": "2026-09-04",
+      "entry_ms": 1788566400000,
+      "median_turnover_krw": 3930447896.6790295,
+      "prior_volume_ratio": 7.396625165769356,
+      "volume_change_pct": -22.093694264427455,
+      "values": {
+        "macd_hist": 1.6827164654346805,
+        "rsi": 60.34652363500163,
+        "williams": -20.125786163521987
+      },
+      "velocity": {
+        "macd_hist": 0.2704277220855713,
+        "rsi": 3.3427420454134165,
+        "williams": 15.094339622641549
+      },
+      "acceleration": {
+        "macd_hist": 0.19917020397727447,
+        "rsi": 6.898052517496055,
+        "williams": 28.37898153783735
+      }
+    },
+    {
+      "market": "KRW-FF",
+      "signal_day": "2026-09-04",
+      "entry_ms": 1788566400000,
+      "median_turnover_krw": 1134917650.3272922,
+      "prior_volume_ratio": 6.178753427556752,
+      "volume_change_pct": -47.21488758552083,
+      "values": {
+        "macd_hist": 2.309673728423288,
+        "rsi": 69.68454720346146,
+        "williams": -14.0625
+      },
+      "velocity": {
+        "macd_hist": 0.31111245137176446,
+        "rsi": 3.603098924493665,
+        "williams": 12.291819180087849
+      },
+      "acceleration": {
+        "macd_hist": 0.42958664024325266,
+        "rsi": 7.011628762508721,
+        "williams": 22.517106102111182
+      }
+    },
+    {
+      "market": "KRW-HOLO",
+      "signal_day": "2026-09-05",
+      "entry_ms": 1788652800000,
+      "median_turnover_krw": 1649084699.6700149,
+      "prior_volume_ratio": 3.333721605312363,
+      "volume_change_pct": -84.12781406399408,
+      "values": {
+        "macd_hist": 0.17009382969478426,
+        "rsi": 50.76368665192624,
+        "williams": -69.8884758364312
+      },
+      "velocity": {
+        "macd_hist": 0.3058783102185194,
+        "rsi": 4.557048572222882,
+        "williams": 8.3571381986565
+      },
+      "acceleration": {
+        "macd_hist": 0.21081970384445303,
+        "rsi": 2.357157987990007,
+        "williams": 2.74310311093717
+      }
+    },
+    {
+      "market": "KRW-SOPH",
+      "signal_day": "2026-09-07",
+      "entry_ms": 1788825600000,
+      "median_turnover_krw": 1013879620.0208468,
+      "prior_volume_ratio": 13.598237565745041,
+      "volume_change_pct": -7.855680592201109,
+      "values": {
+        "macd_hist": 0.2591591200500992,
+        "rsi": 76.20296683254637,
+        "williams": -1.9354838709677296
+      },
+      "velocity": {
+        "macd_hist": 0.08855947225505842,
+        "rsi": 9.128875194758635,
+        "williams": 36.52605459057072
+      },
+      "acceleration": {
+        "macd_hist": 0.055042655991301925,
+        "rsi": 4.566297378001899,
+        "williams": 22.81368000863091
+      }
+    },
+    {
+      "market": "KRW-CFG",
+      "signal_day": "2026-09-09",
+      "entry_ms": 1788998400000,
+      "median_turnover_krw": 1029666112.1967939,
+      "prior_volume_ratio": 11.604524052654016,
+      "volume_change_pct": -67.37758689230485,
+      "values": {
+        "macd_hist": 2.5670259094442898,
+        "rsi": 43.10352788922122,
+        "williams": -53.96825396825397
+      },
+      "velocity": {
+        "macd_hist": 1.161750404861234,
+        "rsi": 3.9693471304831647,
+        "williams": 11.111111111111107
+      },
+      "acceleration": {
+        "macd_hist": 0.19627106244612236,
+        "rsi": 6.270094078826858,
+        "williams": 16.770186335403714
+      }
+    },
+    {
+      "market": "KRW-LA",
+      "signal_day": "2026-09-11",
+      "entry_ms": 1789171200000,
+      "median_turnover_krw": 6751682055.237941,
+      "prior_volume_ratio": 2.6823416198728287,
+      "volume_change_pct": -52.32882419385487,
+      "values": {
+        "macd_hist": -0.11664992143928421,
+        "rsi": 54.32120759636507,
+        "williams": -46.27450980392156
+      },
+      "velocity": {
+        "macd_hist": 0.015045325366620066,
+        "rsi": 2.595310200324448,
+        "williams": 11.537990196078447
+      },
+      "acceleration": {
+        "macd_hist": 0.268628547215537,
+        "rsi": 0.0010440423537616539,
+        "williams": 0.20986519607842524
+      }
+    },
+    {
+      "market": "KRW-BCH",
+      "signal_day": "2026-09-11",
+      "entry_ms": 1789171200000,
+      "median_turnover_krw": 3719521987.952774,
+      "prior_volume_ratio": 2.1272526354791417,
+      "volume_change_pct": -2.2404484881786146,
+      "values": {
+        "macd_hist": -5496.06277472877,
+        "rsi": 38.89078765348138,
+        "williams": -85.99695585996956
+      },
+      "velocity": {
+        "macd_hist": -1196.8831776980614,
+        "rsi": 1.8973661433093127,
+        "williams": 12.56004269702899
+      },
+      "acceleration": {
+        "macd_hist": 1351.4785346757699,
+        "rsi": 15.661026316596917,
+        "williams": 35.91212322124066
+      }
+    },
+    {
+      "market": "KRW-MIRA",
+      "signal_day": "2026-09-11",
+      "entry_ms": 1789171200000,
+      "median_turnover_krw": 2442782501.7972198,
+      "prior_volume_ratio": 3.769665174095489,
+      "volume_change_pct": -69.36041760399512,
+      "values": {
+        "macd_hist": 0.4588406370114022,
+        "rsi": 53.32948570954258,
+        "williams": -68.4873949579832
+      },
+      "velocity": {
+        "macd_hist": -0.28995324604475226,
+        "rsi": 0.9307587739284884,
+        "williams": 1.3473157858184237
+      },
+      "acceleration": {
+        "macd_hist": 0.15053351462302955,
+        "rsi": 16.988608439685038,
+        "williams": 32.75227446350435
+      }
+    },
+    {
+      "market": "KRW-CFG",
+      "signal_day": "2026-09-11",
+      "entry_ms": 1789171200000,
+      "median_turnover_krw": 1029666112.1967939,
+      "prior_volume_ratio": 2.562754499877156,
+      "volume_change_pct": -59.71249508804206,
+      "values": {
+        "macd_hist": 2.0017660374903166,
+        "rsi": 37.584872274575574,
+        "williams": -77.77777777777777
+      },
+      "velocity": {
+        "macd_hist": -0.060200606049207295,
+        "rsi": 1.68503051819512,
+        "williams": 6.432748538011708
+      },
+      "acceleration": {
+        "macd_hist": 0.4448586598555586,
+        "rsi": 8.888716651035885,
+        "williams": 36.67502088554722
+      }
+    },
+    {
+      "market": "KRW-IOST",
+      "signal_day": "2026-09-14",
+      "entry_ms": 1789430400000,
+      "median_turnover_krw": 2158863028.9928117,
+      "prior_volume_ratio": 5.977105949922831,
+      "volume_change_pct": -45.84779910653518,
+      "values": {
+        "macd_hist": 0.0013257258315603898,
+        "rsi": 50.21258260857418,
+        "williams": -86.13659531090724
+      },
+      "velocity": {
+        "macd_hist": -0.020019300000875193,
+        "rsi": 0.2122530293875542,
+        "williams": 0.289434175620471
+      },
+      "acceleration": {
+        "macd_hist": 0.009569224317900624,
+        "rsi": 4.278888132762241,
+        "williams": 10.143455548557924
+      }
+    },
+    {
+      "market": "KRW-PLUME",
+      "signal_day": "2026-09-14",
+      "entry_ms": 1789430400000,
+      "median_turnover_krw": 1250097011.0823007,
+      "prior_volume_ratio": 14.449383578670826,
+      "volume_change_pct": -91.83148411996392,
+      "values": {
+        "macd_hist": -0.29166565983584114,
+        "rsi": 44.289181946757225,
+        "williams": -86.1111111111111
+      },
+      "velocity": {
+        "macd_hist": 0.016340208561977487,
+        "rsi": 2.2395251503725007,
+        "williams": 8.333333333333371
+      },
+      "acceleration": {
+        "macd_hist": 0.04353446122397575,
+        "rsi": 5.632031905603185,
+        "williams": 21.825396825396822
+      }
+    },
+    {
+      "market": "KRW-XRP",
+      "signal_day": "2026-09-16",
+      "entry_ms": 1789603200000,
+      "median_turnover_krw": 143953671873.19702,
+      "prior_volume_ratio": 3.596171404393176,
+      "volume_change_pct": -46.114693453086254,
+      "values": {
+        "macd_hist": -26.183078452394405,
+        "rsi": 46.65244120083656,
+        "williams": -75.8957654723127
+      },
+      "velocity": {
+        "macd_hist": -0.802768782885579,
+        "rsi": 3.079617168185109,
+        "williams": 16.936999032806753
+      },
+      "acceleration": {
+        "macd_hist": 5.8900574374416195,
+        "rsi": 16.672623132926326,
+        "williams": 64.5642840858714
+      }
+    },
+    {
+      "market": "KRW-XLM",
+      "signal_day": "2026-09-16",
+      "entry_ms": 1789603200000,
+      "median_turnover_krw": 11749679501.256786,
+      "prior_volume_ratio": 3.82968360082801,
+      "volume_change_pct": -45.24845465741664,
+      "values": {
+        "macd_hist": -0.19384953019385784,
+        "rsi": 51.957616307428424,
+        "williams": -46.34146341463415
+      },
+      "velocity": {
+        "macd_hist": 0.49208188649835427,
+        "rsi": 6.027617952017614,
+        "williams": 29.268292682926827
+      },
+      "acceleration": {
+        "macd_hist": 0.9859655162387889,
+        "rsi": 15.753766074256987,
+        "williams": 76.7530487804878
+      }
+    },
+    {
+      "market": "KRW-MINA",
+      "signal_day": "2026-09-16",
+      "entry_ms": 1789603200000,
+      "median_turnover_krw": 1975810745.255796,
+      "prior_volume_ratio": 2.7599039944087327,
+      "volume_change_pct": -62.475502853782075,
+      "values": {
+        "macd_hist": -1.1926250365901137,
+        "rsi": 59.382657490559716,
+        "williams": -64.08094435075886
+      },
+      "velocity": {
+        "macd_hist": -0.5300801005492453,
+        "rsi": 5.067553349053284,
+        "williams": 11.481756613871369
+      },
+      "acceleration": {
+        "macd_hist": 1.0904809165551956,
+        "rsi": 5.775836571429942,
+        "williams": 17.24172616727246
+      }
+    },
+    {
+      "market": "KRW-TREE",
+      "signal_day": "2026-09-16",
+      "entry_ms": 1789603200000,
+      "median_turnover_krw": 1890983866.7309475,
+      "prior_volume_ratio": 10.772464188843388,
+      "volume_change_pct": -85.70264130204293,
+      "values": {
+        "macd_hist": -0.26413973013497727,
+        "rsi": 51.50646270519585,
+        "williams": -75.95628415300543
+      },
+      "velocity": {
+        "macd_hist": -0.02294270802672771,
+        "rsi": 4.10780295501165,
+        "williams": 12.021857923497294
+      },
+      "acceleration": {
+        "macd_hist": 0.23987499318548666,
+        "rsi": 11.1098572755591,
+        "williams": 36.942675159235705
+      }
+    },
+    {
+      "market": "KRW-GAS",
+      "signal_day": "2026-09-16",
+      "entry_ms": 1789603200000,
+      "median_turnover_krw": 1144993456.7931921,
+      "prior_volume_ratio": 2.3367961772270194,
+      "volume_change_pct": -72.3822516182801,
+      "values": {
+        "macd_hist": -9.847638320087,
+        "rsi": 53.626248896537525,
+        "williams": -65.98360655737704
+      },
+      "velocity": {
+        "macd_hist": -0.4955363280038938,
+        "rsi": 2.9155902669391978,
+        "williams": 14.344262295081975
+      },
+      "acceleration": {
+        "macd_hist": 3.924456970050123,
+        "rsi": 10.388556836681339,
+        "williams": 45.90163934426231
+      }
+    },
+    {
+      "market": "KRW-MANTRA",
+      "signal_day": "2026-09-17",
+      "entry_ms": 1789689600000,
+      "median_turnover_krw": 1379795057.5751598,
+      "prior_volume_ratio": 3.2262791246126405,
+      "volume_change_pct": -69.35881346107074,
+      "values": {
+        "macd_hist": 0.0072551721791623836,
+        "rsi": 39.28336867477205,
+        "williams": -90.49773755656109
+      },
+      "velocity": {
+        "macd_hist": 0.0017722419307948378,
+        "rsi": 1.3875919002114827,
+        "williams": 2.2624434389140475
+      },
+      "acceleration": {
+        "macd_hist": 0.0074421776625967495,
+        "rsi": 1.549116020437289,
+        "williams": 2.295351707116467
+      }
+    },
+    {
+      "market": "KRW-RVN",
+      "signal_day": "2026-09-17",
+      "entry_ms": 1789689600000,
+      "median_turnover_krw": 1314686116.036403,
+      "prior_volume_ratio": 2.000696248034699,
+      "volume_change_pct": -41.78039545308137,
+      "values": {
+        "macd_hist": -0.04726918958149068,
+        "rsi": 32.299245418805995,
+        "williams": -84.2857142857143
+      },
+      "velocity": {
+        "macd_hist": 0.013369032579111956,
+        "rsi": 2.4917732506834653,
+        "williams": 3.571428571428555
+      },
+      "acceleration": {
+        "macd_hist": 0.005099759113545266,
+        "rsi": 2.4917732506834653,
+        "williams": 3.571428571428555
+      }
+    },
+    {
+      "market": "KRW-IOST",
+      "signal_day": "2026-09-18",
+      "entry_ms": 1789776000000,
+      "median_turnover_krw": 7313676368.806307,
+      "prior_volume_ratio": 2.4064432488467906,
+      "volume_change_pct": -68.55219044930784,
+      "values": {
+        "macd_hist": -0.022169807393536287,
+        "rsi": 51.86952525524477,
+        "williams": -83.80755302638387
+      },
+      "velocity": {
+        "macd_hist": 2.184123834823859e-05,
+        "rsi": 0.48905488552925647,
+        "williams": 0.2950110761802307
+      },
+      "acceleration": {
+        "macd_hist": 0.002506547551265434,
+        "rsi": 0.9784594025152984,
+        "williams": 1.575489289173774
+      }
+    },
+    {
+      "market": "KRW-T",
+      "signal_day": "2026-09-18",
+      "entry_ms": 1789776000000,
+      "median_turnover_krw": 2372459318.8899765,
+      "prior_volume_ratio": 2.428782494106735,
+      "volume_change_pct": -27.811213424099446,
+      "values": {
+        "macd_hist": 0.02354217627867211,
+        "rsi": 60.34660581207678,
+        "williams": -62.64150943396224
+      },
+      "velocity": {
+        "macd_hist": 0.01895033084721176,
+        "rsi": 4.9091658228051,
+        "williams": 16.226415094339657
+      },
+      "acceleration": {
+        "macd_hist": 0.028541196945347597,
+        "rsi": 4.66961222686993,
+        "williams": 15.471698113207594
+      }
+    },
+    {
+      "market": "KRW-WAVES",
+      "signal_day": "2026-09-18",
+      "entry_ms": 1789776000000,
+      "median_turnover_krw": 1871243571.6145577,
+      "prior_volume_ratio": 3.5519409697284074,
+      "volume_change_pct": -73.42775297541044,
+      "values": {
+        "macd_hist": 0.6877655863624597,
+        "rsi": 58.13585912806477,
+        "williams": -62.903225806451616
+      },
+      "velocity": {
+        "macd_hist": 0.5568889082034154,
+        "rsi": 3.1241070758689844,
+        "williams": 6.73028204695153
+      },
+      "acceleration": {
+        "macd_hist": 1.0793707946634452,
+        "rsi": 2.731022228051529,
+        "williams": 6.415603371857259
+      }
+    },
+    {
+      "market": "KRW-CVC",
+      "signal_day": "2026-09-18",
+      "entry_ms": 1789776000000,
+      "median_turnover_krw": 1171898249.7183104,
+      "prior_volume_ratio": 3.1368047507319385,
+      "volume_change_pct": -1.3307423442671773,
+      "values": {
+        "macd_hist": 0.7026369869823679,
+        "rsi": 63.91165098011139,
+        "williams": -71.21661721068249
+      },
+      "velocity": {
+        "macd_hist": -0.1831598764314637,
+        "rsi": 1.7912692119676805,
+        "williams": 2.747879830737645
+      },
+      "acceleration": {
+        "macd_hist": 0.10559514667607761,
+        "rsi": 5.428194938884843,
+        "williams": 6.712376872157762
+      }
+    },
+    {
+      "market": "KRW-ZIL",
+      "signal_day": "2026-09-19",
+      "entry_ms": 1789862400000,
+      "median_turnover_krw": 1184330192.587111,
+      "prior_volume_ratio": 2.3168127819739044,
+      "volume_change_pct": -34.582664747197796,
+      "values": {
+        "macd_hist": 0.04908377846301763,
+        "rsi": 66.33257163551147,
+        "williams": -32.05128205128205
+      },
+      "velocity": {
+        "macd_hist": 0.01978902362330813,
+        "rsi": 5.175520928668099,
+        "williams": 16.666666666666686
+      },
+      "acceleration": {
+        "macd_hist": 0.010923995242583223,
+        "rsi": 1.434858014965151,
+        "williams": 6.410256410256416
+      }
+    }
+  ],
+  "selected": [
+    {
+      "market": "KRW-TRUMP",
+      "signal_day": "2026-08-31",
+      "entry_ms": 1788220800000,
+      "median_turnover_krw": 29150578337.843838,
+      "prior_volume_ratio": 3.085102486175882,
+      "volume_change_pct": -30.97866556016505,
+      "values": {
+        "macd_hist": 66.99807366787456,
+        "rsi": 60.56761985415414,
+        "williams": -54.826254826254825
+      },
+      "velocity": {
+        "macd_hist": -29.796943453006236,
+        "rsi": 1.34308616773896,
+        "williams": 2.7992277992278005
+      },
+      "acceleration": {
+        "macd_hist": 14.585144577566155,
+        "rsi": 13.704506532993683,
+        "williams": 18.082368082368085
+      }
+    },
+    {
+      "market": "KRW-SAND",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 2550790879.1729193,
+      "prior_volume_ratio": 6.869635229718429,
+      "volume_change_pct": -42.89003384641313,
+      "values": {
+        "macd_hist": -0.04610415051091277,
+        "rsi": 42.474300999957045,
+        "williams": -77.64227642276423
+      },
+      "velocity": {
+        "macd_hist": 0.20603211588665316,
+        "rsi": 2.6151018607165213,
+        "williams": 4.471544715447166
+      },
+      "acceleration": {
+        "macd_hist": 0.0522525461090142,
+        "rsi": 2.3834219599771487,
+        "williams": 4.065040650406516
+      }
+    },
+    {
+      "market": "KRW-ARB",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 2063045470.6216145,
+      "prior_volume_ratio": 4.110721969985765,
+      "volume_change_pct": -20.53093987828959,
+      "values": {
+        "macd_hist": 4.140080702017878,
+        "rsi": 76.09843541634655,
+        "williams": -6.779661016949152
+      },
+      "velocity": {
+        "macd_hist": 1.6457868396605457,
+        "rsi": 6.220377996180758,
+        "williams": 13.220338983050848
+      },
+      "acceleration": {
+        "macd_hist": 0.5923650040890633,
+        "rsi": 5.38925181033224,
+        "williams": 31.179522656520238
+      }
+    },
+    {
+      "market": "KRW-ALGO",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 1341131597.1250184,
+      "prior_volume_ratio": 2.0869709188508905,
+      "volume_change_pct": -22.598977202250627,
+      "values": {
+        "macd_hist": 0.22081888396188787,
+        "rsi": 57.486335880499304,
+        "williams": -51.61290322580645
+      },
+      "velocity": {
+        "macd_hist": 0.42144115831935614,
+        "rsi": 6.474099304336669,
+        "williams": 11.244239631336406
+      },
+      "acceleration": {
+        "macd_hist": 0.3675159764590278,
+        "rsi": 1.3753474213952046,
+        "williams": 1.8791602662570313
+      }
+    },
+    {
+      "market": "KRW-TREE",
+      "signal_day": "2026-09-02",
+      "entry_ms": 1788393600000,
+      "median_turnover_krw": 1140483956.5181646,
+      "prior_volume_ratio": 3.2496047344544383,
+      "volume_change_pct": -18.86599325595767,
+      "values": {
+        "macd_hist": 0.6850640392279301,
+        "rsi": 60.25942045537251,
+        "williams": -23.728813559322017
+      },
+      "velocity": {
+        "macd_hist": 0.07958666829435623,
+        "rsi": 5.137066972580463,
+        "williams": 34.48014166455857
+      },
+      "acceleration": {
+        "macd_hist": 0.13732701776800083,
+        "rsi": 10.159150841861582,
+        "williams": 44.36373803676448
+      }
+    },
+    {
+      "market": "KRW-UNI",
+      "signal_day": "2026-09-03",
+      "entry_ms": 1788480000000,
+      "median_turnover_krw": 2835958285.0507255,
+      "prior_volume_ratio": 4.814963055757336,
+      "volume_change_pct": -30.7617853157629,
+      "values": {
+        "macd_hist": 287.6895767179782,
+        "rsi": 81.01252496058288,
+        "williams": -6.854838709677419
+      },
+      "velocity": {
+        "macd_hist": 29.48062684603775,
+        "rsi": 3.0856661463717785,
+        "williams": 11.749812453113279
+      },
+      "acceleration": {
+        "macd_hist": 12.322562241879496,
+        "rsi": 3.6189929283405036,
+        "williams": 26.14936323608846
+      }
+    },
+    {
+      "market": "KRW-AAVE",
+      "signal_day": "2026-09-03",
+      "entry_ms": 1788480000000,
+      "median_turnover_krw": 2415911192.056541,
+      "prior_volume_ratio": 2.2906182243550823,
+      "volume_change_pct": -44.05789688820625,
+      "values": {
+        "macd_hist": 397.703422096607,
+        "rsi": 65.45010852837669,
+        "williams": -28.07017543859649
+      },
+      "velocity": {
+        "macd_hist": -24.614163086063854,
+        "rsi": 3.018227303948784,
+        "williams": 6.892787524366472
+      },
+      "acceleration": {
+        "macd_hist": 433.9451457940777,
+        "rsi": 4.664232109944564,
+        "williams": 13.526768764091834
+      }
+    },
+    {
+      "market": "KRW-0G",
+      "signal_day": "2026-09-03",
+      "entry_ms": 1788480000000,
+      "median_turnover_krw": 1305822801.8702025,
+      "prior_volume_ratio": 5.167853202044348,
+      "volume_change_pct": -52.184291673409724,
+      "values": {
+        "macd_hist": 6.090589831833038,
+        "rsi": 56.110153597768736,
+        "williams": -61.935483870967744
+      },
+      "velocity": {
+        "macd_hist": -0.7279586392293584,
+        "rsi": 1.5462237142503241,
+        "williams": 4.516129032258064
+      },
+      "acceleration": {
+        "macd_hist": 0.5597711706868278,
+        "rsi": 6.55769222321868,
+        "williams": 20.372503840245777
+      }
+    },
+    {
+      "market": "KRW-LA",
+      "signal_day": "2026-09-04",
+      "entry_ms": 1788566400000,
+      "median_turnover_krw": 3930447896.6790295,
+      "prior_volume_ratio": 7.396625165769356,
+      "volume_change_pct": -22.093694264427455,
+      "values": {
+        "macd_hist": 1.6827164654346805,
+        "rsi": 60.34652363500163,
+        "williams": -20.125786163521987
+      },
+      "velocity": {
+        "macd_hist": 0.2704277220855713,
+        "rsi": 3.3427420454134165,
+        "williams": 15.094339622641549
+      },
+      "acceleration": {
+        "macd_hist": 0.19917020397727447,
+        "rsi": 6.898052517496055,
+        "williams": 28.37898153783735
+      }
+    },
+    {
+      "market": "KRW-FF",
+      "signal_day": "2026-09-04",
+      "entry_ms": 1788566400000,
+      "median_turnover_krw": 1134917650.3272922,
+      "prior_volume_ratio": 6.178753427556752,
+      "volume_change_pct": -47.21488758552083,
+      "values": {
+        "macd_hist": 2.309673728423288,
+        "rsi": 69.68454720346146,
+        "williams": -14.0625
+      },
+      "velocity": {
+        "macd_hist": 0.31111245137176446,
+        "rsi": 3.603098924493665,
+        "williams": 12.291819180087849
+      },
+      "acceleration": {
+        "macd_hist": 0.42958664024325266,
+        "rsi": 7.011628762508721,
+        "williams": 22.517106102111182
+      }
+    }
+  ],
+  "minute_quality": [
+    {
+      "market": "KRW-ARK",
+      "entry_ms": 1789171200000,
+      "end_ms": 1789603200000,
+      "count": 1458,
+      "expected": 1537,
+      "gaps": [
+        [
+          1789143300000,
+          1789143900000
+        ],
+        [
+          1789143900000,
+          1789144500000
+        ],
+        [
+          1789145100000,
+          1789145700000
+        ],
+        [
+          1789145700000,
+          1789146300000
+        ],
+        [
+          1789146900000,
+          1789149000000
+        ],
+        [
+          1789149000000,
+          1789149900000
+        ],
+        [
+          1789149900000,
+          1789151700000
+        ],
+        [
+          1789152000000,
+          1789153200000
+        ],
+        [
+          1789153200000,
+          1789153800000
+        ],
+        [
+          1789153800000,
+          1789154400000
+        ],
+        [
+          1789154400000,
+          1789155600000
+        ],
+        [
+          1789156200000,
+          1789156800000
+        ],
+        [
+          1789157400000,
+          1789158600000
+        ],
+        [
+          1789159200000,
+          1789160400000
+        ],
+        [
+          1789161600000,
+          1789162200000
+        ],
+        [
+          1789162500000,
+          1789163100000
+        ],
+        [
+          1789163400000,
+          1789164000000
+        ],
+        [
+          1789164000000,
+          1789164900000
+        ],
+        [
+          1789164900000,
+          1789165500000
+        ],
+        [
+          1789165500000,
+          1789166700000
+        ],
+        [
+          1789167600000,
+          1789168200000
+        ],
+        [
+          1789169700000,
+          1789170300000
+        ],
+        [
+          1789172400000,
+          1789173000000
+        ],
+        [
+          1789182600000,
+          1789183200000
+        ],
+        [
+          1789209900000,
+          1789210500000
+        ],
+        [
+          1789212300000,
+          1789212900000
+        ],
+        [
+          1789213500000,
+          1789214400000
+        ],
+        [
+          1789220700000,
+          1789221300000
+        ],
+        [
+          1789221300000,
+          1789222200000
+        ],
+        [
+          1789230600000,
+          1789231500000
+        ],
+        [
+          1789231800000,
+          1789232400000
+        ],
+        [
+          1789233600000,
+          1789234200000
+        ],
+        [
+          1789235400000,
+          1789236300000
+        ],
+        [
+          1789236600000,
+          1789237200000
+        ],
+        [
+          1789237200000,
+          1789237800000
+        ],
+        [
+          1789237800000,
+          1789238700000
+        ],
+        [
+          1789239600000,
+          1789240200000
+        ],
+        [
+          1789240800000,
+          1789241400000
+        ],
+        [
+          1789241400000,
+          1789242000000
+        ],
+        [
+          1789242300000,
+          1789242900000
+        ],
+        [
+          1789243800000,
+          1789244400000
+        ],
+        [
+          1789245000000,
+          1789245900000
+        ],
+        [
+          1789249200000,
+          1789249800000
+        ],
+        [
+          1789501800000,
+          1789502400000
+        ],
+        [
+          1789502400000,
+          1789503300000
+        ],
+        [
+          1789551000000,
+          1789551600000
+        ],
+        [
+          1789584300000,
+          1789584900000
+        ],
+        [
+          1789591200000,
+          1789591800000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-TRUMP",
+      "entry_ms": 1788220800000,
+      "end_ms": 1788652800000,
+      "count": 1537,
+      "expected": 1537,
+      "gaps": [],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-SAND",
+      "entry_ms": 1788393600000,
+      "end_ms": 1788825600000,
+      "count": 1436,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788377700000,
+          1788378300000
+        ],
+        [
+          1788380100000,
+          1788381000000
+        ],
+        [
+          1788407400000,
+          1788408000000
+        ],
+        [
+          1788438900000,
+          1788439500000
+        ],
+        [
+          1788460200000,
+          1788460800000
+        ],
+        [
+          1788461400000,
+          1788462000000
+        ],
+        [
+          1788465300000,
+          1788465900000
+        ],
+        [
+          1788467400000,
+          1788468000000
+        ],
+        [
+          1788471900000,
+          1788472500000
+        ],
+        [
+          1788540300000,
+          1788540900000
+        ],
+        [
+          1788545400000,
+          1788546000000
+        ],
+        [
+          1788547800000,
+          1788548400000
+        ],
+        [
+          1788548700000,
+          1788549900000
+        ],
+        [
+          1788549900000,
+          1788550500000
+        ],
+        [
+          1788551100000,
+          1788551700000
+        ],
+        [
+          1788552600000,
+          1788553500000
+        ],
+        [
+          1788553500000,
+          1788554100000
+        ],
+        [
+          1788561000000,
+          1788561600000
+        ],
+        [
+          1788561900000,
+          1788562500000
+        ],
+        [
+          1788577800000,
+          1788578400000
+        ],
+        [
+          1788599700000,
+          1788600300000
+        ],
+        [
+          1788603600000,
+          1788604200000
+        ],
+        [
+          1788619200000,
+          1788619800000
+        ],
+        [
+          1788620100000,
+          1788620700000
+        ],
+        [
+          1788623400000,
+          1788624000000
+        ],
+        [
+          1788625200000,
+          1788625800000
+        ],
+        [
+          1788625800000,
+          1788626400000
+        ],
+        [
+          1788626400000,
+          1788627300000
+        ],
+        [
+          1788627300000,
+          1788627900000
+        ],
+        [
+          1788627900000,
+          1788628500000
+        ],
+        [
+          1788628500000,
+          1788629100000
+        ],
+        [
+          1788631800000,
+          1788632700000
+        ],
+        [
+          1788633000000,
+          1788633600000
+        ],
+        [
+          1788633600000,
+          1788634200000
+        ],
+        [
+          1788634500000,
+          1788635400000
+        ],
+        [
+          1788637200000,
+          1788638100000
+        ],
+        [
+          1788638100000,
+          1788638700000
+        ],
+        [
+          1788638700000,
+          1788639600000
+        ],
+        [
+          1788639600000,
+          1788640800000
+        ],
+        [
+          1788641400000,
+          1788642000000
+        ],
+        [
+          1788645900000,
+          1788646500000
+        ],
+        [
+          1788682500000,
+          1788683100000
+        ],
+        [
+          1788690600000,
+          1788691200000
+        ],
+        [
+          1788696300000,
+          1788696900000
+        ],
+        [
+          1788708300000,
+          1788708900000
+        ],
+        [
+          1788712500000,
+          1788713400000
+        ],
+        [
+          1788713700000,
+          1788714600000
+        ],
+        [
+          1788717000000,
+          1788717600000
+        ],
+        [
+          1788717600000,
+          1788718200000
+        ],
+        [
+          1788718800000,
+          1788719400000
+        ],
+        [
+          1788719400000,
+          1788720000000
+        ],
+        [
+          1788720300000,
+          1788721200000
+        ],
+        [
+          1788721200000,
+          1788721800000
+        ],
+        [
+          1788722100000,
+          1788723300000
+        ],
+        [
+          1788723300000,
+          1788723900000
+        ],
+        [
+          1788724800000,
+          1788725400000
+        ],
+        [
+          1788725700000,
+          1788726300000
+        ],
+        [
+          1788726600000,
+          1788727200000
+        ],
+        [
+          1788727200000,
+          1788727800000
+        ],
+        [
+          1788728700000,
+          1788729600000
+        ],
+        [
+          1788729600000,
+          1788730200000
+        ],
+        [
+          1788731400000,
+          1788732000000
+        ],
+        [
+          1788733200000,
+          1788733800000
+        ],
+        [
+          1788798600000,
+          1788800400000
+        ],
+        [
+          1788801900000,
+          1788802800000
+        ],
+        [
+          1788802800000,
+          1788803700000
+        ],
+        [
+          1788806400000,
+          1788807000000
+        ],
+        [
+          1788807300000,
+          1788809400000
+        ],
+        [
+          1788809400000,
+          1788810000000
+        ],
+        [
+          1788810600000,
+          1788811500000
+        ],
+        [
+          1788813900000,
+          1788814500000
+        ],
+        [
+          1788819600000,
+          1788820200000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-ARB",
+      "entry_ms": 1788393600000,
+      "end_ms": 1788825600000,
+      "count": 1517,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788453900000,
+          1788454500000
+        ],
+        [
+          1788456600000,
+          1788457200000
+        ],
+        [
+          1788541500000,
+          1788542100000
+        ],
+        [
+          1788543300000,
+          1788543900000
+        ],
+        [
+          1788546600000,
+          1788547800000
+        ],
+        [
+          1788548100000,
+          1788548700000
+        ],
+        [
+          1788551100000,
+          1788552000000
+        ],
+        [
+          1788553200000,
+          1788553800000
+        ],
+        [
+          1788554700000,
+          1788555300000
+        ],
+        [
+          1788557100000,
+          1788557700000
+        ],
+        [
+          1788560400000,
+          1788561000000
+        ],
+        [
+          1788563400000,
+          1788564000000
+        ],
+        [
+          1788587700000,
+          1788588300000
+        ],
+        [
+          1788598800000,
+          1788599400000
+        ],
+        [
+          1788612000000,
+          1788612600000
+        ],
+        [
+          1788630900000,
+          1788631500000
+        ],
+        [
+          1788807600000,
+          1788808200000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-ALGO",
+      "entry_ms": 1788393600000,
+      "end_ms": 1788825600000,
+      "count": 1204,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788368400000,
+          1788369000000
+        ],
+        [
+          1788369300000,
+          1788369900000
+        ],
+        [
+          1788372300000,
+          1788373200000
+        ],
+        [
+          1788377100000,
+          1788377700000
+        ],
+        [
+          1788378300000,
+          1788378900000
+        ],
+        [
+          1788380700000,
+          1788381300000
+        ],
+        [
+          1788383100000,
+          1788383700000
+        ],
+        [
+          1788383700000,
+          1788384300000
+        ],
+        [
+          1788386700000,
+          1788387300000
+        ],
+        [
+          1788389700000,
+          1788390300000
+        ],
+        [
+          1788392100000,
+          1788392700000
+        ],
+        [
+          1788397800000,
+          1788398700000
+        ],
+        [
+          1788400500000,
+          1788401100000
+        ],
+        [
+          1788409500000,
+          1788410100000
+        ],
+        [
+          1788410100000,
+          1788410700000
+        ],
+        [
+          1788412800000,
+          1788413400000
+        ],
+        [
+          1788414300000,
+          1788414900000
+        ],
+        [
+          1788415200000,
+          1788415800000
+        ],
+        [
+          1788416100000,
+          1788417300000
+        ],
+        [
+          1788417300000,
+          1788418200000
+        ],
+        [
+          1788420900000,
+          1788421500000
+        ],
+        [
+          1788421500000,
+          1788422100000
+        ],
+        [
+          1788422100000,
+          1788422700000
+        ],
+        [
+          1788423900000,
+          1788424800000
+        ],
+        [
+          1788426000000,
+          1788426600000
+        ],
+        [
+          1788427500000,
+          1788429000000
+        ],
+        [
+          1788430800000,
+          1788431400000
+        ],
+        [
+          1788434100000,
+          1788435300000
+        ],
+        [
+          1788436800000,
+          1788437400000
+        ],
+        [
+          1788438900000,
+          1788439500000
+        ],
+        [
+          1788440700000,
+          1788441300000
+        ],
+        [
+          1788441600000,
+          1788442200000
+        ],
+        [
+          1788443400000,
+          1788444300000
+        ],
+        [
+          1788450300000,
+          1788450900000
+        ],
+        [
+          1788455700000,
+          1788456900000
+        ],
+        [
+          1788457200000,
+          1788457800000
+        ],
+        [
+          1788458100000,
+          1788459900000
+        ],
+        [
+          1788461100000,
+          1788461700000
+        ],
+        [
+          1788461700000,
+          1788462300000
+        ],
+        [
+          1788462600000,
+          1788463200000
+        ],
+        [
+          1788463200000,
+          1788464100000
+        ],
+        [
+          1788464400000,
+          1788465000000
+        ],
+        [
+          1788465300000,
+          1788466200000
+        ],
+        [
+          1788469500000,
+          1788470100000
+        ],
+        [
+          1788470100000,
+          1788471000000
+        ],
+        [
+          1788472800000,
+          1788474000000
+        ],
+        [
+          1788477900000,
+          1788478500000
+        ],
+        [
+          1788489300000,
+          1788489900000
+        ],
+        [
+          1788489900000,
+          1788490500000
+        ],
+        [
+          1788490500000,
+          1788491100000
+        ],
+        [
+          1788494700000,
+          1788495300000
+        ],
+        [
+          1788496800000,
+          1788497700000
+        ],
+        [
+          1788498300000,
+          1788498900000
+        ],
+        [
+          1788500100000,
+          1788500700000
+        ],
+        [
+          1788501600000,
+          1788502200000
+        ],
+        [
+          1788502200000,
+          1788502800000
+        ],
+        [
+          1788503100000,
+          1788504000000
+        ],
+        [
+          1788506400000,
+          1788507300000
+        ],
+        [
+          1788507300000,
+          1788508200000
+        ],
+        [
+          1788508500000,
+          1788509100000
+        ],
+        [
+          1788509400000,
+          1788510300000
+        ],
+        [
+          1788510300000,
+          1788510900000
+        ],
+        [
+          1788511500000,
+          1788512100000
+        ],
+        [
+          1788513600000,
+          1788514200000
+        ],
+        [
+          1788514800000,
+          1788515400000
+        ],
+        [
+          1788517500000,
+          1788518100000
+        ],
+        [
+          1788518400000,
+          1788519000000
+        ],
+        [
+          1788519900000,
+          1788520500000
+        ],
+        [
+          1788520500000,
+          1788521100000
+        ],
+        [
+          1788523500000,
+          1788524100000
+        ],
+        [
+          1788528900000,
+          1788529500000
+        ],
+        [
+          1788531000000,
+          1788531600000
+        ],
+        [
+          1788534300000,
+          1788534900000
+        ],
+        [
+          1788534900000,
+          1788535500000
+        ],
+        [
+          1788535500000,
+          1788537000000
+        ],
+        [
+          1788537600000,
+          1788538800000
+        ],
+        [
+          1788539700000,
+          1788540600000
+        ],
+        [
+          1788541200000,
+          1788541800000
+        ],
+        [
+          1788542100000,
+          1788543600000
+        ],
+        [
+          1788543600000,
+          1788546300000
+        ],
+        [
+          1788546300000,
+          1788546900000
+        ],
+        [
+          1788546900000,
+          1788548100000
+        ],
+        [
+          1788548100000,
+          1788549600000
+        ],
+        [
+          1788549600000,
+          1788550500000
+        ],
+        [
+          1788550800000,
+          1788552000000
+        ],
+        [
+          1788552900000,
+          1788553500000
+        ],
+        [
+          1788553500000,
+          1788554100000
+        ],
+        [
+          1788554400000,
+          1788555900000
+        ],
+        [
+          1788555900000,
+          1788556800000
+        ],
+        [
+          1788557400000,
+          1788558000000
+        ],
+        [
+          1788558000000,
+          1788558900000
+        ],
+        [
+          1788558900000,
+          1788559800000
+        ],
+        [
+          1788561300000,
+          1788562800000
+        ],
+        [
+          1788563100000,
+          1788564000000
+        ],
+        [
+          1788564000000,
+          1788564600000
+        ],
+        [
+          1788565200000,
+          1788565800000
+        ],
+        [
+          1788568500000,
+          1788569100000
+        ],
+        [
+          1788570000000,
+          1788570600000
+        ],
+        [
+          1788573300000,
+          1788573900000
+        ],
+        [
+          1788575400000,
+          1788576600000
+        ],
+        [
+          1788578700000,
+          1788579300000
+        ],
+        [
+          1788580200000,
+          1788580800000
+        ],
+        [
+          1788581400000,
+          1788582000000
+        ],
+        [
+          1788586200000,
+          1788586800000
+        ],
+        [
+          1788586800000,
+          1788587400000
+        ],
+        [
+          1788590400000,
+          1788591000000
+        ],
+        [
+          1788591900000,
+          1788592800000
+        ],
+        [
+          1788597300000,
+          1788598200000
+        ],
+        [
+          1788600300000,
+          1788601200000
+        ],
+        [
+          1788601800000,
+          1788602400000
+        ],
+        [
+          1788603300000,
+          1788604200000
+        ],
+        [
+          1788604500000,
+          1788605100000
+        ],
+        [
+          1788605100000,
+          1788605700000
+        ],
+        [
+          1788605700000,
+          1788606600000
+        ],
+        [
+          1788606600000,
+          1788607500000
+        ],
+        [
+          1788609600000,
+          1788610200000
+        ],
+        [
+          1788615900000,
+          1788616500000
+        ],
+        [
+          1788617700000,
+          1788618300000
+        ],
+        [
+          1788620100000,
+          1788620700000
+        ],
+        [
+          1788620700000,
+          1788621300000
+        ],
+        [
+          1788626400000,
+          1788627300000
+        ],
+        [
+          1788627300000,
+          1788627900000
+        ],
+        [
+          1788627900000,
+          1788629100000
+        ],
+        [
+          1788629100000,
+          1788630000000
+        ],
+        [
+          1788630300000,
+          1788630900000
+        ],
+        [
+          1788631200000,
+          1788632100000
+        ],
+        [
+          1788632400000,
+          1788633000000
+        ],
+        [
+          1788633300000,
+          1788633900000
+        ],
+        [
+          1788633900000,
+          1788634800000
+        ],
+        [
+          1788635700000,
+          1788636600000
+        ],
+        [
+          1788636900000,
+          1788638100000
+        ],
+        [
+          1788638400000,
+          1788639000000
+        ],
+        [
+          1788639000000,
+          1788640200000
+        ],
+        [
+          1788640500000,
+          1788641100000
+        ],
+        [
+          1788641100000,
+          1788642300000
+        ],
+        [
+          1788642600000,
+          1788643200000
+        ],
+        [
+          1788643500000,
+          1788644100000
+        ],
+        [
+          1788645300000,
+          1788646200000
+        ],
+        [
+          1788646200000,
+          1788648000000
+        ],
+        [
+          1788652200000,
+          1788652800000
+        ],
+        [
+          1788653700000,
+          1788654300000
+        ],
+        [
+          1788661800000,
+          1788662400000
+        ],
+        [
+          1788668100000,
+          1788668700000
+        ],
+        [
+          1788672000000,
+          1788672600000
+        ],
+        [
+          1788673200000,
+          1788673800000
+        ],
+        [
+          1788675600000,
+          1788676200000
+        ],
+        [
+          1788678300000,
+          1788678900000
+        ],
+        [
+          1788679500000,
+          1788680100000
+        ],
+        [
+          1788680100000,
+          1788680700000
+        ],
+        [
+          1788680700000,
+          1788681300000
+        ],
+        [
+          1788682200000,
+          1788683100000
+        ],
+        [
+          1788690000000,
+          1788691800000
+        ],
+        [
+          1788693300000,
+          1788693900000
+        ],
+        [
+          1788696300000,
+          1788697200000
+        ],
+        [
+          1788697200000,
+          1788697800000
+        ],
+        [
+          1788700200000,
+          1788700800000
+        ],
+        [
+          1788701400000,
+          1788702000000
+        ],
+        [
+          1788702600000,
+          1788703200000
+        ],
+        [
+          1788705600000,
+          1788706200000
+        ],
+        [
+          1788707100000,
+          1788707700000
+        ],
+        [
+          1788708300000,
+          1788709200000
+        ],
+        [
+          1788709200000,
+          1788709800000
+        ],
+        [
+          1788710400000,
+          1788711000000
+        ],
+        [
+          1788711300000,
+          1788712200000
+        ],
+        [
+          1788712200000,
+          1788712800000
+        ],
+        [
+          1788716700000,
+          1788717300000
+        ],
+        [
+          1788718200000,
+          1788718800000
+        ],
+        [
+          1788719100000,
+          1788719700000
+        ],
+        [
+          1788720000000,
+          1788721200000
+        ],
+        [
+          1788723000000,
+          1788725100000
+        ],
+        [
+          1788725100000,
+          1788725700000
+        ],
+        [
+          1788726300000,
+          1788727500000
+        ],
+        [
+          1788729300000,
+          1788729900000
+        ],
+        [
+          1788731400000,
+          1788732000000
+        ],
+        [
+          1788732900000,
+          1788733500000
+        ],
+        [
+          1788735600000,
+          1788736200000
+        ],
+        [
+          1788745800000,
+          1788746400000
+        ],
+        [
+          1788753600000,
+          1788754200000
+        ],
+        [
+          1788758400000,
+          1788759000000
+        ],
+        [
+          1788760800000,
+          1788761400000
+        ],
+        [
+          1788761700000,
+          1788762300000
+        ],
+        [
+          1788763200000,
+          1788763800000
+        ],
+        [
+          1788764400000,
+          1788765000000
+        ],
+        [
+          1788767100000,
+          1788767700000
+        ],
+        [
+          1788768300000,
+          1788768900000
+        ],
+        [
+          1788771000000,
+          1788771600000
+        ],
+        [
+          1788774000000,
+          1788774600000
+        ],
+        [
+          1788776100000,
+          1788777000000
+        ],
+        [
+          1788777300000,
+          1788777900000
+        ],
+        [
+          1788778200000,
+          1788778800000
+        ],
+        [
+          1788779400000,
+          1788780000000
+        ],
+        [
+          1788780300000,
+          1788780900000
+        ],
+        [
+          1788781800000,
+          1788782400000
+        ],
+        [
+          1788782400000,
+          1788783300000
+        ],
+        [
+          1788788400000,
+          1788789000000
+        ],
+        [
+          1788796500000,
+          1788797100000
+        ],
+        [
+          1788799200000,
+          1788799800000
+        ],
+        [
+          1788799800000,
+          1788801000000
+        ],
+        [
+          1788802500000,
+          1788803100000
+        ],
+        [
+          1788803700000,
+          1788804600000
+        ],
+        [
+          1788806100000,
+          1788806700000
+        ],
+        [
+          1788806700000,
+          1788807600000
+        ],
+        [
+          1788807600000,
+          1788808200000
+        ],
+        [
+          1788809100000,
+          1788810300000
+        ],
+        [
+          1788810300000,
+          1788810900000
+        ],
+        [
+          1788811800000,
+          1788812700000
+        ],
+        [
+          1788813300000,
+          1788814500000
+        ],
+        [
+          1788814500000,
+          1788815400000
+        ],
+        [
+          1788816000000,
+          1788816600000
+        ],
+        [
+          1788816600000,
+          1788817200000
+        ],
+        [
+          1788818100000,
+          1788818700000
+        ],
+        [
+          1788821400000,
+          1788822300000
+        ],
+        [
+          1788822900000,
+          1788823800000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-TREE",
+      "entry_ms": 1788393600000,
+      "end_ms": 1788825600000,
+      "count": 1262,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788370200000,
+          1788370800000
+        ],
+        [
+          1788373200000,
+          1788373800000
+        ],
+        [
+          1788373800000,
+          1788374400000
+        ],
+        [
+          1788381000000,
+          1788381900000
+        ],
+        [
+          1788383100000,
+          1788383700000
+        ],
+        [
+          1788405900000,
+          1788406500000
+        ],
+        [
+          1788409500000,
+          1788410100000
+        ],
+        [
+          1788410100000,
+          1788411000000
+        ],
+        [
+          1788413400000,
+          1788414000000
+        ],
+        [
+          1788414600000,
+          1788415200000
+        ],
+        [
+          1788415200000,
+          1788415800000
+        ],
+        [
+          1788416400000,
+          1788417000000
+        ],
+        [
+          1788417300000,
+          1788417900000
+        ],
+        [
+          1788418500000,
+          1788419100000
+        ],
+        [
+          1788420600000,
+          1788421200000
+        ],
+        [
+          1788421800000,
+          1788422400000
+        ],
+        [
+          1788422700000,
+          1788423300000
+        ],
+        [
+          1788423300000,
+          1788423900000
+        ],
+        [
+          1788423900000,
+          1788425100000
+        ],
+        [
+          1788427500000,
+          1788428400000
+        ],
+        [
+          1788431100000,
+          1788431700000
+        ],
+        [
+          1788432600000,
+          1788433200000
+        ],
+        [
+          1788433200000,
+          1788433800000
+        ],
+        [
+          1788434700000,
+          1788435300000
+        ],
+        [
+          1788436500000,
+          1788437100000
+        ],
+        [
+          1788437400000,
+          1788438600000
+        ],
+        [
+          1788438600000,
+          1788439200000
+        ],
+        [
+          1788439200000,
+          1788439800000
+        ],
+        [
+          1788441900000,
+          1788442500000
+        ],
+        [
+          1788449100000,
+          1788449700000
+        ],
+        [
+          1788451200000,
+          1788452100000
+        ],
+        [
+          1788452400000,
+          1788453000000
+        ],
+        [
+          1788453600000,
+          1788454500000
+        ],
+        [
+          1788455100000,
+          1788455700000
+        ],
+        [
+          1788456600000,
+          1788457200000
+        ],
+        [
+          1788459900000,
+          1788461400000
+        ],
+        [
+          1788462300000,
+          1788464100000
+        ],
+        [
+          1788464100000,
+          1788464700000
+        ],
+        [
+          1788465300000,
+          1788466200000
+        ],
+        [
+          1788466200000,
+          1788467100000
+        ],
+        [
+          1788467100000,
+          1788467700000
+        ],
+        [
+          1788467700000,
+          1788468300000
+        ],
+        [
+          1788468600000,
+          1788469200000
+        ],
+        [
+          1788491100000,
+          1788491700000
+        ],
+        [
+          1788501600000,
+          1788502200000
+        ],
+        [
+          1788503700000,
+          1788504300000
+        ],
+        [
+          1788504600000,
+          1788505200000
+        ],
+        [
+          1788505200000,
+          1788506100000
+        ],
+        [
+          1788510600000,
+          1788511200000
+        ],
+        [
+          1788511500000,
+          1788512100000
+        ],
+        [
+          1788513900000,
+          1788514500000
+        ],
+        [
+          1788515700000,
+          1788516300000
+        ],
+        [
+          1788516900000,
+          1788517500000
+        ],
+        [
+          1788523200000,
+          1788523800000
+        ],
+        [
+          1788523800000,
+          1788525000000
+        ],
+        [
+          1788529500000,
+          1788530100000
+        ],
+        [
+          1788534900000,
+          1788535500000
+        ],
+        [
+          1788539100000,
+          1788539700000
+        ],
+        [
+          1788541500000,
+          1788542100000
+        ],
+        [
+          1788546600000,
+          1788547500000
+        ],
+        [
+          1788547800000,
+          1788548400000
+        ],
+        [
+          1788549600000,
+          1788551100000
+        ],
+        [
+          1788552900000,
+          1788553500000
+        ],
+        [
+          1788553500000,
+          1788554100000
+        ],
+        [
+          1788554100000,
+          1788554700000
+        ],
+        [
+          1788555000000,
+          1788555600000
+        ],
+        [
+          1788555900000,
+          1788556500000
+        ],
+        [
+          1788560100000,
+          1788560700000
+        ],
+        [
+          1788565200000,
+          1788565800000
+        ],
+        [
+          1788571200000,
+          1788571800000
+        ],
+        [
+          1788572400000,
+          1788573000000
+        ],
+        [
+          1788573300000,
+          1788573900000
+        ],
+        [
+          1788574500000,
+          1788575100000
+        ],
+        [
+          1788575100000,
+          1788576000000
+        ],
+        [
+          1788576900000,
+          1788577500000
+        ],
+        [
+          1788577800000,
+          1788578400000
+        ],
+        [
+          1788579000000,
+          1788579600000
+        ],
+        [
+          1788579900000,
+          1788580500000
+        ],
+        [
+          1788581700000,
+          1788582600000
+        ],
+        [
+          1788585600000,
+          1788586200000
+        ],
+        [
+          1788586200000,
+          1788586800000
+        ],
+        [
+          1788587700000,
+          1788588300000
+        ],
+        [
+          1788588600000,
+          1788589200000
+        ],
+        [
+          1788589200000,
+          1788589800000
+        ],
+        [
+          1788589800000,
+          1788590400000
+        ],
+        [
+          1788591300000,
+          1788591900000
+        ],
+        [
+          1788591900000,
+          1788592800000
+        ],
+        [
+          1788594300000,
+          1788594900000
+        ],
+        [
+          1788596100000,
+          1788597600000
+        ],
+        [
+          1788599100000,
+          1788599700000
+        ],
+        [
+          1788602400000,
+          1788603000000
+        ],
+        [
+          1788604200000,
+          1788605100000
+        ],
+        [
+          1788605700000,
+          1788606600000
+        ],
+        [
+          1788609000000,
+          1788609600000
+        ],
+        [
+          1788609900000,
+          1788610800000
+        ],
+        [
+          1788612900000,
+          1788613500000
+        ],
+        [
+          1788620400000,
+          1788621000000
+        ],
+        [
+          1788623400000,
+          1788624000000
+        ],
+        [
+          1788624300000,
+          1788625200000
+        ],
+        [
+          1788625500000,
+          1788626100000
+        ],
+        [
+          1788626100000,
+          1788627300000
+        ],
+        [
+          1788627900000,
+          1788628500000
+        ],
+        [
+          1788628500000,
+          1788629100000
+        ],
+        [
+          1788629100000,
+          1788630300000
+        ],
+        [
+          1788630300000,
+          1788630900000
+        ],
+        [
+          1788631200000,
+          1788632100000
+        ],
+        [
+          1788633000000,
+          1788634800000
+        ],
+        [
+          1788634800000,
+          1788636300000
+        ],
+        [
+          1788636300000,
+          1788636900000
+        ],
+        [
+          1788636900000,
+          1788641700000
+        ],
+        [
+          1788641700000,
+          1788642300000
+        ],
+        [
+          1788643200000,
+          1788644700000
+        ],
+        [
+          1788644700000,
+          1788645300000
+        ],
+        [
+          1788645900000,
+          1788646800000
+        ],
+        [
+          1788646800000,
+          1788647400000
+        ],
+        [
+          1788647400000,
+          1788648300000
+        ],
+        [
+          1788648900000,
+          1788649500000
+        ],
+        [
+          1788649500000,
+          1788650100000
+        ],
+        [
+          1788650700000,
+          1788651300000
+        ],
+        [
+          1788666300000,
+          1788666900000
+        ],
+        [
+          1788668400000,
+          1788669000000
+        ],
+        [
+          1788670800000,
+          1788671400000
+        ],
+        [
+          1788672600000,
+          1788673200000
+        ],
+        [
+          1788673500000,
+          1788674400000
+        ],
+        [
+          1788679500000,
+          1788680100000
+        ],
+        [
+          1788680100000,
+          1788680700000
+        ],
+        [
+          1788681000000,
+          1788681600000
+        ],
+        [
+          1788681900000,
+          1788682800000
+        ],
+        [
+          1788685500000,
+          1788686700000
+        ],
+        [
+          1788687900000,
+          1788688800000
+        ],
+        [
+          1788689100000,
+          1788690000000
+        ],
+        [
+          1788690000000,
+          1788690600000
+        ],
+        [
+          1788690600000,
+          1788691200000
+        ],
+        [
+          1788693300000,
+          1788693900000
+        ],
+        [
+          1788693900000,
+          1788694500000
+        ],
+        [
+          1788694500000,
+          1788695100000
+        ],
+        [
+          1788696900000,
+          1788697500000
+        ],
+        [
+          1788702600000,
+          1788703500000
+        ],
+        [
+          1788705600000,
+          1788706200000
+        ],
+        [
+          1788708900000,
+          1788709500000
+        ],
+        [
+          1788710700000,
+          1788711300000
+        ],
+        [
+          1788712500000,
+          1788713400000
+        ],
+        [
+          1788713400000,
+          1788714000000
+        ],
+        [
+          1788714300000,
+          1788714900000
+        ],
+        [
+          1788717600000,
+          1788718500000
+        ],
+        [
+          1788718500000,
+          1788719100000
+        ],
+        [
+          1788719700000,
+          1788720600000
+        ],
+        [
+          1788721200000,
+          1788721800000
+        ],
+        [
+          1788725700000,
+          1788726300000
+        ],
+        [
+          1788726300000,
+          1788727200000
+        ],
+        [
+          1788728100000,
+          1788728700000
+        ],
+        [
+          1788731700000,
+          1788732300000
+        ],
+        [
+          1788732900000,
+          1788733500000
+        ],
+        [
+          1788734700000,
+          1788735300000
+        ],
+        [
+          1788736800000,
+          1788737400000
+        ],
+        [
+          1788748500000,
+          1788749400000
+        ],
+        [
+          1788751200000,
+          1788751800000
+        ],
+        [
+          1788753900000,
+          1788754500000
+        ],
+        [
+          1788758700000,
+          1788759300000
+        ],
+        [
+          1788761700000,
+          1788762300000
+        ],
+        [
+          1788763800000,
+          1788764400000
+        ],
+        [
+          1788768600000,
+          1788769500000
+        ],
+        [
+          1788770400000,
+          1788771000000
+        ],
+        [
+          1788771000000,
+          1788771600000
+        ],
+        [
+          1788772200000,
+          1788772800000
+        ],
+        [
+          1788773400000,
+          1788774000000
+        ],
+        [
+          1788777000000,
+          1788777600000
+        ],
+        [
+          1788779100000,
+          1788779700000
+        ],
+        [
+          1788779700000,
+          1788780300000
+        ],
+        [
+          1788781200000,
+          1788782400000
+        ],
+        [
+          1788791700000,
+          1788792300000
+        ],
+        [
+          1788797100000,
+          1788797700000
+        ],
+        [
+          1788799200000,
+          1788799800000
+        ],
+        [
+          1788800100000,
+          1788801000000
+        ],
+        [
+          1788801300000,
+          1788801900000
+        ],
+        [
+          1788803100000,
+          1788803700000
+        ],
+        [
+          1788805200000,
+          1788805800000
+        ],
+        [
+          1788805800000,
+          1788807300000
+        ],
+        [
+          1788808500000,
+          1788809400000
+        ],
+        [
+          1788809400000,
+          1788810300000
+        ],
+        [
+          1788810300000,
+          1788811200000
+        ],
+        [
+          1788811800000,
+          1788812400000
+        ],
+        [
+          1788812400000,
+          1788813000000
+        ],
+        [
+          1788813000000,
+          1788813600000
+        ],
+        [
+          1788818400000,
+          1788819000000
+        ],
+        [
+          1788819300000,
+          1788819900000
+        ],
+        [
+          1788824700000,
+          1788825300000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-UNI",
+      "entry_ms": 1788480000000,
+      "end_ms": 1788912000000,
+      "count": 1527,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788537600000,
+          1788538200000
+        ],
+        [
+          1788546600000,
+          1788547500000
+        ],
+        [
+          1788549000000,
+          1788549600000
+        ],
+        [
+          1788552000000,
+          1788552600000
+        ],
+        [
+          1788598500000,
+          1788599100000
+        ],
+        [
+          1788709800000,
+          1788710400000
+        ],
+        [
+          1788802800000,
+          1788803400000
+        ],
+        [
+          1788805800000,
+          1788806400000
+        ],
+        [
+          1788806700000,
+          1788807300000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-AAVE",
+      "entry_ms": 1788480000000,
+      "end_ms": 1788912000000,
+      "count": 1418,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788460500000,
+          1788461100000
+        ],
+        [
+          1788462300000,
+          1788462900000
+        ],
+        [
+          1788462900000,
+          1788463500000
+        ],
+        [
+          1788464400000,
+          1788465000000
+        ],
+        [
+          1788466800000,
+          1788467400000
+        ],
+        [
+          1788491100000,
+          1788491700000
+        ],
+        [
+          1788498600000,
+          1788499200000
+        ],
+        [
+          1788516600000,
+          1788517200000
+        ],
+        [
+          1788521100000,
+          1788521700000
+        ],
+        [
+          1788540600000,
+          1788541800000
+        ],
+        [
+          1788541800000,
+          1788542400000
+        ],
+        [
+          1788544800000,
+          1788545400000
+        ],
+        [
+          1788545400000,
+          1788546300000
+        ],
+        [
+          1788546300000,
+          1788546900000
+        ],
+        [
+          1788546900000,
+          1788548700000
+        ],
+        [
+          1788549000000,
+          1788550200000
+        ],
+        [
+          1788550200000,
+          1788551400000
+        ],
+        [
+          1788551700000,
+          1788552300000
+        ],
+        [
+          1788552900000,
+          1788553500000
+        ],
+        [
+          1788557400000,
+          1788558000000
+        ],
+        [
+          1788558900000,
+          1788559500000
+        ],
+        [
+          1788564000000,
+          1788564600000
+        ],
+        [
+          1788571800000,
+          1788572400000
+        ],
+        [
+          1788578700000,
+          1788579300000
+        ],
+        [
+          1788579300000,
+          1788579900000
+        ],
+        [
+          1788580500000,
+          1788581100000
+        ],
+        [
+          1788585000000,
+          1788585600000
+        ],
+        [
+          1788587700000,
+          1788588600000
+        ],
+        [
+          1788592800000,
+          1788593400000
+        ],
+        [
+          1788600600000,
+          1788601200000
+        ],
+        [
+          1788603300000,
+          1788603900000
+        ],
+        [
+          1788603900000,
+          1788604500000
+        ],
+        [
+          1788605100000,
+          1788606000000
+        ],
+        [
+          1788614400000,
+          1788615000000
+        ],
+        [
+          1788617400000,
+          1788618000000
+        ],
+        [
+          1788619500000,
+          1788620100000
+        ],
+        [
+          1788623100000,
+          1788623700000
+        ],
+        [
+          1788627600000,
+          1788628200000
+        ],
+        [
+          1788628500000,
+          1788629100000
+        ],
+        [
+          1788630900000,
+          1788631500000
+        ],
+        [
+          1788632700000,
+          1788633300000
+        ],
+        [
+          1788634200000,
+          1788634800000
+        ],
+        [
+          1788634800000,
+          1788635400000
+        ],
+        [
+          1788643800000,
+          1788644400000
+        ],
+        [
+          1788651900000,
+          1788652500000
+        ],
+        [
+          1788678900000,
+          1788679500000
+        ],
+        [
+          1788691800000,
+          1788692400000
+        ],
+        [
+          1788695100000,
+          1788695700000
+        ],
+        [
+          1788696600000,
+          1788697200000
+        ],
+        [
+          1788711000000,
+          1788711600000
+        ],
+        [
+          1788713100000,
+          1788713700000
+        ],
+        [
+          1788716400000,
+          1788717000000
+        ],
+        [
+          1788717600000,
+          1788718200000
+        ],
+        [
+          1788718500000,
+          1788719400000
+        ],
+        [
+          1788720300000,
+          1788720900000
+        ],
+        [
+          1788721500000,
+          1788722100000
+        ],
+        [
+          1788722400000,
+          1788723000000
+        ],
+        [
+          1788723600000,
+          1788724200000
+        ],
+        [
+          1788726900000,
+          1788727500000
+        ],
+        [
+          1788731100000,
+          1788731700000
+        ],
+        [
+          1788762000000,
+          1788762600000
+        ],
+        [
+          1788771900000,
+          1788772500000
+        ],
+        [
+          1788774000000,
+          1788774600000
+        ],
+        [
+          1788798000000,
+          1788798600000
+        ],
+        [
+          1788798900000,
+          1788799500000
+        ],
+        [
+          1788800700000,
+          1788801300000
+        ],
+        [
+          1788801600000,
+          1788802200000
+        ],
+        [
+          1788802500000,
+          1788803400000
+        ],
+        [
+          1788803700000,
+          1788804300000
+        ],
+        [
+          1788807000000,
+          1788807600000
+        ],
+        [
+          1788807600000,
+          1788808200000
+        ],
+        [
+          1788808500000,
+          1788809400000
+        ],
+        [
+          1788809400000,
+          1788810000000
+        ],
+        [
+          1788810300000,
+          1788810900000
+        ],
+        [
+          1788811500000,
+          1788812100000
+        ],
+        [
+          1788815100000,
+          1788815700000
+        ],
+        [
+          1788823200000,
+          1788823800000
+        ],
+        [
+          1788827100000,
+          1788827700000
+        ],
+        [
+          1788849600000,
+          1788850200000
+        ],
+        [
+          1788851400000,
+          1788852000000
+        ],
+        [
+          1788858900000,
+          1788859500000
+        ],
+        [
+          1788863700000,
+          1788864300000
+        ],
+        [
+          1788866700000,
+          1788867300000
+        ],
+        [
+          1788882300000,
+          1788882900000
+        ],
+        [
+          1788888000000,
+          1788888600000
+        ],
+        [
+          1788889500000,
+          1788890100000
+        ],
+        [
+          1788890100000,
+          1788890700000
+        ],
+        [
+          1788891300000,
+          1788892500000
+        ],
+        [
+          1788892500000,
+          1788893100000
+        ],
+        [
+          1788894900000,
+          1788895500000
+        ],
+        [
+          1788896100000,
+          1788897600000
+        ],
+        [
+          1788898800000,
+          1788899400000
+        ],
+        [
+          1788900000000,
+          1788900600000
+        ],
+        [
+          1788901200000,
+          1788902400000
+        ],
+        [
+          1788906600000,
+          1788907200000
+        ],
+        [
+          1788911400000,
+          1788912000000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-0G",
+      "entry_ms": 1788480000000,
+      "end_ms": 1788912000000,
+      "count": 1410,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788452400000,
+          1788453300000
+        ],
+        [
+          1788453600000,
+          1788454500000
+        ],
+        [
+          1788456600000,
+          1788457200000
+        ],
+        [
+          1788471000000,
+          1788471600000
+        ],
+        [
+          1788492000000,
+          1788492600000
+        ],
+        [
+          1788493200000,
+          1788493800000
+        ],
+        [
+          1788499500000,
+          1788500100000
+        ],
+        [
+          1788516600000,
+          1788517200000
+        ],
+        [
+          1788517500000,
+          1788518100000
+        ],
+        [
+          1788522000000,
+          1788522600000
+        ],
+        [
+          1788523200000,
+          1788523800000
+        ],
+        [
+          1788528000000,
+          1788528600000
+        ],
+        [
+          1788549900000,
+          1788550500000
+        ],
+        [
+          1788562200000,
+          1788562800000
+        ],
+        [
+          1788579300000,
+          1788579900000
+        ],
+        [
+          1788583500000,
+          1788584100000
+        ],
+        [
+          1788588300000,
+          1788588900000
+        ],
+        [
+          1788593100000,
+          1788593700000
+        ],
+        [
+          1788594900000,
+          1788595500000
+        ],
+        [
+          1788599100000,
+          1788599700000
+        ],
+        [
+          1788603900000,
+          1788604500000
+        ],
+        [
+          1788607200000,
+          1788607800000
+        ],
+        [
+          1788622500000,
+          1788623100000
+        ],
+        [
+          1788623400000,
+          1788624000000
+        ],
+        [
+          1788626400000,
+          1788627000000
+        ],
+        [
+          1788630000000,
+          1788630600000
+        ],
+        [
+          1788631200000,
+          1788631800000
+        ],
+        [
+          1788634500000,
+          1788635100000
+        ],
+        [
+          1788638700000,
+          1788639300000
+        ],
+        [
+          1788639300000,
+          1788640200000
+        ],
+        [
+          1788640200000,
+          1788640800000
+        ],
+        [
+          1788640800000,
+          1788641700000
+        ],
+        [
+          1788648000000,
+          1788648600000
+        ],
+        [
+          1788650400000,
+          1788651000000
+        ],
+        [
+          1788666000000,
+          1788666600000
+        ],
+        [
+          1788676500000,
+          1788677100000
+        ],
+        [
+          1788677700000,
+          1788678300000
+        ],
+        [
+          1788680700000,
+          1788681300000
+        ],
+        [
+          1788683100000,
+          1788683700000
+        ],
+        [
+          1788707100000,
+          1788707700000
+        ],
+        [
+          1788709800000,
+          1788710400000
+        ],
+        [
+          1788713400000,
+          1788714300000
+        ],
+        [
+          1788714600000,
+          1788715500000
+        ],
+        [
+          1788716700000,
+          1788717300000
+        ],
+        [
+          1788717600000,
+          1788718500000
+        ],
+        [
+          1788719700000,
+          1788720300000
+        ],
+        [
+          1788720300000,
+          1788721200000
+        ],
+        [
+          1788721500000,
+          1788722400000
+        ],
+        [
+          1788723300000,
+          1788724200000
+        ],
+        [
+          1788725400000,
+          1788726300000
+        ],
+        [
+          1788726300000,
+          1788726900000
+        ],
+        [
+          1788754800000,
+          1788755400000
+        ],
+        [
+          1788758700000,
+          1788759300000
+        ],
+        [
+          1788764100000,
+          1788764700000
+        ],
+        [
+          1788775800000,
+          1788776700000
+        ],
+        [
+          1788792900000,
+          1788793500000
+        ],
+        [
+          1788796800000,
+          1788797700000
+        ],
+        [
+          1788801600000,
+          1788802200000
+        ],
+        [
+          1788802500000,
+          1788803400000
+        ],
+        [
+          1788803400000,
+          1788804000000
+        ],
+        [
+          1788804000000,
+          1788805200000
+        ],
+        [
+          1788806700000,
+          1788807300000
+        ],
+        [
+          1788807600000,
+          1788809400000
+        ],
+        [
+          1788809700000,
+          1788810300000
+        ],
+        [
+          1788810600000,
+          1788811500000
+        ],
+        [
+          1788811500000,
+          1788812400000
+        ],
+        [
+          1788812400000,
+          1788813000000
+        ],
+        [
+          1788813000000,
+          1788813600000
+        ],
+        [
+          1788813600000,
+          1788814500000
+        ],
+        [
+          1788814800000,
+          1788815400000
+        ],
+        [
+          1788815400000,
+          1788816000000
+        ],
+        [
+          1788816900000,
+          1788817800000
+        ],
+        [
+          1788819300000,
+          1788819900000
+        ],
+        [
+          1788823500000,
+          1788824100000
+        ],
+        [
+          1788826500000,
+          1788827100000
+        ],
+        [
+          1788833700000,
+          1788834300000
+        ],
+        [
+          1788850200000,
+          1788851100000
+        ],
+        [
+          1788852000000,
+          1788852600000
+        ],
+        [
+          1788886500000,
+          1788887100000
+        ],
+        [
+          1788888000000,
+          1788888900000
+        ],
+        [
+          1788889800000,
+          1788891000000
+        ],
+        [
+          1788891000000,
+          1788892200000
+        ],
+        [
+          1788892500000,
+          1788893400000
+        ],
+        [
+          1788893400000,
+          1788894000000
+        ],
+        [
+          1788894000000,
+          1788894600000
+        ],
+        [
+          1788894900000,
+          1788896100000
+        ],
+        [
+          1788896100000,
+          1788896700000
+        ],
+        [
+          1788897600000,
+          1788898200000
+        ],
+        [
+          1788900600000,
+          1788901800000
+        ],
+        [
+          1788901800000,
+          1788902400000
+        ],
+        [
+          1788902700000,
+          1788903600000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-LA",
+      "entry_ms": 1788566400000,
+      "end_ms": 1788998400000,
+      "count": 1530,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788715200000,
+          1788715800000
+        ],
+        [
+          1788798000000,
+          1788798600000
+        ],
+        [
+          1788799500000,
+          1788800100000
+        ],
+        [
+          1788890700000,
+          1788891300000
+        ],
+        [
+          1788974100000,
+          1788975000000
+        ],
+        [
+          1788978000000,
+          1788978600000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    },
+    {
+      "market": "KRW-FF",
+      "entry_ms": 1788566400000,
+      "end_ms": 1788998400000,
+      "count": 1246,
+      "expected": 1537,
+      "gaps": [
+        [
+          1788540600000,
+          1788541200000
+        ],
+        [
+          1788542700000,
+          1788543300000
+        ],
+        [
+          1788543300000,
+          1788543900000
+        ],
+        [
+          1788548700000,
+          1788549300000
+        ],
+        [
+          1788549600000,
+          1788550500000
+        ],
+        [
+          1788551400000,
+          1788552300000
+        ],
+        [
+          1788552300000,
+          1788552900000
+        ],
+        [
+          1788554100000,
+          1788555000000
+        ],
+        [
+          1788555000000,
+          1788555600000
+        ],
+        [
+          1788561900000,
+          1788562500000
+        ],
+        [
+          1788564000000,
+          1788564900000
+        ],
+        [
+          1788564900000,
+          1788565500000
+        ],
+        [
+          1788565800000,
+          1788566400000
+        ],
+        [
+          1788569700000,
+          1788570300000
+        ],
+        [
+          1788570900000,
+          1788571800000
+        ],
+        [
+          1788571800000,
+          1788572400000
+        ],
+        [
+          1788574200000,
+          1788574800000
+        ],
+        [
+          1788575400000,
+          1788576300000
+        ],
+        [
+          1788577800000,
+          1788578400000
+        ],
+        [
+          1788578700000,
+          1788579300000
+        ],
+        [
+          1788579300000,
+          1788580200000
+        ],
+        [
+          1788580800000,
+          1788581400000
+        ],
+        [
+          1788584400000,
+          1788585000000
+        ],
+        [
+          1788585000000,
+          1788586200000
+        ],
+        [
+          1788586200000,
+          1788587100000
+        ],
+        [
+          1788587700000,
+          1788588900000
+        ],
+        [
+          1788588900000,
+          1788589800000
+        ],
+        [
+          1788591300000,
+          1788591900000
+        ],
+        [
+          1788593400000,
+          1788594000000
+        ],
+        [
+          1788594000000,
+          1788594900000
+        ],
+        [
+          1788595200000,
+          1788596400000
+        ],
+        [
+          1788596400000,
+          1788597000000
+        ],
+        [
+          1788597300000,
+          1788597900000
+        ],
+        [
+          1788598200000,
+          1788598800000
+        ],
+        [
+          1788598800000,
+          1788599400000
+        ],
+        [
+          1788605400000,
+          1788606000000
+        ],
+        [
+          1788627900000,
+          1788628500000
+        ],
+        [
+          1788630000000,
+          1788630600000
+        ],
+        [
+          1788631200000,
+          1788631800000
+        ],
+        [
+          1788631800000,
+          1788632400000
+        ],
+        [
+          1788642600000,
+          1788643200000
+        ],
+        [
+          1788670500000,
+          1788671100000
+        ],
+        [
+          1788671700000,
+          1788672900000
+        ],
+        [
+          1788672900000,
+          1788673500000
+        ],
+        [
+          1788673800000,
+          1788674400000
+        ],
+        [
+          1788674700000,
+          1788675300000
+        ],
+        [
+          1788676200000,
+          1788676800000
+        ],
+        [
+          1788679200000,
+          1788679800000
+        ],
+        [
+          1788679800000,
+          1788680400000
+        ],
+        [
+          1788681900000,
+          1788682500000
+        ],
+        [
+          1788684900000,
+          1788685500000
+        ],
+        [
+          1788685800000,
+          1788686400000
+        ],
+        [
+          1788688200000,
+          1788688800000
+        ],
+        [
+          1788690600000,
+          1788691500000
+        ],
+        [
+          1788691500000,
+          1788692100000
+        ],
+        [
+          1788692100000,
+          1788692700000
+        ],
+        [
+          1788694800000,
+          1788695400000
+        ],
+        [
+          1788698400000,
+          1788699000000
+        ],
+        [
+          1788699000000,
+          1788699900000
+        ],
+        [
+          1788701400000,
+          1788702000000
+        ],
+        [
+          1788702000000,
+          1788702600000
+        ],
+        [
+          1788703800000,
+          1788704400000
+        ],
+        [
+          1788706800000,
+          1788707700000
+        ],
+        [
+          1788708900000,
+          1788709500000
+        ],
+        [
+          1788711000000,
+          1788711900000
+        ],
+        [
+          1788712800000,
+          1788713400000
+        ],
+        [
+          1788714600000,
+          1788715200000
+        ],
+        [
+          1788715200000,
+          1788715800000
+        ],
+        [
+          1788716100000,
+          1788716700000
+        ],
+        [
+          1788717300000,
+          1788717900000
+        ],
+        [
+          1788717900000,
+          1788718500000
+        ],
+        [
+          1788718500000,
+          1788720000000
+        ],
+        [
+          1788720000000,
+          1788721200000
+        ],
+        [
+          1788721500000,
+          1788722700000
+        ],
+        [
+          1788722700000,
+          1788723300000
+        ],
+        [
+          1788723600000,
+          1788725100000
+        ],
+        [
+          1788725100000,
+          1788725700000
+        ],
+        [
+          1788725700000,
+          1788726300000
+        ],
+        [
+          1788726300000,
+          1788728100000
+        ],
+        [
+          1788728100000,
+          1788729000000
+        ],
+        [
+          1788730500000,
+          1788731100000
+        ],
+        [
+          1788731100000,
+          1788731700000
+        ],
+        [
+          1788733200000,
+          1788734100000
+        ],
+        [
+          1788734400000,
+          1788735000000
+        ],
+        [
+          1788735000000,
+          1788735900000
+        ],
+        [
+          1788736200000,
+          1788736800000
+        ],
+        [
+          1788736800000,
+          1788738300000
+        ],
+        [
+          1788741000000,
+          1788741600000
+        ],
+        [
+          1788748200000,
+          1788749100000
+        ],
+        [
+          1788749100000,
+          1788749700000
+        ],
+        [
+          1788750300000,
+          1788750900000
+        ],
+        [
+          1788750900000,
+          1788752100000
+        ],
+        [
+          1788754500000,
+          1788755100000
+        ],
+        [
+          1788755400000,
+          1788756300000
+        ],
+        [
+          1788756300000,
+          1788756900000
+        ],
+        [
+          1788758700000,
+          1788759300000
+        ],
+        [
+          1788761100000,
+          1788761700000
+        ],
+        [
+          1788763200000,
+          1788764100000
+        ],
+        [
+          1788764400000,
+          1788765600000
+        ],
+        [
+          1788765600000,
+          1788766200000
+        ],
+        [
+          1788768000000,
+          1788769200000
+        ],
+        [
+          1788769200000,
+          1788770100000
+        ],
+        [
+          1788770100000,
+          1788770700000
+        ],
+        [
+          1788770700000,
+          1788771300000
+        ],
+        [
+          1788773700000,
+          1788774300000
+        ],
+        [
+          1788776400000,
+          1788777000000
+        ],
+        [
+          1788779700000,
+          1788780300000
+        ],
+        [
+          1788780600000,
+          1788781200000
+        ],
+        [
+          1788781500000,
+          1788782100000
+        ],
+        [
+          1788783000000,
+          1788783900000
+        ],
+        [
+          1788784500000,
+          1788785400000
+        ],
+        [
+          1788785400000,
+          1788786300000
+        ],
+        [
+          1788786300000,
+          1788787200000
+        ],
+        [
+          1788788700000,
+          1788789900000
+        ],
+        [
+          1788790800000,
+          1788792300000
+        ],
+        [
+          1788793500000,
+          1788794400000
+        ],
+        [
+          1788794400000,
+          1788795000000
+        ],
+        [
+          1788796500000,
+          1788797100000
+        ],
+        [
+          1788797100000,
+          1788797700000
+        ],
+        [
+          1788798300000,
+          1788798900000
+        ],
+        [
+          1788798900000,
+          1788799500000
+        ],
+        [
+          1788800700000,
+          1788801600000
+        ],
+        [
+          1788802500000,
+          1788804000000
+        ],
+        [
+          1788804000000,
+          1788805500000
+        ],
+        [
+          1788807300000,
+          1788807900000
+        ],
+        [
+          1788808200000,
+          1788808800000
+        ],
+        [
+          1788809700000,
+          1788810600000
+        ],
+        [
+          1788810600000,
+          1788811800000
+        ],
+        [
+          1788811800000,
+          1788812400000
+        ],
+        [
+          1788812700000,
+          1788813600000
+        ],
+        [
+          1788816600000,
+          1788817200000
+        ],
+        [
+          1788817800000,
+          1788819000000
+        ],
+        [
+          1788819000000,
+          1788819900000
+        ],
+        [
+          1788821100000,
+          1788822300000
+        ],
+        [
+          1788822900000,
+          1788823800000
+        ],
+        [
+          1788824100000,
+          1788824700000
+        ],
+        [
+          1788826500000,
+          1788827400000
+        ],
+        [
+          1788827400000,
+          1788828600000
+        ],
+        [
+          1788829800000,
+          1788831000000
+        ],
+        [
+          1788831300000,
+          1788832200000
+        ],
+        [
+          1788835800000,
+          1788836700000
+        ],
+        [
+          1788836700000,
+          1788837300000
+        ],
+        [
+          1788837600000,
+          1788838200000
+        ],
+        [
+          1788840300000,
+          1788840900000
+        ],
+        [
+          1788840900000,
+          1788841500000
+        ],
+        [
+          1788841500000,
+          1788842100000
+        ],
+        [
+          1788843000000,
+          1788843600000
+        ],
+        [
+          1788843900000,
+          1788844500000
+        ],
+        [
+          1788845100000,
+          1788845700000
+        ],
+        [
+          1788845700000,
+          1788846300000
+        ],
+        [
+          1788847200000,
+          1788848100000
+        ],
+        [
+          1788848400000,
+          1788849000000
+        ],
+        [
+          1788850200000,
+          1788851100000
+        ],
+        [
+          1788852300000,
+          1788852900000
+        ],
+        [
+          1788853200000,
+          1788854400000
+        ],
+        [
+          1788854400000,
+          1788855000000
+        ],
+        [
+          1788855600000,
+          1788856800000
+        ],
+        [
+          1788857100000,
+          1788858600000
+        ],
+        [
+          1788861000000,
+          1788861600000
+        ],
+        [
+          1788861600000,
+          1788862200000
+        ],
+        [
+          1788889800000,
+          1788890400000
+        ],
+        [
+          1788890400000,
+          1788891000000
+        ],
+        [
+          1788971100000,
+          1788971700000
+        ],
+        [
+          1788972000000,
+          1788972900000
+        ],
+        [
+          1788972900000,
+          1788973500000
+        ],
+        [
+          1788973500000,
+          1788974100000
+        ],
+        [
+          1788974100000,
+          1788974700000
+        ],
+        [
+          1788974700000,
+          1788975300000
+        ],
+        [
+          1788975300000,
+          1788977400000
+        ],
+        [
+          1788977700000,
+          1788978300000
+        ],
+        [
+          1788978600000,
+          1788979500000
+        ],
+        [
+          1788981000000,
+          1788982200000
+        ],
+        [
+          1788982200000,
+          1788983700000
+        ],
+        [
+          1788989100000,
+          1788989700000
+        ],
+        [
+          1788990000000,
+          1788990600000
+        ],
+        [
+          1788990600000,
+          1788991500000
+        ],
+        [
+          1788992100000,
+          1788992700000
+        ],
+        [
+          1788993600000,
+          1788994200000
+        ],
+        [
+          1788995400000,
+          1788996600000
+        ],
+        [
+          1788996600000,
+          1788997500000
+        ]
+      ],
+      "entry_present": true,
+      "endpoint_present": true
+    }
+  ],
+  "request_count": 369
+}

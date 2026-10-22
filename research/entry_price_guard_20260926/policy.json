@@ -1,0 +1,15 @@
+{
+  "mode": "RESEARCH_ONLY_NO_RUNTIME_CHANGE",
+  "source": "research/five_asset_reentry_20260910",
+  "sample": "Same user-selected five Upbit KRW assets, Sep10 09:00 to Sep26 02:55 KST. Same 100-day eligibility, signals, B exit, fixed initial stop, fees/slippage and independent KRW600k sleeves.",
+  "thresholds_pct": [0.5, 1.0, 2.0, 3.0],
+  "reference_price": "Last completed native 5-minute close known at the confirming hourly checkpoint (event.close). Freeze it for this signal; never reset the cap to a newer higher price.",
+  "cap_test": "Cancel a buy if next eligible native five-minute open times (1+buy slippage) is strictly greater than signal reference times (1+cap/100). Fees are outside the execution-price cap. Sell orders are never subject to the buy cap.",
+  "cancellation": "Cancel immediately at the first eligible observed execution candle. No waiting for a later intrabar low, no partial fills or same-signal retry. Consume that day's first confirmed signal; allow only subsequent fresh daily signals.",
+  "delay_minutes": [0, 5, 10],
+  "delay_interpretation": "Shift both buy and sell eligibility by the same fixed number of minutes after confirmation, then use the next actual native five-minute open. 0 reproduces the earlier research, 5 approximates one operational bar delay, 10 is sensitivity. These are assumed delays, not measured Railway latencies or a replay of the whole current 289-market/10-slot account.",
+  "comparison": "Compare each cap against the no-cap run at the SAME delay, rebuilding all trades, reinvestment and subsequent reentries. Separately show cancelled baseline-cycle outcomes as diagnostics; never equate their sum with actual portfolio effect.",
+  "conditional_cycle_diagnostic": "For each cancelled entry, hypothetically enter a separate unit of capital at the rejected first open and use exactly the frozen B/initial-stop rules and matching delay until first exit or the common cutoff. Positive net return is a missed winning cycle; negative net return is an avoided losing cycle. Show final mark/liquidation as hypothetical for still-open cases. This auxiliary cycle does not alter the main ledger.",
+  "selection_timing": "Threshold grid and delay grid fixed before calculating any cap-conditioned returns. No parameter search beyond this grid.",
+  "limits": "Five chosen assets, rules developed from ARK, short window, mostly unrealized gains. Candle references do not establish executable liquidity, queue priority, fillability or optimal thresholds. Do not deploy a cap or reset the active account from this study."
+}

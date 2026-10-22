@@ -1,0 +1,136 @@
+"""Render the frozen replay results; baseline/outlier checks are diagnostics only."""
+from datetime import datetime
+import gzip
+import json
+from pathlib import Path
+from statistics import mean, median
+from zoneinfo import ZoneInfo
+
+ROOT = Path(__file__).resolve().parent
+KST = ZoneInfo('Asia/Seoul')
+
+
+def clock(ms):
+    return datetime.fromtimestamp(ms / 1000, KST).strftime('%m/%d %H:%M')
+
+
+def pct(value):
+    return f'{value:+.2f}%'
+
+
+def main():
+    r = json.loads((ROOT / 'results.json').read_text())
+    manifest = json.loads((ROOT / 'data/selection.json').read_text())
+    cases = r['cases']
+    sample = [c for c in cases if not c['reference_only']]
+    ark = next(c for c in cases if c['reference_only'])
+    assert r['sample_n'] == 10 and not r['invalid_cases'] and not r['source_failures']
+    baseline = {}
+    for c in cases:
+        rows = json.loads(gzip.decompress((ROOT / 'data' / (c['market'] + '_5m.json.gz')).read_bytes()))
+        end_open = next(x[1] for x in rows if x[0] == c['end_ms'])
+        fee, slip = r['policy']['fee_per_side'], r['policy']['slippage_per_side']
+        baseline[c['market']] = (end_open / c['entry_reference'] * (1-slip)*(1-fee)/((1+slip)*(1+fee))-1)*100
+    base_values = [baseline[c['market']] for c in sample]
+    labels = {'A': '일봉 지표 약화', 'B': 'A + 전일 저가 이탈', 'C': '고점 대비 5% 추적', 'D': '3×ATR14 추적'}
+    text = [
+        '# 지표가속 — 아크와 9월 다른 10종목의 청산 비교',
+        '',
+        '상태: 연구 전용. 매수·매도 운영 정책으로 확정하거나 배포하지 않았다. FAST와 별도 전략이다.',
+        '',
+        '**결론: 네 가지 규칙 모두 아크를 9월 15일 고가 부근에 매도하지 못했다.** 일봉 지표 확인은 늦었고, 짧은 주기의 추적매도는 13일에 먼저 끝났다. 다른 10종목에서도 추적매도가 후속 상승을 놓치는 사례가 있었다. B의 평균 수익률이 가장 높지만 소수 급등 종목의 영향과 연구 종료 청산을 포함하므로, 매도 규칙의 일반적 우월성을 입증하지 않는다.',
+        '',
+        '## 무엇을 고정하고 비교했나',
+        '',
+        '- 업비트 원화 시장. 신호일의 확정 일봉만 사용하여 다음날 09:00 KST의 첫 5분봉 시가를 매수 기준가격으로 삼았다.',
+        '- 공통 관찰 기간은 진입 후 5일. 해당 기간에 매도 신호가 없으면 5일 종료 시점의 시가로 비교용 청산했다. 이 시간청산은 승인된 운영 규칙이 아니다.',
+        '- 매수·매도 각각 수수료 0.05%, 슬리피지 0.05%를 가정했다. 실제 체결이나 계정별 수수료·호가 잔량을 검증한 결과가 아니다.',
+        '- A: MACD 히스토그램·Wilder RSI14·Williams %R14 중 2개 이상이 전일보다 하락하면 다음날 09:00에 청산 판단. 가속도 둔화와 값 자체의 하락은 구분한다.',
+        '- B: A 조건과 같은 일봉에서 종가가 전일 저가보다 낮아야 한다.',
+        '- C: 보유 중 고가가 진입 기준가격보다 12% 이상 오르면 보호 활성화. 이후 누적 고점의 95% 이하로 확정 5분봉 종가가 내려오면 청산 판단.',
+        '- D: 같은 +12% 활성화 후, 누적 고점−3×직전 확정 5분봉 ATR14를 보호선으로 사용한다. 보호선은 올라갈 수만 있다. 확정 5분봉 종가가 보호선 이하이면 청산 판단.',
+        '- C/D는 신호 봉이 완성된 뒤 다음 실제 5분봉의 시가로 체결을 가정한다. 고가나 보호선 가격에서 체결됐다고 계산하지 않았다. 봉 내부의 고가·저가 발생 순서를 추정하지 않았다.',
+        '- C/D는 독립적인 대안이다. A/B와 결합하거나 재진입·분할매도·별도 손절을 추가하지 않았다. +12% 이전에는 C/D 자체의 손실 방어 조건이 없다.',
+        '',
+        '## 아크: 원하는 15일 청산이 재현됐나',
+        '',
+        '진입은 9월 12일 09:00, 기준가격 157원. 13일 고가는 285원, 14일은 290원, **15일은 253원**이다. 15일 고가는 이 상승 구간 전체의 최고가가 아니다. 미래에 알게 된 날짜·고가를 신호 조건으로 사용하지 않았다.',
+        '',
+        '| 방식 | 매도 기준시각 KST | 기준가격 | 비용 반영 수익률 | 사유 |',
+        '|---|---|---:|---:|---|',
+    ]
+    for m in 'ABCD':
+        o = ark['methods'][m]
+        why = '5일 연구 종료' if not o['exit_on_signal'] else '규칙에 따른 청산'
+        text.append(f"| {m} {labels[m]} | {clock(o['exit_ms'])} | {o['exit_reference']:g}원 | {pct(o['net_pct'])} | {why} |")
+    text += [
+        '',
+        'A는 15일 일봉의 약화를 마감 후 확인하므로 16일 09:00이 최초 판단 시점이다. B는 이번에도 5일 안에 가격 이탈 조건을 충족하지 않아 17일 09:00에 연구 종료 처리했다. 이전 아크 비교는 16일 09:00까지만 평가했으므로 B의 표기 가격이 달랐다.',
+        '',
+        'C는 당시까지 본 고점 213원에서 되밀리며 200원에 청산됐다. D는 더욱 이른 176원에 청산됐다. 이후의 285·290·253원을 알고 기다리는 규칙으로 바꾸지 않았다. **일봉 추세를 타려는 목적에 비해 5분봉 보호가 지나치게 빠를 수 있다는 사례**다.',
+        '',
+        '## 다른 10종목 결과',
+        '',
+        '표는 거래별 비용 반영 수익률이다. 각 종목 진입 시각은 표기일 09:00 KST. †는 신호가 없어 5일 연구 종료 시점에 청산한 경우다. 단순보유도 같은 종료 시점·비용을 적용한 진단용 비교값이며, 결과 확인 후 추가했다. 아래 값은 자본 배분·복리·동시 보유를 반영한 포트폴리오 수익률이 아니다.',
+        '',
+        '| 종목 | 진입일 | A | B | C | D | 5일 단순보유 |',
+        '|---|---|---:|---:|---:|---:|---:|',
+    ]
+    for c in sample:
+        vals = [pct(c['methods'][m]['net_pct']) + ('†' if not c['methods'][m]['exit_on_signal'] else '') for m in 'ABCD']
+        text.append(f"| {c['market'][4:]} | {clock(c['entry_ms'])[:5]} | " + ' | '.join(vals) + f" | {pct(baseline[c['market']])} |")
+    text += ['', '| 지표 | A | B | C | D |', '|---|---:|---:|---:|---:|']
+    for label, key, is_pct in [('평균', 'mean_net_pct', True), ('중앙값', 'median_net_pct', True), ('수익 거래', 'profitable', False), ('매도 신호 발생', 'signal_exits', False), ('슬리피지 각 0.20%일 때 평균', 'mean_net_stressed_cost_pct', True)]:
+        values = [pct(r['summary'][m][key]) if is_pct else f"{r['summary'][m][key]}/10" for m in 'ABCD']
+        text.append('| ' + label + ' | ' + ' | '.join(values) + ' |')
+    without_two = mean(c['methods']['B']['net_pct'] for c in sample if c['market'] not in ('KRW-ARB', 'KRW-FF'))
+    text += [
+        '',
+        f"5일 단순보유의 평균은 **{pct(mean(base_values))}**, 중앙값은 {pct(median(base_values))}. B의 평균 개선은 {r['summary']['B']['mean_net_pct']-mean(base_values):+.2f}%p이며 10건 중 3건은 개선, 1건은 악화, 6건은 동일했다. 매도 신호 발생 수에는 연구 종료 시각과 같은 시점의 신호도 포함된다. 종료 전 조기 청산은 A 8건, B 4건, C/D 각각 3건이다.",
+        '',
+        f"B에서 ARB·FF 두 급등 사례를 빼는 사후 민감도 점검의 평균은 **{pct(without_two)}**다. 이를 새 표본의 성과로 제시하거나 해당 두 종목을 원래 결과에서 제외하지 않았다. 평균이 일부 큰 수익에 크게 좌우됨을 보여주는 진단이다.",
+        '',
+        'C/D의 +12% 보호가 실제 작동한 다른 종목은 ARB·UNI·FF 세 개뿐이다. UNI에서는 비교적 높은 수익을 보존했지만 ARB·FF에서는 후속 상승을 놓쳤다. 나머지 7개 중 LA는 보호가 활성화되지 않아 5일 종료 기준 −11.32%였다. 수익 보호 조건만으로는 손절 설계가 완성되지 않는다.',
+        '',
+        '전체 5일 최고가에서 5% 이내 가격에 청산한 사례는 A 2건, B/C/D 각각 3건이다. B/C/D의 세 종목은 SAND·ALGO·TREE로, 모두 종료 시점 비교용 청산이다. 따라서 이 숫자를 추적매도의 고점 포착 성공률이라고 해석하면 안 된다. 전체 기간 최고가는 사후 비교 지표로만 사용했다.',
+        '',
+        '## 표본 선정과 한계',
+        '',
+        '- 자료 수집 전에 선정 규칙과 A/B/C/D 임계값을 policy.json으로 고정했다. 당시 현재 원화 마켓 289개 중 제외 자산 등을 처리한 283개 시장의 일봉을 수집했고, 적격 신호 31개에서 서로 다른 종목의 첫 신호를 날짜순으로 10개 골랐다. 같은 날에는 과거 20일 거래대금 중앙값이 높은 순, 이후 마켓명 순이다.',
+        '- 임시 포착 기준: 연속 일봉 이력 150개 이상, 과거 20일 일 거래대금 중앙값 10억원 이상, 전일 거래량이 그 이전 20일 중앙값의 2배 이상, 신호일 거래량은 전일보다 감소. MACD 히스토그램의 2차 차분은 양수이며 RSI·Williams는 1차·2차 차분이 모두 양수여야 한다.',
+        '- 이 포착 수치는 아크에서 관찰한 형태를 다른 종목에 적용하기 위한 연구용 대리 기준이다. 사용자가 승인한 완성된 포착 알고리즘이 아니고, 네 지표 모두가 증가한다는 조건도 아니다. MACD12/26/9, Wilder RSI14, Williams14를 사용하며 RSI 신호선9는 미확정이어서 사용하지 않았다.',
+        '- 진입 가능 범위는 9월 1~20일로 고정했지만, 시간순 첫 10개가 모두 9월 1~5일 진입에 몰렸다. TRUMP는 8월 31일 신호 → 9월 1일 진입이다. 9월 전반의 여러 시장 국면을 대표하는 표본은 아니다.',
+        '- 수익이 난 종목만 고르지 않았다. 손실 사례도 포함했고, 이후 수익률로 교체하지 않았다. 다만 현재 상장 종목 목록을 썼기 때문에 상장폐지·과거 시장 구성에 따른 생존편향 가능성은 남는다.',
+        '- 아크는 이미 관찰한 기준 사례여서 다른 10종목 집계에서 제외했다. 다른 10건도 같은 달·중복 보유 기간의 상관된 표본이고, 5일 관찰 및 숫자 선택 자체의 영향을 받는다. 독립 표본으로서 통계적 우월성을 주장할 수 없다.',
+        '- BTC·시장 수익률을 차감한 초과수익 검증, 호가 잔량, 지연, 최소주문, 실제 체결 가능성 검증은 포함하지 않았다. 이 결과만으로 실전 적용 여부를 결정하지 않는다.',
+        '',
+        '## 원자료 및 재현 검증',
+        '',
+        f"- 공개 API 수집: {manifest['started']} ~ {manifest['finished']}, {manifest['request_count']}회 요청. 시장별 수집 실패 0건, 재현 제외 사례 0건.",
+        '- 11종목의 55개 보유 일자에서 실제 존재하는 5분봉의 OHLC·거래량 합계가 독립 조회한 일봉과 일치했다. 업비트는 거래가 없는 시간대의 캔들을 만들지 않으므로 빈 구간을 가상 체결 가격으로 채우지 않았다.',
+        '- 이 공백 처리는 자료 품질 점검 후, 첫 수익률 계산 전에 execution_notes.json으로 명시했다. 원래 policy.json의 contiguous 표현은 해당 기록으로 정정하고 나머지 임계값과 표본은 유지했다.',
+        '- 매도 판단 이후 첫 실제 5분봉의 시가를 쓰며 공백 지연을 기록한다. 이번 44개 방식별 결과의 봉 구간 기준 체결 지연은 모두 0분이었다. 봉 시가를 만든 실제 거래의 초 단위 시각이나 주문 지연이 0이라는 의미는 아니다.',
+        '- ATR14는 실제 존재하는 14개 캔들의 Wilder 방식이며 70분보다 긴 실제 시간을 포함할 수 있다. 직전 확정 봉까지만 ATR에 사용한다. 3배 및 +12%는 이번 연구 가정이고 출처가 보장한 최적값이 아니다.',
+        '- 일봉 지표는 해당 시점까지의 자료로만 계산했다. 청산 뒤의 일봉·5분봉을 제거하고 체결 봉의 미래 고가·저가·종가를 시가로 대체해도 종료 전 청산 판단이 그대로 재현됐다. 저장한 전체 일봉에서 종목 선정 순서도 다시 일치시켰다.',
+        '',
+        '재현 명령(저장소 루트):',
+        '',
+        '```bash',
+        'PYTHONPATH=. python research/september_exit_validation/replay.py',
+        'python research/september_exit_validation/build_report.py',
+        '```',
+        '',
+        '- [고정 정책](policy.json), [공백 처리 명세](execution_notes.json), [계산 결과](results.json), [자료 목록·선정 기록](data/selection.json). 압축 원자료도 같은 data 디렉터리에 보관했다.',
+        '- [공개 자료 수집 실행 기록](https://github.com/Henryrotaewon/VPD-Investment/actions/runs/36163694576). 일회성 수집 워크플로는 수집 완료 후 제거했다.',
+        '- [업비트 캔들 공백 안내](https://docs.upbit.com/kr/docs/how-to-download-candle-data), [Fidelity ATR 계산 설명](https://www.fidelity.com/learning-center/trading-investing/technical-analysis/technical-indicator-guide/atr). 가격 수치의 근거는 보관한 업비트 API 원자료다.',
+        '',
+        '## 다음 설계에서 확인할 문제',
+        '',
+        '15일 특정 고가를 맞추는 최적화보다, 일봉 상승 추세의 정상적인 흔들림을 허용하면서 급등 후 이익 반납을 제한할 수 있는지 확인해야 한다. 이번 C/D를 그대로 운영 기준으로 채택할 근거는 부족하다. 다음 후보는 일봉으로 기본 추세를 유지하고, 장중에는 별도 시간 단위의 과열 후 약화 조건에서 분할 청산하는 구조다. 활성화 조건·확인 주기·분할 비중·손절 규칙을 먼저 합의하고, 이번 표본에 맞춰 반복 조정하지 않은 별도 기간에서 검증하는 것이 다음 단계다. 이 구조는 아직 계산·승인·적용하지 않았다.',
+        '',
+    ]
+    (ROOT / 'SEPTEMBER_exit_validation.md').write_text('\n'.join(text))
+
+
+if __name__ == '__main__':
+    main()

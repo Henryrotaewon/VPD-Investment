@@ -1,0 +1,2090 @@
+{
+  "policy": {
+    "mode": "RESEARCH_ONLY_FROZEN_FIVE_ASSET_REENTRY_STUDY",
+    "markets": [
+      "KRW-ARK",
+      "KRW-B3",
+      "KRW-SPK",
+      "KRW-ENA",
+      "KRW-AERO"
+    ],
+    "start_utc": "2026-09-10T00:00:00+00:00",
+    "requested_asof_kst": "2026-09-26T02:58:59+09:00",
+    "cutoff_utc": "2026-09-25T17:55:00+00:00",
+    "hypothetical_terminal_kst": "2026-09-27T09:00:00+09:00",
+    "total_initial_capital_krw": 3000000,
+    "capital_per_asset_krw": 600000,
+    "minimum_completed_history": 150,
+    "entry": "Previous completed daily RSI14 and Williams14 both declined. Provisional current-day RSI and Williams exceed their previous daily values, and MACD histogram second daily difference is positive. Require the condition at two consecutive completed one-hour checkpoints on the same daily candle. Use next actual five-minute open.",
+    "entry_signal_lifecycle": "Only the first confirmed candidate on each daily candle is a fresh event. Discard candidates observed while holding or while an exit is pending. Reentry must have signal availability strictly after the last full-exit fill; never reuse an old signal or trade twice at the same boundary.",
+    "position_sizing": "One position per asset, all that asset's available cash at each entry. Reinvest realized results within the asset. No transfers/rebalancing across the five equal initial sleeves, no forced initial entry, no partial exits.",
+    "normal_exit": "At least two of MACD histogram, RSI14, Williams14 daily first differences are negative AND the completed daily close is strictly below the previous daily low. Execute next actual five-minute open.",
+    "initial_stop": "Fix the already observed signal-day low when the buy candidate is confirmed. If a subsequent completed hourly close is below this fixed level, sell at next actual five-minute open. Never widen the stop or assume a fill at the stop price.",
+    "priority": "At equal availability, daily full exit first, hourly initial stop second, entry last. No same-boundary sale and reentry.",
+    "no_hard_gates": [
+      "prior-volume surge",
+      "current-volume decline",
+      "1bn KRW median turnover",
+      "RSI overbought level",
+      "calendar target buy/sell dates"
+    ],
+    "activation_take_profit": false,
+    "time_limit_exit": false,
+    "fee_per_side": 0.0005,
+    "slippage_per_side": 0.0005,
+    "quantity_rounding": false,
+    "hour_ms": 3600000,
+    "bar_ms": 300000,
+    "epsilon": 1e-10,
+    "terminal_valuation": "At data cutoff, retain positions and mark at each asset's last completed native 5m close. Report realized PnL, unrealized PnL and hypothetical liquidation equity separately. Carry prices across empty buckets for valuation only, never create synthetic fills.",
+    "tomorrow_price_scenarios_pct": [
+      -10,
+      -5,
+      0,
+      5,
+      10
+    ],
+    "tomorrow_scenario_interpretation": "Future Sep27 prices and paths are unknown. Scenarios assume no additional trades after the cutoff and liquidate current inventory at last known price times (1+scenario). Keep cash unchanged. Zero change is a reference scenario, not a forecast or expected return. Actual continued strategy results may differ.",
+    "caveat": "User-selected five assets; rules developed after reviewing ARK, so ARK is in-sample. No numerical threshold tuning after collection, no independent-validation claim. No historical order book, latency, taxes, funding or minimum-order model. No live orders, deployment or scheduled future action."
+  },
+  "warmup_revision": {
+    "revision": "warmup-100-with-original-150-sensitivity",
+    "timing": "Defined after collection found B3/SPK shorter native histories, before calculating any five-asset strategy returns.",
+    "original_minimum_completed_history": 150,
+    "effective_minimum_completed_history": 100,
+    "reason": "At Sep10 B3 has 126 native daily observations and SPK 140. The existing magi2.fast_wave_indicator.Policy minimum history is 100. MACD/RSI/Williams can be calculated with these histories; 150 was an added study gate, not an API permission or user requirement.",
+    "unchanged": "All indicator definitions, entry/exit thresholds, costs, allocation, date boundaries and tomorrow price scenarios remain frozen. No fabricated pre-listing candles or other-exchange history.",
+    "sensitivity": "Also run the original 150-completed-day eligibility rule at each signal time. Show its impact explicitly rather than mislabeling 100-day results as the original protocol."
+  },
+  "assets": {
+    "KRW-ARK": {
+      "trades": [
+        {
+          "cycle": 1,
+          "side": "BUY",
+          "time_ms": 1789128000000,
+          "time_kst": "09/11 21:00",
+          "reference": 153.0,
+          "assumed_fill": 153.07649999999998,
+          "quantity": 3917.649998040441,
+          "fee_krw": 299.85007496251876,
+          "cash_flow": -600000.0,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789128000000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 147.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 1,
+          "side": "SELL",
+          "time_ms": 1789689600000,
+          "time_kst": "09/18 09:00",
+          "reference": 190.0,
+          "assumed_fill": 189.905,
+          "quantity": 3917.649998040441,
+          "fee_krw": 371.990661438935,
+          "cash_flow": 743609.332216431,
+          "cash_after": 743609.332216431,
+          "signal_available_ms": 1789689600000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": 143609.33221643104,
+          "reason": "DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK"
+        },
+        {
+          "cycle": 2,
+          "side": "BUY",
+          "time_ms": 1789725600000,
+          "time_kst": "09/18 19:00",
+          "reference": 191.0,
+          "assumed_fill": 191.0955,
+          "quantity": 3889.3522524588557,
+          "fee_krw": 371.6188566798756,
+          "cash_flow": -743609.332216431,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789725600000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 185.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        }
+      ],
+      "closed_cycles": [
+        {
+          "cycle": 1,
+          "entry_kst": "09/11 21:00",
+          "entry_reference": 153.0,
+          "entry_cost": 600000.0,
+          "exit_kst": "09/18 09:00",
+          "exit_reference": 190.0,
+          "net_pnl": 143609.33221643104,
+          "net_pct": 23.934888702738498,
+          "exit_reason": "DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK"
+        }
+      ],
+      "open_position": {
+        "cycle": 2,
+        "entry_ms": 1789725600000,
+        "entry_kst": "09/18 19:00",
+        "entry_reference": 191.0,
+        "cost": 743609.332216431,
+        "quantity": 3889.3522524588557,
+        "initial_stop": 185.0
+      },
+      "pending_order": null,
+      "entry_decisions": [
+        {
+          "signal_kst": "09/11 21:00",
+          "day_kst": "09/11",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/16 12:00",
+          "day_kst": "09/16",
+          "status": "IGNORED_WHILE_HOLDING"
+        },
+        {
+          "signal_kst": "09/18 19:00",
+          "day_kst": "09/18",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/22 15:00",
+          "day_kst": "09/22",
+          "status": "IGNORED_WHILE_HOLDING"
+        }
+      ],
+      "final": {
+        "time_ms": 1790358900000,
+        "price": 315.0,
+        "cash": 0.0,
+        "quantity": 3889.3522524588557,
+        "equity": 1225145.9595245395,
+        "realized_pnl": 143609.33221643104,
+        "unrealized_pnl": 481536.6273081085,
+        "quote_time_kst": "09/26 02:55",
+        "marked_return_pct": 104.19099325408992,
+        "liquidation_equity": 1223921.119851505,
+        "liquidation_return_pct": 103.98685330858414,
+        "marked_drawdown_pct": 33.69565217391305
+      },
+      "name": "아크",
+      "candidate_count": 4,
+      "original_150_day_sensitivity": {
+        "entry_count": 2,
+        "final": {
+          "time_ms": 1790358900000,
+          "price": 315.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 1225145.9595245395,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 481536.6273081085,
+          "quote_time_kst": "09/26 02:55",
+          "marked_return_pct": 104.19099325408992,
+          "liquidation_equity": 1223921.119851505,
+          "liquidation_return_pct": 103.98685330858414,
+          "marked_drawdown_pct": 33.69565217391305
+        }
+      },
+      "tomorrow_scenarios": {
+        "-10": {
+          "price": 283.5,
+          "equity": 1101529.0078663544,
+          "return_pct": 83.58816797772575
+        },
+        "-5": {
+          "price": 299.25,
+          "equity": 1162725.0638589298,
+          "return_pct": 93.78751064315496
+        },
+        "0": {
+          "price": 315.0,
+          "equity": 1223921.119851505,
+          "return_pct": 103.98685330858414
+        },
+        "5": {
+          "price": 330.75,
+          "equity": 1285117.1758440803,
+          "return_pct": 114.18619597401336
+        },
+        "10": {
+          "price": 346.5,
+          "equity": 1346313.2318366556,
+          "return_pct": 124.38553863944261
+        }
+      }
+    },
+    "KRW-B3": {
+      "trades": [
+        {
+          "cycle": 1,
+          "side": "BUY",
+          "time_ms": 1789005600000,
+          "time_kst": "09/10 11:00",
+          "reference": 0.787,
+          "assumed_fill": 0.7873935,
+          "quantity": 761627.0008896918,
+          "fee_krw": 299.85007496251876,
+          "cash_flow": -600000.0,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789005600000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 0.619,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 1,
+          "side": "SELL",
+          "time_ms": 1789516800000,
+          "time_kst": "09/16 09:00",
+          "reference": 0.788,
+          "assumed_fill": 0.787606,
+          "quantity": 761627.0008896918,
+          "fee_krw": 299.9309978313633,
+          "cash_flow": 599562.0646648952,
+          "cash_after": 599562.0646648952,
+          "signal_available_ms": 1789516800000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -437.9353351048194,
+          "reason": "DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK"
+        },
+        {
+          "cycle": 2,
+          "side": "BUY",
+          "time_ms": 1789581600000,
+          "time_kst": "09/17 03:00",
+          "reference": 0.805,
+          "assumed_fill": 0.8054025,
+          "quantity": 744053.3564871864,
+          "fee_krw": 299.63121672408556,
+          "cash_flow": -599562.0646648952,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789581600000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 0.748,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        }
+      ],
+      "closed_cycles": [
+        {
+          "cycle": 1,
+          "entry_kst": "09/10 11:00",
+          "entry_reference": 0.787,
+          "entry_cost": 600000.0,
+          "exit_kst": "09/16 09:00",
+          "exit_reference": 0.788,
+          "net_pnl": -437.9353351048194,
+          "net_pct": -0.0729892225174722,
+          "exit_reason": "DAILY_WEAKNESS_AND_PREVIOUS_LOW_BREAK"
+        }
+      ],
+      "open_position": {
+        "cycle": 2,
+        "entry_ms": 1789581600000,
+        "entry_kst": "09/17 03:00",
+        "entry_reference": 0.805,
+        "cost": 599562.0646648952,
+        "quantity": 744053.3564871864,
+        "initial_stop": 0.748
+      },
+      "pending_order": null,
+      "entry_decisions": [
+        {
+          "signal_kst": "09/10 11:00",
+          "day_kst": "09/10",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/12 18:00",
+          "day_kst": "09/12",
+          "status": "IGNORED_WHILE_HOLDING"
+        },
+        {
+          "signal_kst": "09/17 03:00",
+          "day_kst": "09/16",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/18 11:00",
+          "day_kst": "09/18",
+          "status": "IGNORED_WHILE_HOLDING"
+        },
+        {
+          "signal_kst": "09/22 01:00",
+          "day_kst": "09/21",
+          "status": "IGNORED_WHILE_HOLDING"
+        },
+        {
+          "signal_kst": "09/25 12:00",
+          "day_kst": "09/25",
+          "status": "IGNORED_WHILE_HOLDING"
+        }
+      ],
+      "final": {
+        "time_ms": 1790358900000,
+        "price": 1.12,
+        "cash": 0.0,
+        "quantity": 744053.3564871864,
+        "equity": 833339.7592656488,
+        "realized_pnl": -437.9353351048194,
+        "unrealized_pnl": 233777.6946007536,
+        "quote_time_kst": "09/26 02:55",
+        "marked_return_pct": 38.88995987760813,
+        "liquidation_equity": 832506.627841323,
+        "liquidation_return_pct": 38.75110464022051,
+        "marked_drawdown_pct": 30.377358490566053
+      },
+      "name": "비쓰리",
+      "candidate_count": 6,
+      "original_150_day_sensitivity": {
+        "entry_count": 0,
+        "final": {
+          "time_ms": 1790358900000,
+          "price": 1.12,
+          "cash": 600000.0,
+          "quantity": 0.0,
+          "equity": 600000.0,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 0.0,
+          "quote_time_kst": "09/26 02:55",
+          "marked_return_pct": 0.0,
+          "liquidation_equity": 600000.0,
+          "liquidation_return_pct": 0.0,
+          "marked_drawdown_pct": 0.0
+        }
+      },
+      "tomorrow_scenarios": {
+        "-10": {
+          "price": 1.0080000000000002,
+          "equity": 749255.9650571907,
+          "return_pct": 24.875994176198457
+        },
+        "-5": {
+          "price": 1.064,
+          "equity": 790881.2964492568,
+          "return_pct": 31.81354940820946
+        },
+        "0": {
+          "price": 1.12,
+          "equity": 832506.627841323,
+          "return_pct": 38.75110464022051
+        },
+        "5": {
+          "price": 1.1760000000000002,
+          "equity": 874131.9592333892,
+          "return_pct": 45.68865987223154
+        },
+        "10": {
+          "price": 1.2320000000000002,
+          "equity": 915757.2906254556,
+          "return_pct": 52.62621510424259
+        }
+      }
+    },
+    "KRW-SPK": {
+      "trades": [
+        {
+          "cycle": 1,
+          "side": "BUY",
+          "time_ms": 1789106700000,
+          "time_kst": "09/11 15:05",
+          "reference": 25.9,
+          "assumed_fill": 25.91295,
+          "quantity": 23142.874505798743,
+          "fee_krw": 299.85007496251876,
+          "cash_flow": -600000.0,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789106400000,
+          "execution_bucket_delay_minutes": 5.0,
+          "initial_stop": 25.5,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 1,
+          "side": "SELL",
+          "time_ms": 1789124400000,
+          "time_kst": "09/11 20:00",
+          "reference": 25.3,
+          "assumed_fill": 25.287350000000004,
+          "quantity": 23142.874505798743,
+          "fee_krw": 292.61098381710497,
+          "cash_flow": 584929.3566503928,
+          "cash_after": 584929.3566503928,
+          "signal_available_ms": 1789124400000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -15070.643349607242,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 2,
+          "side": "BUY",
+          "time_ms": 1789365600000,
+          "time_kst": "09/14 15:00",
+          "reference": 25.8,
+          "assumed_fill": 25.8129,
+          "quantity": 22649.025802266584,
+          "fee_krw": 292.31851906566357,
+          "cash_flow": -584929.3566503928,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789365600000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 25.2,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 2,
+          "side": "SELL",
+          "time_ms": 1789423200000,
+          "time_kst": "09/15 07:00",
+          "reference": 25.0,
+          "assumed_fill": 24.9875,
+          "quantity": 22649.025802266584,
+          "fee_krw": 282.9712661170681,
+          "cash_flow": 565659.5609680192,
+          "cash_after": 565659.5609680192,
+          "signal_available_ms": 1789423200000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -19269.795682373573,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 3,
+          "side": "BUY",
+          "time_ms": 1789446300000,
+          "time_kst": "09/15 13:25",
+          "reference": 25.1,
+          "assumed_fill": 25.11255,
+          "quantity": 22513.71814219398,
+          "fee_krw": 282.6884362658767,
+          "cash_flow": -565659.5609680192,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789444800000,
+          "execution_bucket_delay_minutes": 25.0,
+          "initial_stop": 24.8,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 3,
+          "side": "SELL",
+          "time_ms": 1789506000000,
+          "time_kst": "09/16 06:00",
+          "reference": 24.8,
+          "assumed_fill": 24.7876,
+          "quantity": 22513.71814219398,
+          "fee_krw": 279.03051991072374,
+          "cash_flow": 557782.0093015367,
+          "cash_after": 557782.0093015367,
+          "signal_available_ms": 1789506000000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -7877.551666482468,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 4,
+          "side": "BUY",
+          "time_ms": 1790222400000,
+          "time_kst": "09/24 13:00",
+          "reference": 28.0,
+          "assumed_fill": 28.014,
+          "quantity": 19900.880191072334,
+          "fee_krw": 278.75162883635016,
+          "cash_flow": -557782.0093015367,
+          "cash_after": 0.0,
+          "signal_available_ms": 1790222400000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 27.6,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        }
+      ],
+      "closed_cycles": [
+        {
+          "cycle": 1,
+          "entry_kst": "09/11 15:05",
+          "entry_reference": 25.9,
+          "entry_cost": 600000.0,
+          "exit_kst": "09/11 20:00",
+          "exit_reference": 25.3,
+          "net_pnl": -15070.643349607242,
+          "net_pct": -2.51177389160121,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 2,
+          "entry_kst": "09/14 15:00",
+          "entry_reference": 25.8,
+          "entry_cost": 584929.3566503928,
+          "exit_kst": "09/15 07:00",
+          "exit_reference": 25.0,
+          "net_pnl": -19269.795682373573,
+          "net_pct": -3.2943799902132365,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 3,
+          "entry_kst": "09/15 13:25",
+          "entry_reference": 25.1,
+          "entry_cost": 565659.5609680192,
+          "exit_kst": "09/16 06:00",
+          "exit_reference": 24.8,
+          "net_pnl": -7877.551666482468,
+          "net_pct": -1.3926312238056293,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        }
+      ],
+      "open_position": {
+        "cycle": 4,
+        "entry_ms": 1790222400000,
+        "entry_kst": "09/24 13:00",
+        "entry_reference": 28.0,
+        "cost": 557782.0093015367,
+        "quantity": 19900.880191072334,
+        "initial_stop": 27.6
+      },
+      "pending_order": null,
+      "entry_decisions": [
+        {
+          "signal_kst": "09/11 15:00",
+          "day_kst": "09/11",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/14 15:00",
+          "day_kst": "09/14",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/15 13:00",
+          "day_kst": "09/15",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/24 13:00",
+          "day_kst": "09/24",
+          "status": "BUY_SCHEDULED"
+        }
+      ],
+      "final": {
+        "time_ms": 1790358900000,
+        "price": 33.3,
+        "cash": 0.0,
+        "quantity": 19900.880191072334,
+        "equity": 662699.3103627086,
+        "realized_pnl": -42217.99069846328,
+        "unrealized_pnl": 104917.30106117192,
+        "quote_time_kst": "09/26 02:55",
+        "marked_return_pct": 10.449885060451436,
+        "liquidation_equity": 662036.7767271736,
+        "liquidation_return_pct": 10.339462787862264,
+        "marked_drawdown_pct": 8.81944152411438
+      },
+      "name": "스파크",
+      "candidate_count": 4,
+      "original_150_day_sensitivity": {
+        "entry_count": 1,
+        "final": {
+          "time_ms": 1790358900000,
+          "price": 33.3,
+          "cash": 0.0,
+          "quantity": 21407.158917863835,
+          "equity": 712858.3919648656,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 112858.39196486562,
+          "quote_time_kst": "09/26 02:55",
+          "marked_return_pct": 18.809731994144265,
+          "liquidation_equity": 712145.7117874988,
+          "liquidation_return_pct": 18.690951964583125,
+          "marked_drawdown_pct": 7.887323943661961
+        }
+      },
+      "tomorrow_scenarios": {
+        "-10": {
+          "price": 29.97,
+          "equity": 595833.0990544563,
+          "return_pct": -0.6944834909239472
+        },
+        "-5": {
+          "price": 31.634999999999994,
+          "equity": 628934.9378908149,
+          "return_pct": 4.8224896484691415
+        },
+        "0": {
+          "price": 33.3,
+          "equity": 662036.7767271736,
+          "return_pct": 10.339462787862264
+        },
+        "5": {
+          "price": 34.964999999999996,
+          "equity": 695138.6155635322,
+          "return_pct": 15.856435927255363
+        },
+        "10": {
+          "price": 36.63,
+          "equity": 728240.4543998911,
+          "return_pct": 21.373409066648506
+        }
+      }
+    },
+    "KRW-ENA": {
+      "trades": [
+        {
+          "cycle": 1,
+          "side": "BUY",
+          "time_ms": 1789092000000,
+          "time_kst": "09/11 11:00",
+          "reference": 198.0,
+          "assumed_fill": 198.099,
+          "quantity": 3027.2749984857955,
+          "fee_krw": 299.8500749625188,
+          "cash_flow": -600000.0,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789092000000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 195.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 1,
+          "side": "SELL",
+          "time_ms": 1789124400000,
+          "time_kst": "09/11 20:00",
+          "reference": 194.0,
+          "assumed_fill": 193.90300000000002,
+          "quantity": 3027.2749984857955,
+          "fee_krw": 293.49885201569566,
+          "cash_flow": 586704.2051793756,
+          "cash_after": 586704.2051793756,
+          "signal_available_ms": 1789124400000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -13295.794820624404,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 2,
+          "side": "BUY",
+          "time_ms": 1789351200000,
+          "time_kst": "09/14 11:00",
+          "reference": 188.0,
+          "assumed_fill": 188.094,
+          "quantity": 3117.6486207935177,
+          "fee_krw": 293.2054998397679,
+          "cash_flow": -586704.2051793756,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789351200000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 184.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        }
+      ],
+      "closed_cycles": [
+        {
+          "cycle": 1,
+          "entry_kst": "09/11 11:00",
+          "entry_reference": 198.0,
+          "entry_cost": 600000.0,
+          "exit_kst": "09/11 20:00",
+          "exit_reference": 194.0,
+          "net_pnl": -13295.794820624404,
+          "net_pct": -2.215965803437403,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        }
+      ],
+      "open_position": {
+        "cycle": 2,
+        "entry_ms": 1789351200000,
+        "entry_kst": "09/14 11:00",
+        "entry_reference": 188.0,
+        "cost": 586704.2051793756,
+        "quantity": 3117.6486207935177,
+        "initial_stop": 184.0
+      },
+      "pending_order": null,
+      "entry_decisions": [
+        {
+          "signal_kst": "09/11 11:00",
+          "day_kst": "09/11",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/14 11:00",
+          "day_kst": "09/14",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/16 15:00",
+          "day_kst": "09/16",
+          "status": "IGNORED_WHILE_HOLDING"
+        },
+        {
+          "signal_kst": "09/24 23:00",
+          "day_kst": "09/24",
+          "status": "IGNORED_WHILE_HOLDING"
+        }
+      ],
+      "final": {
+        "time_ms": 1790358900000,
+        "price": 351.0,
+        "cash": 0.0,
+        "quantity": 3117.6486207935177,
+        "equity": 1094294.6658985247,
+        "realized_pnl": -13295.794820624404,
+        "unrealized_pnl": 507590.4607191491,
+        "quote_time_kst": "09/26 02:55",
+        "marked_return_pct": 82.38244431642079,
+        "liquidation_equity": 1093200.6448062928,
+        "liquidation_return_pct": 82.20010746771547,
+        "marked_drawdown_pct": 12.73885350318471
+      },
+      "name": "에테나",
+      "candidate_count": 4,
+      "original_150_day_sensitivity": {
+        "entry_count": 2,
+        "final": {
+          "time_ms": 1790358900000,
+          "price": 351.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 1094294.6658985247,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 507590.4607191491,
+          "quote_time_kst": "09/26 02:55",
+          "marked_return_pct": 82.38244431642079,
+          "liquidation_equity": 1093200.6448062928,
+          "liquidation_return_pct": 82.20010746771547,
+          "marked_drawdown_pct": 12.73885350318471
+        }
+      },
+      "tomorrow_scenarios": {
+        "-10": {
+          "price": 315.90000000000003,
+          "equity": 983880.5803256634,
+          "return_pct": 63.98009672094391
+        },
+        "-5": {
+          "price": 333.45,
+          "equity": 1038540.6125659781,
+          "return_pct": 73.0901020943297
+        },
+        "0": {
+          "price": 351.0,
+          "equity": 1093200.6448062928,
+          "return_pct": 82.20010746771547
+        },
+        "5": {
+          "price": 368.55,
+          "equity": 1147860.6770466075,
+          "return_pct": 91.31011284110124
+        },
+        "10": {
+          "price": 386.1,
+          "equity": 1202520.7092869221,
+          "return_pct": 100.42011821448705
+        }
+      }
+    },
+    "KRW-AERO": {
+      "trades": [
+        {
+          "cycle": 1,
+          "side": "BUY",
+          "time_ms": 1789012800000,
+          "time_kst": "09/10 13:00",
+          "reference": 767.0,
+          "assumed_fill": 767.3834999999999,
+          "quantity": 781.486896610414,
+          "fee_krw": 299.85007496251876,
+          "cash_flow": -600000.0,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789012800000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 746.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 1,
+          "side": "SELL",
+          "time_ms": 1789045200000,
+          "time_kst": "09/10 22:00",
+          "reference": 742.0,
+          "assumed_fill": 741.629,
+          "quantity": 781.486896610414,
+          "fee_krw": 289.7866728231424,
+          "cash_flow": 579283.5589734616,
+          "cash_after": 579283.5589734616,
+          "signal_available_ms": 1789045200000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -20716.441026538378,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 2,
+          "side": "BUY",
+          "time_ms": 1789092000000,
+          "time_kst": "09/11 11:00",
+          "reference": 746.0,
+          "assumed_fill": 746.3729999999999,
+          "quantity": 775.7435785357864,
+          "fee_krw": 289.4970309712452,
+          "cash_flow": -579283.5589734616,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789092000000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 745.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 2,
+          "side": "SELL",
+          "time_ms": 1789095600000,
+          "time_kst": "09/11 12:00",
+          "reference": 741.0,
+          "assumed_fill": 740.6295,
+          "quantity": 775.7435785357864,
+          "fee_krw": 287.26928934958505,
+          "cash_flow": 574251.3094098206,
+          "cash_after": 574251.3094098206,
+          "signal_available_ms": 1789095600000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -5032.249563641031,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 3,
+          "side": "BUY",
+          "time_ms": 1789266300000,
+          "time_kst": "09/13 11:25",
+          "reference": 768.0,
+          "assumed_fill": 768.384,
+          "quantity": 746.9758964869095,
+          "fee_krw": 286.98216362309876,
+          "cash_flow": -574251.3094098206,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789264800000,
+          "execution_bucket_delay_minutes": 25.0,
+          "initial_stop": 769.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 3,
+          "side": "SELL",
+          "time_ms": 1789268400000,
+          "time_kst": "09/13 12:00",
+          "reference": 770.0,
+          "assumed_fill": 769.615,
+          "quantity": 746.9758964869095,
+          "fee_krw": 287.4419272873864,
+          "cash_flow": 574596.4126474855,
+          "cash_after": 574596.4126474855,
+          "signal_available_ms": 1789268400000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": 345.1032376649091,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 4,
+          "side": "BUY",
+          "time_ms": 1789354800000,
+          "time_kst": "09/14 12:00",
+          "reference": 779.0,
+          "assumed_fill": 779.3895,
+          "quantity": 736.8706635366223,
+          "fee_krw": 287.15462900923814,
+          "cash_flow": -574596.4126474855,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789354800000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 756.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 4,
+          "side": "SELL",
+          "time_ms": 1789448400000,
+          "time_kst": "09/15 14:00",
+          "reference": 748.0,
+          "assumed_fill": 747.6260000000001,
+          "quantity": 736.8706635366223,
+          "fee_krw": 275.45183334861537,
+          "cash_flow": 550628.2148638822,
+          "cash_after": 550628.2148638822,
+          "signal_available_ms": 1789448400000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -23968.197783603333,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 5,
+          "side": "BUY",
+          "time_ms": 1789534800000,
+          "time_kst": "09/16 14:00",
+          "reference": 723.0,
+          "assumed_fill": 723.3615,
+          "quantity": 760.8271083610474,
+          "fee_krw": 275.1765191723549,
+          "cash_flow": -550628.2148638822,
+          "cash_after": 0.0,
+          "signal_available_ms": 1789534800000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 714.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 5,
+          "side": "SELL",
+          "time_ms": 1789570800000,
+          "time_kst": "09/17 00:00",
+          "reference": 712.0,
+          "assumed_fill": 711.644,
+          "quantity": 760.8271083610474,
+          "fee_krw": 270.71902335124463,
+          "cash_flow": 541167.327679138,
+          "cash_after": 541167.327679138,
+          "signal_available_ms": 1789570800000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -9460.887184744119,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 6,
+          "side": "BUY",
+          "time_ms": 1790128800000,
+          "time_kst": "09/23 11:00",
+          "reference": 975.0,
+          "assumed_fill": 975.4875,
+          "quantity": 554.4887855964514,
+          "fee_krw": 270.44843961975914,
+          "cash_flow": -541167.327679138,
+          "cash_after": 0.0,
+          "signal_available_ms": 1790128800000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 916.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 6,
+          "side": "SELL",
+          "time_ms": 1790179200000,
+          "time_kst": "09/24 01:00",
+          "reference": 895.0,
+          "assumed_fill": 894.5525,
+          "quantity": 554.4887855964514,
+          "fee_krw": 248.0096646886348,
+          "cash_flow": 495771.319712581,
+          "cash_after": 495771.319712581,
+          "signal_available_ms": 1790179200000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -45396.00796655705,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 7,
+          "side": "BUY",
+          "time_ms": 1790215200000,
+          "time_kst": "09/24 11:00",
+          "reference": 920.0,
+          "assumed_fill": 920.4599999999999,
+          "quantity": 538.343391275682,
+          "fee_krw": 247.76177896680713,
+          "cash_flow": -495771.319712581,
+          "cash_after": 0.0,
+          "signal_available_ms": 1790215200000,
+          "execution_bucket_delay_minutes": 0.0,
+          "initial_stop": 910.0,
+          "reason": "FRESH_TWO_HOUR_DAILY_RECOVERY"
+        },
+        {
+          "cycle": 7,
+          "side": "SELL",
+          "time_ms": 1790244000000,
+          "time_kst": "09/24 19:00",
+          "reference": 909.0,
+          "assumed_fill": 908.5455000000001,
+          "quantity": 538.343391275682,
+          "fee_krw": 244.5547327991301,
+          "cash_flow": 488864.9108654611,
+          "cash_after": 488864.9108654611,
+          "signal_available_ms": 1790244000000,
+          "execution_bucket_delay_minutes": 0.0,
+          "realized_pnl": -6906.408847119892,
+          "reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        }
+      ],
+      "closed_cycles": [
+        {
+          "cycle": 1,
+          "entry_kst": "09/10 13:00",
+          "entry_reference": 767.0,
+          "entry_cost": 600000.0,
+          "exit_kst": "09/10 22:00",
+          "exit_reference": 742.0,
+          "net_pnl": -20716.441026538378,
+          "net_pct": -3.45274017108973,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 2,
+          "entry_kst": "09/11 11:00",
+          "entry_reference": 746.0,
+          "entry_cost": 579283.5589734616,
+          "exit_kst": "09/11 12:00",
+          "exit_reference": 741.0,
+          "net_pnl": -5032.249563641031,
+          "net_pct": -0.8687022936674782,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 3,
+          "entry_kst": "09/13 11:25",
+          "entry_reference": 768.0,
+          "entry_cost": 574251.3094098206,
+          "exit_kst": "09/13 12:00",
+          "exit_reference": 770.0,
+          "net_pnl": 345.1032376649091,
+          "net_pct": 0.06009620387623649,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 4,
+          "entry_kst": "09/14 12:00",
+          "entry_reference": 779.0,
+          "entry_cost": 574596.4126474855,
+          "exit_kst": "09/15 14:00",
+          "exit_reference": 748.0,
+          "net_pnl": -23968.197783603333,
+          "net_pct": -4.171310028402109,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 5,
+          "entry_kst": "09/16 14:00",
+          "entry_reference": 723.0,
+          "entry_cost": 550628.2148638822,
+          "exit_kst": "09/17 00:00",
+          "exit_reference": 712.0,
+          "net_pnl": -9460.887184744119,
+          "net_pct": -1.7181987644935504,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 6,
+          "entry_kst": "09/23 11:00",
+          "entry_reference": 975.0,
+          "entry_cost": 541167.327679138,
+          "exit_kst": "09/24 01:00",
+          "exit_reference": 895.0,
+          "net_pnl": -45396.00796655705,
+          "net_pct": -8.388534496574906,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        },
+        {
+          "cycle": 7,
+          "entry_kst": "09/24 11:00",
+          "entry_reference": 920.0,
+          "entry_cost": 495771.319712581,
+          "exit_kst": "09/24 19:00",
+          "exit_reference": 909.0,
+          "net_pnl": -6906.408847119892,
+          "net_pct": -1.393063408977313,
+          "exit_reason": "HOURLY_CLOSE_BELOW_INITIAL_STRUCTURE"
+        }
+      ],
+      "open_position": null,
+      "pending_order": null,
+      "entry_decisions": [
+        {
+          "signal_kst": "09/10 13:00",
+          "day_kst": "09/10",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/11 11:00",
+          "day_kst": "09/11",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/13 11:00",
+          "day_kst": "09/13",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/14 12:00",
+          "day_kst": "09/14",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/16 14:00",
+          "day_kst": "09/16",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/23 11:00",
+          "day_kst": "09/23",
+          "status": "BUY_SCHEDULED"
+        },
+        {
+          "signal_kst": "09/24 11:00",
+          "day_kst": "09/24",
+          "status": "BUY_SCHEDULED"
+        }
+      ],
+      "final": {
+        "time_ms": 1790358900000,
+        "price": 1141.0,
+        "cash": 488864.9108654611,
+        "quantity": 0.0,
+        "equity": 488864.9108654611,
+        "realized_pnl": -111135.0891345389,
+        "unrealized_pnl": 0.0,
+        "quote_time_kst": "09/26 02:55",
+        "marked_return_pct": -18.522514855756476,
+        "liquidation_equity": 488864.9108654611,
+        "liquidation_return_pct": -18.522514855756476,
+        "marked_drawdown_pct": 19.42354889327238
+      },
+      "name": "에어로드롬파이낸스",
+      "candidate_count": 7,
+      "original_150_day_sensitivity": {
+        "entry_count": 7,
+        "final": {
+          "time_ms": 1790358900000,
+          "price": 1141.0,
+          "cash": 488864.9108654611,
+          "quantity": 0.0,
+          "equity": 488864.9108654611,
+          "realized_pnl": -111135.0891345389,
+          "unrealized_pnl": 0.0,
+          "quote_time_kst": "09/26 02:55",
+          "marked_return_pct": -18.522514855756476,
+          "liquidation_equity": 488864.9108654611,
+          "liquidation_return_pct": -18.522514855756476,
+          "marked_drawdown_pct": 19.42354889327238
+        }
+      },
+      "tomorrow_scenarios": {
+        "-10": {
+          "price": 1026.9,
+          "equity": 488864.9108654611,
+          "return_pct": -18.522514855756476
+        },
+        "-5": {
+          "price": 1083.95,
+          "equity": 488864.9108654611,
+          "return_pct": -18.522514855756476
+        },
+        "0": {
+          "price": 1141.0,
+          "equity": 488864.9108654611,
+          "return_pct": -18.522514855756476
+        },
+        "5": {
+          "price": 1198.05,
+          "equity": 488864.9108654611,
+          "return_pct": -18.522514855756476
+        },
+        "10": {
+          "price": 1255.1000000000001,
+          "equity": 488864.9108654611,
+          "return_pct": -18.522514855756476
+        }
+      }
+    }
+  },
+  "portfolio": {
+    "initial": 3000000,
+    "marked_equity": 4304344.605916883,
+    "marked_return_pct": 43.47815353056277,
+    "liquidation_equity": 4300530.080091756,
+    "liquidation_return_pct": 43.351002669725204,
+    "cash": 488864.9108654611,
+    "realized_pnl": -23477.477772300364,
+    "unrealized_pnl": 1327822.083689183,
+    "marked_drawdown_pct": 15.931854871445061,
+    "open_assets": [
+      "KRW-ARK",
+      "KRW-B3",
+      "KRW-SPK",
+      "KRW-ENA"
+    ],
+    "tomorrow_scenarios": {
+      "-10": {
+        "equity": 3919363.563169126,
+        "return_pct": 30.64545210563754
+      },
+      "-5": {
+        "equity": 4109946.8216304407,
+        "return_pct": 36.99822738768135
+      },
+      "0": {
+        "equity": 4300530.080091756,
+        "return_pct": 43.351002669725204
+      },
+      "5": {
+        "equity": 4491113.33855307,
+        "return_pct": 49.70377795176901
+      },
+      "10": {
+        "equity": 4681696.597014385,
+        "return_pct": 56.05655323381284
+      }
+    },
+    "original_150_day_sensitivity": {
+      "liquidation_equity": 4118132.387310758,
+      "liquidation_return_pct": 37.27107957702527
+    }
+  },
+  "daily_marks": [
+    {
+      "time_kst": "09/11 09:00",
+      "equity": 2929178.253615819,
+      "return_pct": -2.3607248794726976,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789084800000,
+          "price": 151.0,
+          "cash": 600000.0,
+          "quantity": 0.0,
+          "equity": 600000.0,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-B3": {
+          "time_ms": 1789084800000,
+          "price": 0.722,
+          "cash": 0.0,
+          "quantity": 761627.0008896918,
+          "equity": 549894.6946423574,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": -50105.30535764259
+        },
+        "KRW-SPK": {
+          "time_ms": 1789084800000,
+          "price": 25.7,
+          "cash": 600000.0,
+          "quantity": 0.0,
+          "equity": 600000.0,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789084800000,
+          "price": 196.0,
+          "cash": 600000.0,
+          "quantity": 0.0,
+          "equity": 600000.0,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-AERO": {
+          "time_ms": 1789084800000,
+          "price": 742.0,
+          "cash": 579283.5589734616,
+          "quantity": 0.0,
+          "equity": 579283.5589734616,
+          "realized_pnl": -20716.441026538378,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/12 09:00",
+      "equity": 2868089.988530881,
+      "return_pct": -4.397000382303973,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789171200000,
+          "price": 156.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 611153.3996943088,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 11153.399694308755
+        },
+        "KRW-B3": {
+          "time_ms": 1789171200000,
+          "price": 0.671,
+          "cash": 0.0,
+          "quantity": 761627.0008896918,
+          "equity": 511051.7175969832,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": -88948.28240301681
+        },
+        "KRW-SPK": {
+          "time_ms": 1789171200000,
+          "price": 26.0,
+          "cash": 584929.3566503928,
+          "quantity": 0.0,
+          "equity": 584929.3566503928,
+          "realized_pnl": -15070.643349607242,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789171200000,
+          "price": 192.0,
+          "cash": 586704.2051793756,
+          "quantity": 0.0,
+          "equity": 586704.2051793756,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-AERO": {
+          "time_ms": 1789171200000,
+          "price": 773.0,
+          "cash": 574251.3094098206,
+          "quantity": 0.0,
+          "equity": 574251.3094098206,
+          "realized_pnl": -25748.69059017941,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/13 09:00",
+      "equity": 2970710.515480822,
+      "return_pct": -0.976316150639267,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789257600000,
+          "price": 182.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 713012.2996433603,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 113012.29964336031
+        },
+        "KRW-B3": {
+          "time_ms": 1789257600000,
+          "price": 0.672,
+          "cash": 0.0,
+          "quantity": 761627.0008896918,
+          "equity": 511813.34459787287,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": -88186.65540212713
+        },
+        "KRW-SPK": {
+          "time_ms": 1789256400000,
+          "price": 26.1,
+          "cash": 584929.3566503928,
+          "quantity": 0.0,
+          "equity": 584929.3566503928,
+          "realized_pnl": -15070.643349607242,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789257600000,
+          "price": 193.0,
+          "cash": 586704.2051793756,
+          "quantity": 0.0,
+          "equity": 586704.2051793756,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-AERO": {
+          "time_ms": 1789257600000,
+          "price": 770.0,
+          "cash": 574251.3094098206,
+          "quantity": 0.0,
+          "equity": 574251.3094098206,
+          "realized_pnl": -25748.69059017941,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/14 09:00",
+      "equity": 3259826.745003526,
+      "return_pct": 8.660891500117529,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789344000000,
+          "price": 190.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 744353.4996276838,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 144353.49962768378
+        },
+        "KRW-B3": {
+          "time_ms": 1789344000000,
+          "price": 1.01,
+          "cash": 0.0,
+          "quantity": 761627.0008896918,
+          "equity": 769243.2708985887,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 169243.2708985887
+        },
+        "KRW-SPK": {
+          "time_ms": 1789344000000,
+          "price": 25.6,
+          "cash": 584929.3566503928,
+          "quantity": 0.0,
+          "equity": 584929.3566503928,
+          "realized_pnl": -15070.643349607242,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789344000000,
+          "price": 185.0,
+          "cash": 586704.2051793756,
+          "quantity": 0.0,
+          "equity": 586704.2051793756,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-AERO": {
+          "time_ms": 1789343400000,
+          "price": 760.0,
+          "cash": 574596.4126474855,
+          "quantity": 0.0,
+          "equity": 574596.4126474855,
+          "realized_pnl": -25403.5873525145,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/15 09:00",
+      "equity": 3272401.5566665055,
+      "return_pct": 9.080051888883522,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789430400000,
+          "price": 229.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 897141.8495512609,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 297141.84955126094
+        },
+        "KRW-B3": {
+          "time_ms": 1789430400000,
+          "price": 0.84,
+          "cash": 0.0,
+          "quantity": 761627.0008896918,
+          "equity": 639766.680747341,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 39766.680747341015
+        },
+        "KRW-SPK": {
+          "time_ms": 1789430400000,
+          "price": 25.0,
+          "cash": 565659.5609680192,
+          "quantity": 0.0,
+          "equity": 565659.5609680192,
+          "realized_pnl": -34340.439031980815,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789430400000,
+          "price": 193.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 601706.1838131489,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 15001.97863377328
+        },
+        "KRW-AERO": {
+          "time_ms": 1789429500000,
+          "price": 771.0,
+          "cash": 0.0,
+          "quantity": 736.8706635366223,
+          "equity": 568127.2815867357,
+          "realized_pnl": -25403.5873525145,
+          "unrealized_pnl": -6469.131060749758
+        }
+      }
+    },
+    {
+      "time_kst": "09/16 09:00",
+      "equity": 3084417.1640489954,
+      "return_pct": 2.8139054682998488,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789516800000,
+          "price": 199.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 779612.3496100478,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 179612.34961004776
+        },
+        "KRW-B3": {
+          "time_ms": 1789516800000,
+          "price": 0.789,
+          "cash": 0.0,
+          "quantity": 761627.0008896918,
+          "equity": 600923.7037019668,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 923.7037019667914
+        },
+        "KRW-SPK": {
+          "time_ms": 1789516800000,
+          "price": 24.7,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789516800000,
+          "price": 191.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 595470.8865715619,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 8766.681392186321
+        },
+        "KRW-AERO": {
+          "time_ms": 1789516800000,
+          "price": 716.0,
+          "cash": 550628.2148638822,
+          "quantity": 0.0,
+          "equity": 550628.2148638822,
+          "realized_pnl": -49371.78513611783,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/17 09:00",
+      "equity": 3156573.627677299,
+      "return_pct": 5.219120922576637,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789603200000,
+          "price": 206.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 807035.8995963308,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 207035.89959633083
+        },
+        "KRW-B3": {
+          "time_ms": 1789603200000,
+          "price": 0.826,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 614588.0724584159,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 15026.007793520694
+        },
+        "KRW-SPK": {
+          "time_ms": 1789603200000,
+          "price": 25.0,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789603200000,
+          "price": 204.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 636000.3186418776,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 49296.11346250202
+        },
+        "KRW-AERO": {
+          "time_ms": 1789603200000,
+          "price": 755.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/18 09:00",
+      "equity": 3086979.557540896,
+      "return_pct": 2.8993185846965197,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789689600000,
+          "price": 190.0,
+          "cash": 0.0,
+          "quantity": 3917.649998040441,
+          "equity": 744353.4996276838,
+          "realized_pnl": 0.0,
+          "unrealized_pnl": 144353.49962768378
+        },
+        "KRW-B3": {
+          "time_ms": 1789689600000,
+          "price": 0.779,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 579617.5647035182,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": -19944.499961377005
+        },
+        "KRW-SPK": {
+          "time_ms": 1789689600000,
+          "price": 26.6,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789689600000,
+          "price": 213.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 664059.1562290193,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 77354.95104964369
+        },
+        "KRW-AERO": {
+          "time_ms": 1789689600000,
+          "price": 811.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/19 09:00",
+      "equity": 3183980.993425689,
+      "return_pct": 6.13269978085631,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789776000000,
+          "price": 196.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 762313.0414819358,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 18703.70926550473
+        },
+        "KRW-B3": {
+          "time_ms": 1789776000000,
+          "price": 0.814,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 605659.4321805697,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 6097.367515674559
+        },
+        "KRW-SPK": {
+          "time_ms": 1789776000000,
+          "price": 28.2,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789776000000,
+          "price": 230.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 717059.182782509,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 130354.97760313342
+        },
+        "KRW-AERO": {
+          "time_ms": 1789776000000,
+          "price": 876.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/20 09:00",
+      "equity": 3406511.3072003587,
+      "return_pct": 13.550376906678618,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789862400000,
+          "price": 209.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 812874.6207639008,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 69265.28854746977
+        },
+        "KRW-B3": {
+          "time_ms": 1789862400000,
+          "price": 0.844,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 627981.0328751853,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 28418.96821029007
+        },
+        "KRW-SPK": {
+          "time_ms": 1789862400000,
+          "price": 28.9,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789862400000,
+          "price": 278.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 866706.3165805979,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 280002.1114012223
+        },
+        "KRW-AERO": {
+          "time_ms": 1789862100000,
+          "price": 899.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/21 09:00",
+      "equity": 3438216.6568054096,
+      "return_pct": 14.607221893513644,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1789948800000,
+          "price": 209.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 812874.6207639008,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 69265.28854746977
+        },
+        "KRW-B3": {
+          "time_ms": 1789948800000,
+          "price": 0.807,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 600451.0586851594,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 888.9940202642465
+        },
+        "KRW-SPK": {
+          "time_ms": 1789948800000,
+          "price": 28.4,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1789948800000,
+          "price": 297.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 925941.6403756747,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 339237.4351962991
+        },
+        "KRW-AERO": {
+          "time_ms": 1789948800000,
+          "price": 900.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/22 09:00",
+      "equity": 3414453.053887168,
+      "return_pct": 13.815101796238928,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1790035200000,
+          "price": 208.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 808985.268511442,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 65375.936295010964
+        },
+        "KRW-B3": {
+          "time_ms": 1790035200000,
+          "price": 0.818,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 608635.6456065184,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 9073.580941623193
+        },
+        "KRW-SPK": {
+          "time_ms": 1790035200000,
+          "price": 28.9,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1790035200000,
+          "price": 288.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 897882.802788533,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 311178.59760915744
+        },
+        "KRW-AERO": {
+          "time_ms": 1790035200000,
+          "price": 945.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/23 09:00",
+      "equity": 3465263.841041591,
+      "return_pct": 15.508794701386375,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1790121600000,
+          "price": 212.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 824542.6775212775,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 80933.34530484641
+        },
+        "KRW-B3": {
+          "time_ms": 1790121600000,
+          "price": 0.857,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 637653.7265095187,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 38091.66184462351
+        },
+        "KRW-SPK": {
+          "time_ms": 1790121600000,
+          "price": 29.6,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1790121600000,
+          "price": 290.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 904118.1000301201,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 317413.8948507445
+        },
+        "KRW-AERO": {
+          "time_ms": 1790121600000,
+          "price": 918.0,
+          "cash": 541167.327679138,
+          "quantity": 0.0,
+          "equity": 541167.327679138,
+          "realized_pnl": -58832.67232086195,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/24 09:00",
+      "equity": 3546550.455604103,
+      "return_pct": 18.21834852013677,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1790208000000,
+          "price": 219.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 851768.1432884894,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 108158.8110720584
+        },
+        "KRW-B3": {
+          "time_ms": 1790208000000,
+          "price": 1.02,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 758934.4236169301,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 159372.35895203496
+        },
+        "KRW-SPK": {
+          "time_ms": 1790208000000,
+          "price": 27.9,
+          "cash": 557782.0093015367,
+          "quantity": 0.0,
+          "equity": 557782.0093015367,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 0.0
+        },
+        "KRW-ENA": {
+          "time_ms": 1790208000000,
+          "price": 283.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 882294.5596845655,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 295590.3545051899
+        },
+        "KRW-AERO": {
+          "time_ms": 1790208000000,
+          "price": 911.0,
+          "cash": 495771.319712581,
+          "quantity": 0.0,
+          "equity": 495771.319712581,
+          "realized_pnl": -104228.680287419,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/25 09:00",
+      "equity": 3771899.03575741,
+      "return_pct": 25.729967858580327,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1790294400000,
+          "price": 265.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 1030678.3469015968,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 287069.0146851657
+        },
+        "KRW-B3": {
+          "time_ms": 1790294400000,
+          "price": 0.972,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 723219.8625055451,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 123657.79784064996
+        },
+        "KRW-SPK": {
+          "time_ms": 1790294400000,
+          "price": 28.9,
+          "cash": 0.0,
+          "quantity": 19900.880191072334,
+          "equity": 575135.4375219904,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 17353.428220453672
+        },
+        "KRW-ENA": {
+          "time_ms": 1790294400000,
+          "price": 306.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 954000.4779628164,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 367296.27278344077
+        },
+        "KRW-AERO": {
+          "time_ms": 1790294100000,
+          "price": 947.0,
+          "cash": 488864.9108654611,
+          "quantity": 0.0,
+          "equity": 488864.9108654611,
+          "realized_pnl": -111135.0891345389,
+          "unrealized_pnl": 0.0
+        }
+      }
+    },
+    {
+      "time_kst": "09/26 02:55",
+      "equity": 4304344.605916883,
+      "return_pct": 43.47815353056277,
+      "assets": {
+        "KRW-ARK": {
+          "time_ms": 1790358900000,
+          "price": 315.0,
+          "cash": 0.0,
+          "quantity": 3889.3522524588557,
+          "equity": 1225145.9595245395,
+          "realized_pnl": 143609.33221643104,
+          "unrealized_pnl": 481536.6273081085
+        },
+        "KRW-B3": {
+          "time_ms": 1790358900000,
+          "price": 1.12,
+          "cash": 0.0,
+          "quantity": 744053.3564871864,
+          "equity": 833339.7592656488,
+          "realized_pnl": -437.9353351048194,
+          "unrealized_pnl": 233777.6946007536
+        },
+        "KRW-SPK": {
+          "time_ms": 1790358900000,
+          "price": 33.3,
+          "cash": 0.0,
+          "quantity": 19900.880191072334,
+          "equity": 662699.3103627086,
+          "realized_pnl": -42217.99069846328,
+          "unrealized_pnl": 104917.30106117192
+        },
+        "KRW-ENA": {
+          "time_ms": 1790358900000,
+          "price": 351.0,
+          "cash": 0.0,
+          "quantity": 3117.6486207935177,
+          "equity": 1094294.6658985247,
+          "realized_pnl": -13295.794820624404,
+          "unrealized_pnl": 507590.4607191491
+        },
+        "KRW-AERO": {
+          "time_ms": 1790358900000,
+          "price": 1141.0,
+          "cash": 488864.9108654611,
+          "quantity": 0.0,
+          "equity": 488864.9108654611,
+          "realized_pnl": -111135.0891345389,
+          "unrealized_pnl": 0.0
+        }
+      }
+    }
+  ],
+  "checks": {
+    "KRW-ARK": {
+      "daily_ohlcv_matches": 15,
+      "future_invariant_trades": 3
+    },
+    "KRW-B3": {
+      "daily_ohlcv_matches": 15,
+      "future_invariant_trades": 3
+    },
+    "KRW-SPK": {
+      "daily_ohlcv_matches": 15,
+      "future_invariant_trades": 7
+    },
+    "KRW-ENA": {
+      "daily_ohlcv_matches": 15,
+      "future_invariant_trades": 3
+    },
+    "KRW-AERO": {
+      "daily_ohlcv_matches": 15,
+      "future_invariant_trades": 14
+    }
+  }
+}
