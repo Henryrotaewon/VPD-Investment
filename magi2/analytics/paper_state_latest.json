@@ -6,70 +6,340 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 3000000,
-  "positions": {},
+  "cash_krw": 600000.0,
+  "positions": {
+    "BOUNTY": {
+      "market": "KRW-BOUNTY",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.026121+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 1,
+      "signal_vpd": 91.0,
+      "signal_entry_score": 70.5,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 17.7,
+      "entry_market_price": 17.6,
+      "entry_price": 17.6176,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 17019.916161254583,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 17.6,
+      "peak_price": 17.6,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "ELF": {
+      "market": "KRW-ELF",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027300+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 4,
+      "signal_vpd": 87.0,
+      "signal_entry_score": 63.92,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 91.2,
+      "entry_market_price": 91.8,
+      "entry_price": 91.89179999999999,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 3263.07760825796,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 91.8,
+      "peak_price": 91.8,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "ARDR": {
+      "market": "KRW-ARDR",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027413+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 8,
+      "signal_vpd": 85.0,
+      "signal_entry_score": 63.5,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 36.5,
+      "entry_market_price": 37.0,
+      "entry_price": 37.037,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 8095.960119948127,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 37.0,
+      "peak_price": 37.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "ARKM": {
+      "market": "KRW-ARKM",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027452+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 9,
+      "signal_vpd": 85.0,
+      "signal_entry_score": 61.1,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 185.0,
+      "entry_market_price": 182.0,
+      "entry_price": 182.182,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 1645.882002407037,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 182.0,
+      "peak_price": 182.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "WAVES": {
+      "market": "KRW-WAVES",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027481+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 5,
+      "signal_vpd": 86.0,
+      "signal_entry_score": 60.79,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 351.0,
+      "entry_market_price": 348.0,
+      "entry_price": 348.34799999999996,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 860.7773690749445,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 348.0,
+      "peak_price": 348.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "MASK": {
+      "market": "KRW-MASK",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027508+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 7,
+      "signal_vpd": 85.0,
+      "signal_entry_score": 59.5,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 614.0,
+      "entry_market_price": 606.0,
+      "entry_price": 606.6059999999999,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 494.3077961024435,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 606.0,
+      "peak_price": 606.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "CP": {
+      "market": "KRW-CP",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027543+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 10,
+      "signal_vpd": 83.0,
+      "signal_entry_score": 57.83,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 13.7,
+      "entry_market_price": 13.8,
+      "entry_price": 13.813799999999999,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 21706.559741889905,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 13.8,
+      "peak_price": 13.8,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    },
+    "ORCA": {
+      "market": "KRW-ORCA",
+      "status": "OPEN",
+      "entry_at": "2026-10-22T21:22:24.027567+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-22-VPD-2117",
+      "first_selected_date": "2026-10-22",
+      "last_selected_date": "2026-10-22",
+      "consecutive_top10_days": 1,
+      "signal_rank": 3,
+      "signal_vpd": 88.0,
+      "signal_entry_score": 56.44,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 2445.0,
+      "entry_market_price": 2439.0,
+      "entry_price": 2441.439,
+      "buy_notional_krw": 299850.07496251876,
+      "buy_fee_krw": 149.92503748124,
+      "qty": 122.81694318904498,
+      "cost_krw": 300000.0,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 2439.0,
+      "peak_price": 2439.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false
+    }
+  },
   "closed_positions": [],
   "realized_pnl_krw": 0.0,
   "lifetime_realized_pnl_krw": 0,
-  "updated_at": "2026-10-18T07:32:27.657283+09:00",
-  "cohort_id": "2026-10-18-VPD-0730",
-  "cohort_date": "2026-10-18",
+  "updated_at": "2026-10-22T21:22:24.027614+09:00",
+  "cohort_id": "2026-10-22-VPD-2117",
+  "cohort_date": "2026-10-22",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
-  "last_rebalance_date": "2026-10-18",
-  "last_rebalance_vpd_asof": "2026-10-18T07:30:00+09:00",
-  "source_snapshot_asof_kst": "2026-10-18 07:30:00 KST",
+  "last_rebalance_date": "2026-10-22",
+  "last_rebalance_vpd_asof": "2026-10-22T21:17:00+09:00",
+  "source_snapshot_asof_kst": "2026-10-22 21:17:00 KST",
   "source_snapshot_revision": null,
   "daily_equal_buy_krw": 300000.0,
-  "daily_equal_buy_date": "2026-10-18",
+  "daily_equal_buy_date": "2026-10-22",
   "daily_equal_buy_source": "MORNING_AVAILABLE_CASH_PER_NEW_SLOT",
   "last_rebalance_result": {
-    "asof": "2026-10-18T07:30:00+09:00",
+    "asof": "2026-10-22T21:17:00+09:00",
     "kept": [],
     "weakening": [],
     "sold": [],
-    "bought": [],
+    "bought": [
+      "BOUNTY",
+      "ELF",
+      "ARDR",
+      "ARKM",
+      "WAVES",
+      "MASK",
+      "CP",
+      "ORCA"
+    ],
     "entry_policy": "ENTRY_SCORE_V1_1",
     "entry_audit": [
       {
-        "coin": "KMNO",
+        "coin": "BOUNTY",
         "rank": 1,
-        "score": 52.24,
-        "eligible": false,
+        "score": 70.5,
+        "eligible": true,
         "reasons": [
-          "ENTRY_SCORE<55"
+          "PASS"
         ]
       },
       {
-        "coin": "LSK",
-        "rank": 7,
-        "score": 44.46,
-        "eligible": false,
+        "coin": "ELF",
+        "rank": 4,
+        "score": 63.92,
+        "eligible": true,
         "reasons": [
-          "VPD_LOW"
+          "PASS"
         ]
       },
       {
-        "coin": "A",
-        "rank": 2,
-        "score": 41.98,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "META2",
+        "coin": "ARDR",
         "rank": 8,
-        "score": 39.52,
-        "eligible": false,
+        "score": 63.5,
+        "eligible": true,
         "reasons": [
-          "VPD_LOW"
+          "PASS"
         ]
       },
       {
-        "coin": "ORBS",
+        "coin": "ARKM",
+        "rank": 9,
+        "score": 61.1,
+        "eligible": true,
+        "reasons": [
+          "PASS"
+        ]
+      },
+      {
+        "coin": "WAVES",
+        "rank": 5,
+        "score": 60.79,
+        "eligible": true,
+        "reasons": [
+          "PASS"
+        ]
+      },
+      {
+        "coin": "MASK",
+        "rank": 7,
+        "score": 59.5,
+        "eligible": true,
+        "reasons": [
+          "PASS"
+        ]
+      },
+      {
+        "coin": "CP",
+        "rank": 10,
+        "score": 57.83,
+        "eligible": true,
+        "reasons": [
+          "PASS"
+        ]
+      },
+      {
+        "coin": "ORCA",
         "rank": 3,
-        "score": 38.16,
+        "score": 56.44,
+        "eligible": true,
+        "reasons": [
+          "PASS"
+        ]
+      },
+      {
+        "coin": "BABY",
+        "rank": 2,
+        "score": 48.46,
         "eligible": false,
         "reasons": [
           "ENTRY_SCORE<55"
@@ -77,63 +347,28 @@
       },
       {
         "coin": "ALT",
-        "rank": 10,
-        "score": 36.9,
-        "eligible": false,
-        "reasons": [
-          "VPD_LOW"
-        ]
-      },
-      {
-        "coin": "USDG",
-        "rank": 9,
-        "score": 31.63,
-        "eligible": false,
-        "reasons": [
-          "VPD_LOW"
-        ]
-      },
-      {
-        "coin": "MEGA",
         "rank": 6,
-        "score": 24.22,
+        "score": 36.85,
         "eligible": false,
         "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "B3",
-        "rank": 4,
-        "score": 21.96,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "TIA",
-        "rank": 5,
-        "score": 17.99,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
+          "GIVEBACK_HARD",
+          "PRICE_BREAKDOWN"
         ]
       }
     ],
-    "cash_krw": 3000000,
+    "cash_krw": 600000.0,
     "paper_only": true
   },
   "last_rebalance_decisions": [
-    "KMNO · 신규진입 제외 · EntryScore 52.24\n  ENTRY_SCORE<55",
-    "LSK · 신규진입 제외 · EntryScore 44.46\n  VPD_LOW",
-    "A · 신규진입 제외 · EntryScore 41.98\n  ENTRY_SCORE<55",
-    "META2 · 신규진입 제외 · EntryScore 39.52\n  VPD_LOW",
-    "ORBS · 신규진입 제외 · EntryScore 38.16\n  ENTRY_SCORE<55",
-    "ALT · 신규진입 제외 · EntryScore 36.90\n  VPD_LOW",
-    "USDG · 신규진입 제외 · EntryScore 31.63\n  VPD_LOW",
-    "MEGA · 신규진입 제외 · EntryScore 24.22\n  ENTRY_SCORE<55",
-    "B3 · 신규진입 제외 · EntryScore 21.96\n  ENTRY_SCORE<55",
-    "TIA · 신규진입 제외 · EntryScore 17.99\n  ENTRY_SCORE<55"
+    "BOUNTY · 신규진입 · EntryScore 70.50 · VPD 91 (1위)",
+    "ELF · 신규진입 · EntryScore 63.92 · VPD 87 (4위)",
+    "ARDR · 신규진입 · EntryScore 63.50 · VPD 85 (8위)",
+    "ARKM · 신규진입 · EntryScore 61.10 · VPD 85 (9위)",
+    "WAVES · 신규진입 · EntryScore 60.79 · VPD 86 (5위)",
+    "MASK · 신규진입 · EntryScore 59.50 · VPD 85 (7위)",
+    "CP · 신규진입 · EntryScore 57.83 · VPD 83 (10위)",
+    "ORCA · 신규진입 · EntryScore 56.44 · VPD 88 (3위)",
+    "BABY · 신규진입 제외 · EntryScore 48.46\n  ENTRY_SCORE<55",
+    "ALT · 신규진입 제외 · EntryScore 36.85\n  GIVEBACK_HARD, PRICE_BREAKDOWN"
   ]
 }
