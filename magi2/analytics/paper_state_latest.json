@@ -6,11 +6,11 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 600000.0,
+  "cash_krw": 904504.1710368139,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-22T21:22:24.026121+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-22-VPD-2117",
@@ -31,10 +31,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 18.7,
+      "last_price": 17.9,
       "peak_price": 18.7,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "exit_at": "2026-10-22T22:06:06.982944+09:00",
+      "exit_price": 17.9,
+      "sell_fee_krw": 152.3282496432285,
+      "net_proceeds_krw": 304504.1710368138,
+      "pnl_krw": 4504.171036813816,
+      "return_pct": 1.501390345604614,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "ELF": {
       "market": "KRW-ELF",
@@ -87,7 +94,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 36.7,
+      "last_price": 36.4,
       "peak_price": 37.1,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -115,7 +122,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 176.0,
+      "last_price": 178.0,
       "peak_price": 183.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -171,8 +178,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 612.0,
-      "peak_price": 616.0,
+      "last_price": 619.0,
+      "peak_price": 619.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -227,16 +234,16 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2423.0,
+      "last_price": 2432.0,
       "peak_price": 2446.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     }
   },
   "closed_positions": [],
-  "realized_pnl_krw": 0.0,
-  "lifetime_realized_pnl_krw": 0,
-  "updated_at": "2026-10-22T22:01:05.832241+09:00",
+  "realized_pnl_krw": 4504.171036813816,
+  "lifetime_realized_pnl_krw": 4504.171036813816,
+  "updated_at": "2026-10-22T22:06:08.412554+09:00",
   "cohort_id": "2026-10-22-VPD-2117",
   "cohort_date": "2026-10-22",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
