@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 1436707.600223438,
+  "cash_krw": 1740851.2921470695,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -31,7 +31,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 16.6,
+      "last_price": 16.9,
       "peak_price": 17.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -59,7 +59,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 88.0,
+      "last_price": 87.9,
       "peak_price": 93.4,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -220,7 +220,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 349.0,
+      "last_price": 347.0,
       "peak_price": 362.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -363,7 +363,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 2460.0,
+      "last_price": 2456.0,
       "peak_price": 2529.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -394,7 +394,7 @@
     },
     "BABY": {
       "market": "KRW-BABY",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-23T07:33:35.177626+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-23-VPD-0730",
@@ -415,10 +415,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 17.9,
+      "last_price": 17.6,
       "peak_price": 18.3,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "exit_at": "2026-10-23T19:35:07.701698+09:00",
+      "exit_price": 17.6,
+      "sell_fee_krw": 152.1479199217766,
+      "net_proceeds_krw": 304143.6919236314,
+      "pnl_krw": 8048.995824416808,
+      "return_pct": 2.718385682166957,
+      "exit_reason": "PROFIT_PROTECTION"
     }
   },
   "closed_positions": [
@@ -459,9 +466,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": -55481.79197499121,
-  "lifetime_realized_pnl_krw": -71103.00757813279,
-  "updated_at": "2026-10-23T19:20:05.216775+09:00",
+  "realized_pnl_krw": -47432.7961505744,
+  "lifetime_realized_pnl_krw": -63054.01175371598,
+  "updated_at": "2026-10-23T19:35:07.703093+09:00",
   "cohort_id": "2026-10-23-VPD-0730",
   "cohort_date": "2026-10-23",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
