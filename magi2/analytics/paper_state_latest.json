@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 873803.9582549329,
+  "cash_krw": 1155402.5007230407,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -59,7 +59,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 88.0,
+      "last_price": 88.7,
       "peak_price": 93.4,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -87,7 +87,7 @@
     },
     "ARDR": {
       "market": "KRW-ARDR",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-22T21:22:24.027413+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-22-VPD-2117",
@@ -108,7 +108,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 35.1,
+      "last_price": 34.8,
       "peak_price": 37.5,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -132,7 +132,14 @@
       "hold_signal_checked_at": "2026-10-23T07:33:35.177294+09:00",
       "hold_state": "TREND",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-23T10:07:29.360752+09:00",
+      "exit_price": 34.8,
+      "sell_fee_krw": 140.86970608709737,
+      "net_proceeds_krw": 281598.54246810765,
+      "pnl_krw": -18401.457531892345,
+      "return_pct": -6.13381917729745,
+      "exit_reason": "HARD_STOP"
     },
     "ARKM": {
       "market": "KRW-ARKM",
@@ -445,9 +452,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": -18385.433943496377,
-  "lifetime_realized_pnl_krw": -34006.64954663796,
-  "updated_at": "2026-10-23T09:42:22.872481+09:00",
+  "realized_pnl_krw": -36786.89147538872,
+  "lifetime_realized_pnl_krw": -52408.1070785303,
+  "updated_at": "2026-10-23T10:07:29.361314+09:00",
   "cohort_id": "2026-10-23-VPD-0730",
   "cohort_date": "2026-10-23",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
