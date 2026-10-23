@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 1155402.5007230407,
+  "cash_krw": 1436707.600223438,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -31,7 +31,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 17.3,
+      "last_price": 17.2,
       "peak_price": 17.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -59,7 +59,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 88.7,
+      "last_price": 87.9,
       "peak_price": 93.4,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -143,7 +143,7 @@
     },
     "ARKM": {
       "market": "KRW-ARKM",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-22T21:22:24.027452+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-22-VPD-2117",
@@ -164,7 +164,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 173.0,
+      "last_price": 171.0,
       "peak_price": 183.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -188,7 +188,14 @@
       "hold_signal_checked_at": "2026-10-23T07:33:35.177375+09:00",
       "hold_state": "TREND",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-23T10:22:34.386933+09:00",
+      "exit_price": 171.0,
+      "sell_fee_krw": 140.72291120580164,
+      "net_proceeds_krw": 281305.0995003975,
+      "pnl_krw": -18694.90049960249,
+      "return_pct": -6.231633499867495,
+      "exit_reason": "HARD_STOP"
     },
     "WAVES": {
       "market": "KRW-WAVES",
@@ -452,9 +459,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": -36786.89147538872,
-  "lifetime_realized_pnl_krw": -52408.1070785303,
-  "updated_at": "2026-10-23T10:07:29.361314+09:00",
+  "realized_pnl_krw": -55481.79197499121,
+  "lifetime_realized_pnl_krw": -71103.00757813279,
+  "updated_at": "2026-10-23T10:22:34.387364+09:00",
   "cohort_id": "2026-10-23-VPD-0730",
   "cohort_date": "2026-10-23",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
