@@ -369,6 +369,8 @@ class Observer:
                          confirmation_rise_bps=(quote[1]/first_price-1)*10000)
             else:
                 self.first_condition.pop(s, None)
+            if qualifies and self.paper and hasattr(self.paper, 'observe_early'):
+                self.paper.observe_early(s, max(end, self.received_ms), f)
             if self.experiment:
                 experiment_rows.append((s, f, quote[1] if quote else None, qualifies, old, list(self.bars[s])))
             if not qualifies:
@@ -466,8 +468,8 @@ async def run(args):
     print(json.dumps(dict(mode='STORAGE_POLICY', turnover='lossless_float64_days',
                           migration_batch=4096, retention_days=10, external_transfer=False)), flush=True)
     if getattr(args, 'paper_db', None):
-        from magi1.fast_paper import Paper
-        observer.paper = Paper(args.paper_db, now_ms())
+        from magi1.fast_dayhold import DayHoldPaper
+        observer.paper = DayHoldPaper(args.paper_db, now_ms())
         observer.paper.diagnostics = bool(getattr(args, 'diagnostics', False))
         # Bounded, read-only startup evidence: preserve original capture times
         # while allowing operators to audit old exclusions after a policy update.
@@ -531,6 +533,9 @@ async def run(args):
                     await asyncio.sleep(backoff); backoff = min(30, backoff*2)
         tasks = [];repair_task=None;bollinger_task=None;models_task=None;universe_task=None
         try:
+            if observer.paper:
+                from magi1.fast_dayhold import monitor_btc
+                tasks.append(asyncio.create_task(monitor_btc(session, observer)))
             if observer.models:
                 models_task=asyncio.create_task(observer.models.run(session,symbols))
                 tasks.append(models_task)

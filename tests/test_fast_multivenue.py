@@ -115,6 +115,7 @@ class AccountTests(unittest.TestCase):
             path=Path(root)/'paper.db'
             paper=account(path,T,'binance',dict(bid=1300,ask=1300,ts=T))
             self.assertAlmostEqual(paper.s['cash'],3000000/1300)
+            paper.set_regime(dict(state='NEUTRAL',ts=T))
             paper.signal('BTCUSDT',T+1,100,99,{})
             self.assertIn('BTCUSDT',paper.s['pending'])
             original=paper.policy
