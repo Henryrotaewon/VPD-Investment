@@ -19,6 +19,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python -m compileall -q magi2
+      - run: python -m unittest tests.test_fast_dayhold tests.test_fast_capture_alerts -v
       - run: python -m unittest tests.test_storage_efficiency magi1.tests.test_archive_oauth -v
       - run: python -m unittest tests.test_fast_multivenue tests.test_bear_native_signals -v
       - run: python -m unittest tests.test_capture_audit -v

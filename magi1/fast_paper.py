@@ -61,7 +61,7 @@ class Paper:
             self.event(stamp, 'POLICY_UPDATED', '', dict(previous=self.s['policy'], current=self.policy))
             self.s['policy'] = dict(self.policy)
         elif self.s['policy'] != self.policy:
-            raise ValueError('FAST_PAPER_POLICY_MISMATCH')
+            self.migrate_policy(self.s['policy'], stamp)
         self.books = {}
         self.trades = {}
         self.diagnostics = False
@@ -71,6 +71,12 @@ class Paper:
             self.gap(set(self.s['pending']) | set(self.s['positions']) | set(self.s.get('exit_reviews', {})), stamp, 'RESTART')
         self.event(stamp, 'START', '', dict(policy=self.policy, restored=bool(row)))
         self.save(stamp)
+
+    def migrate_policy(self, previous, stamp):
+        raise ValueError('FAST_PAPER_POLICY_MISMATCH')
+
+    def position_opened(self, symbol, ts, order):
+        """Strategy hook after a real paper fill, before its diagnostic is written."""
 
     def event(self, ts, kind, symbol, payload):
         self.db.execute('INSERT INTO events(ts,kind,symbol,payload) VALUES(?,?,?,?)',
@@ -249,6 +255,7 @@ class Paper:
             value=0., volume=0., negative_windows=0, minute_lows=[], exit=None,
             mark=book['bp'] * (1-self.policy['slip']) * (1-self.policy['fee']), mark_ms=ts,
             uncertain=False, total_pnl=0., last_sell_stamp=-1)
+        self.position_opened(symbol, ts, order)
         if self.diagnostics:
             evidence = order.get('diagnostic', {})
             p = self.s['positions'][symbol]
@@ -260,7 +267,7 @@ class Paper:
                 confirmation_delay_ms=evidence.get('confirmation_delay_ms'),
                 confirmation_rise_bps=evidence.get('confirmation_rise_bps'),
                 entry_rise_bps=(price/order['reference']-1)*10000,
-                stop_distance_bps=(1-order['stop']/price)*10000,
+                stop_distance_bps=(1-p['stop']/price)*10000,
                 spread_bps=(book['ap']/book['bp']-1)*10000)
             self.mark_diagnostic(p, book)
             p['diagnostic']['immediate_exit_net_pct'] = p['diagnostic']['worst_exit_net_pct']

@@ -54,9 +54,13 @@ def view(state_dir, section='fast_paper'):
             lines = ['⚡ FAST 모의투자 [PAPER]', '검증 후보: '+policy['version'],
                      f"시작 {clock(s['started_ms'])} · 갱신 {max(0,now-s['updated_ms'])//1000}초 전"]
             if s.get('entries_paused'):lines.append('⏸ 포착·신규 매매 중지 · 기존 보유 보호청산만 유지')
-            if not s.get('entries_paused'):lines.append(f"매수가 상한: 새 포착가 +{policy['entry_cap']*100:g}% · 대기 10초")
+            if not s.get('entries_paused'):lines.append(f"매수가 상한: 기준 신호가 +{policy['entry_cap']*100:g}% · 대기 10초")
             if policy.get('retry_unfilled') and not s.get('entries_paused'):
                 lines.append('미체결: 새 신호 재시도 · 매수 체결 후 당일 재매수 금지 (09시 기준)')
+            if policy['version'].startswith('fast-dayhold'):
+                lines += ['하루 보유형 · 기본 TP +12% / SL −4% (순손익)',
+                          'BTC 상승 +15%/−4% · 하락 +8%/−3% · 최대 24시간',
+                          'SL 접근 + 매도세 지속·반등 실패 시 조기청산 · SL 완화 없음']
             if now-s['updated_ms'] > 30000:
                 lines.append('⚠ 원장 갱신 지연 · 아래 평가는 마지막 관측 기준')
             if section == 'fast_paper_daily':
@@ -85,6 +89,8 @@ def view(state_dir, section='fast_paper'):
                     ret = (p['qty']*p['mark']/p['cost']-1)*100
                     suffix = ' · 시세 지연' if now-p['mark_ms']>2000 else ''
                     if p.get('exit'): suffix += ' · 매도 대기'
+                    elif p.get('warning'): suffix += ' · SL 접근 매도 준비'
+                    if p.get('risk'): suffix += f" · TP +{p['risk']['tp']*100:g}% / SL −{p['risk']['sl']*100:g}% · 만료 {clock(p['entry_ms']+86400000)}"
                     lines.append(f"{symbol} | {quantity(p['qty'])}개 | 원가 {p['cost']:,.0f}원 | 순평가 {ret:+.2f}% | 보호 {price_text(p['stop'])}{suffix}")
                 if not positions and not pending: lines.append('중지 상태 · 전액 현금' if s.get('entries_paused') else '새 신호 대기 · 10종목 강제 매수 없음')
             if section not in ('fast_paper_orders', 'fast_paper_daily') and not s.get('review_segment'):
@@ -119,6 +125,12 @@ def experiment_summary(directory, now):
 
 
 REASONS = {
+    'DAYHOLD_HARD_SL': '하루 보유형 손절선 도달',
+    'DAYHOLD_TAKE_PROFIT': 'BTC 국면별 목표 순수익 도달',
+    'DAYHOLD_24H_LIMIT': '매수 후 최대 24시간 도달',
+    'DAYHOLD_SL_APPROACH_FAILED_RECOVERY': 'SL 접근 후 매도세 지속·반등 실패',
+    'BTC_UNAVAILABLE': 'BTC 국면 자료 갱신 대기',
+    'BTC_SHOCK': 'BTC 급락으로 신규 매수 중지',
     'USER_STOPPED': '사용자 요청으로 신규 매수 중지',
     'PROTECTION': '보호선 도달(초기·추적 보호선)',
     'NET_SELL_20S_BELOW_VWAP': '20초 순매도 + 진입 후 평균체결가(VWAP) 하회',

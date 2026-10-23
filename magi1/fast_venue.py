@@ -282,7 +282,8 @@ def account(path, stamp, venue, fx):
                       currency=CURRENCY[venue], initial=3000000. / fx['ask'],
                       initial_krw=3000000., initial_fx_krw=fx['ask'], fee=FEES[venue],
                       min_budget=5000 if venue == 'bithumb' else 5.)
-    return Paper(path, stamp, policy=policy)
+    from magi1.fast_dayhold import DayHoldPaper
+    return DayHoldPaper(path, stamp, legacy_policy=policy)
 
 
 class VenueObserver(Observer):
@@ -321,6 +322,8 @@ async def run(args):
     async with aiohttp.ClientSession() as session:
         try:
             symbols = await discover(session, args.venue)
+            from magi1.fast_dayhold import monitor_btc
+            tasks.append(asyncio.create_task(monitor_btc(session, observer)))
             if Path(args.paper_db).exists():
                 # Existing native-currency balances do not depend on a new FX
                 # quote to resume feed protection and liquidation tracking.
