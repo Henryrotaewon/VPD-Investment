@@ -850,8 +850,11 @@ def main():
     global FAST_MONITOR,FAST_PAPER,WAVE_CLIENT,FAST_OBSERVE_SERVICE,CAPTURE_AUDIT
     prepare_persistent_state()
     from magi2.fast_observe_service import Service as ObserveService
-    from magi2.fast_capture_alerts import Service as CaptureAlertService
-    CaptureAlertService(STATE_DIR,log,send_audit_report).start()
+    if os.getenv('MAGI2_FAST_CAPTURE_ALERTS_ENABLED','true').strip().lower() in ('1','true','yes','on'):
+        from magi2.fast_capture_alerts import Service as CaptureAlertService
+        CaptureAlertService(STATE_DIR,log,send_audit_report).start()
+    else:
+        log('fast_capture_alerts_disabled observer_and_paper_unchanged=true')
     FAST_OBSERVE_SERVICE=ObserveService(STATE_DIR,log).start()
     from magi2.fast_reset import reset_once
     reset_once(STATE_DIR,log)
