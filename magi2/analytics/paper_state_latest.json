@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 628541.990362006,
+  "cash_krw": 926377.0320352754,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -31,7 +31,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 16.9,
+      "last_price": 16.8,
       "peak_price": 17.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -498,7 +498,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1345.0,
+      "last_price": 1346.0,
       "peak_price": 1346.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -561,7 +561,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 864.0,
+      "last_price": 866.0,
       "peak_price": 906.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -589,7 +589,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 34.3,
+      "last_price": 33.7,
       "peak_price": 34.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -617,7 +617,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 60.1,
+      "last_price": 58.5,
       "peak_price": 61.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -645,10 +645,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 78.5,
+      "last_price": 77.3,
       "peak_price": 80.7,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "ZKC": {
       "market": "KRW-ZKC",
@@ -708,14 +708,14 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 29.3,
+      "last_price": 28.7,
       "peak_price": 30.8,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "IN": {
       "market": "KRW-IN",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-24T20:12:14.778119+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-10-24-REFILL-201214",
@@ -736,10 +736,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 48.9,
+      "last_price": 46.6,
       "peak_price": 48.9,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "exit_at": "2026-10-24T23:18:43.475780+09:00",
+      "exit_price": 46.6,
+      "sell_fee_krw": 148.99201684505718,
+      "net_proceeds_krw": 297835.0416732693,
+      "pnl_krw": 8369.625906820467,
+      "return_pct": 2.8914079026191475,
+      "exit_reason": "PROFIT_PROTECTION"
     }
   },
   "closed_positions": [
@@ -780,9 +787,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": 13948.608580077474,
-  "lifetime_realized_pnl_krw": -49105.40317363851,
-  "updated_at": "2026-10-24T23:13:39.963871+09:00",
+  "realized_pnl_krw": 22318.23448689794,
+  "lifetime_realized_pnl_krw": -40735.77726681804,
+  "updated_at": "2026-10-24T23:18:44.720167+09:00",
   "cohort_id": "2026-10-24-VPD-0730",
   "cohort_date": "2026-10-24",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
