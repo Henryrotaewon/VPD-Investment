@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 1439195.125653459,
+  "cash_krw": 1740119.3004485182,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -83,7 +83,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 92.8,
+      "last_price": 91.9,
       "peak_price": 93.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -498,7 +498,7 @@
     },
     "HYPER": {
       "market": "KRW-HYPER",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-24T07:33:12.395846+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-24-VPD-0730",
@@ -519,10 +519,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 92.6,
+      "last_price": 90.0,
       "peak_price": 92.6,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "exit_at": "2026-10-24T19:54:30.070448+09:00",
+      "exit_price": 90.0,
+      "sell_fee_krw": 150.53735607556737,
+      "net_proceeds_krw": 300924.1747950592,
+      "pnl_krw": 11458.759028610366,
+      "return_pct": 3.9585934638408427,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "PROS": {
       "market": "KRW-PROS",
@@ -591,9 +598,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": -33259.91919426451,
-  "lifetime_realized_pnl_krw": -96313.9309479805,
-  "updated_at": "2026-10-24T19:44:26.994936+09:00",
+  "realized_pnl_krw": -21801.160165654146,
+  "lifetime_realized_pnl_krw": -84855.17191937013,
+  "updated_at": "2026-10-24T19:54:30.071585+09:00",
   "cohort_id": "2026-10-24-VPD-0730",
   "cohort_date": "2026-10-24",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
