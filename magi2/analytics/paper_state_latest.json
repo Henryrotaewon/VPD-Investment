@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 331424.25343476195,
+  "cash_krw": 628541.990362006,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -62,7 +62,7 @@
     },
     "ELF": {
       "market": "KRW-ELF",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-22T21:22:24.027300+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-22-VPD-2117",
@@ -83,7 +83,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 98.8,
+      "last_price": 91.1,
       "peak_price": 98.8,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -107,7 +107,14 @@
       "hold_signal_checked_at": "2026-10-24T07:33:12.185056+09:00",
       "hold_state": "TREND",
       "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-24T21:18:05.393801+09:00",
+      "exit_price": 91.1,
+      "sell_fee_krw": 148.63318505615007,
+      "net_proceeds_krw": 297117.736927244,
+      "pnl_krw": -2882.2630727560027,
+      "return_pct": -0.9607543575853361,
+      "exit_reason": "PROFIT_PROTECTION"
     },
     "ARDR": {
       "market": "KRW-ARDR",
@@ -773,9 +780,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": 16830.871652833477,
-  "lifetime_realized_pnl_krw": -46223.140100882505,
-  "updated_at": "2026-10-24T21:13:03.880658+09:00",
+  "realized_pnl_krw": 13948.608580077474,
+  "lifetime_realized_pnl_krw": -49105.40317363851,
+  "updated_at": "2026-10-24T21:18:05.394410+09:00",
   "cohort_id": "2026-10-24-VPD-0730",
   "cohort_date": "2026-10-24",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
