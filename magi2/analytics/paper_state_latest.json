@@ -31,7 +31,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 17.0,
+      "last_price": 17.1,
       "peak_price": 17.6,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -561,7 +561,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 864.0,
+      "last_price": 858.0,
       "peak_price": 906.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -589,8 +589,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 34.5,
-      "peak_price": 34.6,
+      "last_price": 34.7,
+      "peak_price": 34.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     },
@@ -617,7 +617,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 59.0,
+      "last_price": 60.3,
       "peak_price": 61.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -645,7 +645,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 78.5,
+      "last_price": 78.7,
       "peak_price": 80.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -708,7 +708,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 29.9,
+      "last_price": 29.7,
       "peak_price": 30.8,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -736,8 +736,8 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 48.6,
-      "peak_price": 48.6,
+      "last_price": 48.8,
+      "peak_price": 48.8,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     }
@@ -782,7 +782,7 @@
   ],
   "realized_pnl_krw": 13948.608580077474,
   "lifetime_realized_pnl_krw": -49105.40317363851,
-  "updated_at": "2026-10-24T22:48:31.446795+09:00",
+  "updated_at": "2026-10-24T23:08:39.268170+09:00",
   "cohort_id": "2026-10-24-VPD-0730",
   "cohort_date": "2026-10-24",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
