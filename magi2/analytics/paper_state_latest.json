@@ -589,7 +589,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 33.7,
+      "last_price": 34.4,
       "peak_price": 34.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -617,7 +617,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 58.5,
+      "last_price": 59.0,
       "peak_price": 61.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -645,10 +645,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 77.3,
+      "last_price": 78.5,
       "peak_price": 80.7,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": false
     },
     "ZKC": {
       "market": "KRW-ZKC",
@@ -708,7 +708,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 28.7,
+      "last_price": 29.1,
       "peak_price": 30.8,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -789,7 +789,7 @@
   ],
   "realized_pnl_krw": 22318.23448689794,
   "lifetime_realized_pnl_krw": -40735.77726681804,
-  "updated_at": "2026-10-24T23:18:44.720167+09:00",
+  "updated_at": "2026-10-24T23:23:43.123713+09:00",
   "cohort_id": "2026-10-24-VPD-0730",
   "cohort_date": "2026-10-24",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
