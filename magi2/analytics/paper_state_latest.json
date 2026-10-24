@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 926377.0320352754,
+  "cash_krw": 1198102.6235333884,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -589,7 +589,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 34.4,
+      "last_price": 34.0,
       "peak_price": 34.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -617,7 +617,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 59.0,
+      "last_price": 58.6,
       "peak_price": 61.2,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -645,7 +645,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 78.5,
+      "last_price": 78.1,
       "peak_price": 80.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -687,7 +687,7 @@
     },
     "SONIC": {
       "market": "KRW-SONIC",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-24T20:12:14.778098+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-10-24-REFILL-201214",
@@ -708,10 +708,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 29.1,
+      "last_price": 28.5,
       "peak_price": 30.8,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-10-24T23:28:44.590312+09:00",
+      "exit_price": 28.5,
+      "sell_fee_krw": 135.93076112962126,
+      "net_proceeds_krw": 271725.59149811295,
+      "pnl_krw": -17739.824268335884,
+      "return_pct": -6.12847798116547,
+      "exit_reason": "HARD_STOP"
     },
     "IN": {
       "market": "KRW-IN",
@@ -787,9 +794,9 @@
       "coin": "BOUNTY"
     }
   ],
-  "realized_pnl_krw": 22318.23448689794,
-  "lifetime_realized_pnl_krw": -40735.77726681804,
-  "updated_at": "2026-10-24T23:23:43.123713+09:00",
+  "realized_pnl_krw": 4578.410218562058,
+  "lifetime_realized_pnl_krw": -58475.601535153924,
+  "updated_at": "2026-10-24T23:28:44.590812+09:00",
   "cohort_id": "2026-10-24-VPD-0730",
   "cohort_date": "2026-10-24",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
