@@ -644,7 +644,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 33.9,
+      "last_price": 33.5,
       "peak_price": 34.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -742,7 +742,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 78.4,
+      "last_price": 78.3,
       "peak_price": 80.7,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -826,7 +826,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 29.1,
+      "last_price": 28.9,
       "peak_price": 31.8,
       "tp_warning_sent": false,
       "sl_warning_sent": true
@@ -889,7 +889,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 6.8,
+      "last_price": 6.81,
       "peak_price": 7.01,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -952,10 +952,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 4.15,
+      "last_price": 4.12,
       "peak_price": 4.36,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "LAYER": {
       "market": "KRW-LAYER",
@@ -980,7 +980,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 87.9,
+      "last_price": 88.1,
       "peak_price": 90.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -1062,7 +1062,7 @@
   ],
   "realized_pnl_krw": -22834.663946287415,
   "lifetime_realized_pnl_krw": -81310.26548144134,
-  "updated_at": "2026-10-25T10:22:11.976392+09:00",
+  "updated_at": "2026-10-25T10:32:17.090586+09:00",
   "cohort_id": "2026-10-25-VPD-0730",
   "cohort_date": "2026-10-25",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
