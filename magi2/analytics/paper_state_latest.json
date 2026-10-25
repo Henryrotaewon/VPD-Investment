@@ -756,7 +756,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 77.1,
+      "last_price": 76.7,
       "peak_price": 80.7,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -910,10 +910,10 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 6.75,
+      "last_price": 6.67,
       "peak_price": 7.01,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": true
     },
     "MIRA": {
       "market": "KRW-MIRA",
@@ -1008,7 +1008,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 87.7,
+      "last_price": 87.4,
       "peak_price": 90.4,
       "tp_warning_sent": false,
       "sl_warning_sent": false
@@ -1090,7 +1090,7 @@
   ],
   "realized_pnl_krw": -97095.49563616602,
   "lifetime_realized_pnl_krw": -155571.09717131994,
-  "updated_at": "2026-10-25T17:34:05.837454+09:00",
+  "updated_at": "2026-10-25T17:54:11.732913+09:00",
   "cohort_id": "2026-10-25-VPD-0730",
   "cohort_date": "2026-10-25",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
