@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 1101189.1722835796,
+  "cash_krw": 1379972.7789907665,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -756,7 +756,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 77.4,
+      "last_price": 77.1,
       "peak_price": 80.7,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -819,7 +819,7 @@
     },
     "SONIC": {
       "market": "KRW-SONIC",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-25T07:33:42.780548+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-25-VPD-0730",
@@ -840,10 +840,17 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 28.9,
+      "last_price": 28.4,
       "peak_price": 31.8,
       "tp_warning_sent": false,
-      "sl_warning_sent": true
+      "sl_warning_sent": true,
+      "exit_at": "2026-10-25T17:34:05.836328+09:00",
+      "exit_price": 28.4,
+      "sell_fee_krw": 139.4615341206538,
+      "net_proceeds_krw": 278783.6067071869,
+      "pnl_krw": -19246.331562097243,
+      "return_pct": -6.45785174263509,
+      "exit_reason": "HARD_STOP"
     },
     "IN": {
       "market": "KRW-IN",
@@ -1081,9 +1088,9 @@
       "coin": "SONIC"
     }
   ],
-  "realized_pnl_krw": -77849.16407406877,
-  "lifetime_realized_pnl_krw": -136324.7656092227,
-  "updated_at": "2026-10-25T17:19:02.800196+09:00",
+  "realized_pnl_krw": -97095.49563616602,
+  "lifetime_realized_pnl_krw": -155571.09717131994,
+  "updated_at": "2026-10-25T17:34:05.837454+09:00",
   "cohort_id": "2026-10-25-VPD-0730",
   "cohort_date": "2026-10-25",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
