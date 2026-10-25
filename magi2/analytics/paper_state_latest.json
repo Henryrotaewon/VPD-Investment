@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 558044.7298716883,
+  "cash_krw": 829238.4004486878,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -505,7 +505,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 1347.0,
+      "last_price": 1345.0,
       "peak_price": 1350.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
@@ -571,7 +571,7 @@
     },
     "PROS": {
       "market": "KRW-PROS",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-24T07:33:12.395885+09:00",
       "entry_session": "REQUEST",
       "entry_session_id": "2026-10-24-VPD-0730",
@@ -592,7 +592,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 851.0,
+      "last_price": 843.0,
       "peak_price": 906.0,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -619,7 +619,14 @@
       "weakening_count": 1,
       "hold_state": "WEAKENING",
       "weakening_since": "2026-10-25T07:30:00+09:00",
-      "weakening_policy": "TREND_PROFIT_V2"
+      "weakening_policy": "TREND_PROFIT_V2",
+      "exit_at": "2026-10-25T15:43:37.968466+09:00",
+      "exit_price": 843.0,
+      "sell_fee_krw": 135.6646676223109,
+      "net_proceeds_krw": 271193.6705769995,
+      "pnl_krw": -18271.745189449342,
+      "return_pct": -6.312237730047743,
+      "exit_reason": "HARD_STOP"
     },
     "YGG": {
       "market": "KRW-YGG",
@@ -1067,9 +1074,9 @@
       "coin": "SONIC"
     }
   ],
-  "realized_pnl_krw": -42062.774953062355,
-  "lifetime_realized_pnl_krw": -100538.37648821628,
-  "updated_at": "2026-10-25T14:53:27.045259+09:00",
+  "realized_pnl_krw": -60334.5201425117,
+  "lifetime_realized_pnl_krw": -118810.12167766562,
+  "updated_at": "2026-10-25T15:43:37.968848+09:00",
   "cohort_id": "2026-10-25-VPD-0730",
   "cohort_date": "2026-10-25",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
