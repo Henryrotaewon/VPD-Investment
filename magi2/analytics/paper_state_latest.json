@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 550073.1050154483,
+  "cash_krw": 275036.55250772415,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -759,8 +759,8 @@
       "first_selected_date": "2026-10-24",
       "last_selected_date": "2026-10-26",
       "consecutive_top10_days": 3,
-      "signal_rank": 3.0,
-      "signal_vpd": 91.0,
+      "signal_rank": 57.0,
+      "signal_vpd": 52.0,
       "signal_entry_score": null,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 80.7,
@@ -779,25 +779,28 @@
       "sl_warning_sent": false,
       "hold_assessment": {
         "observed_peak_price": 81.7,
-        "net_return_pct": -0.07577480921552304,
+        "net_return_pct": -1.6874558606797652,
         "peak_net_return_pct": 1.2879553112542519,
-        "profit_giveback_pct_point": 1.363730120469775,
-        "kind": "TREND",
+        "profit_giveback_pct_point": 2.975411171934017,
+        "kind": "WEAKENING",
         "reasons": [
-          "모멘텀 ↑",
-          "거래대금 9.58배 / 가속 5.25배"
+          "모멘텀 →",
+          "거래대금 0.99배 / 가속 0.38배",
+          "상승 추세 또는 거래대금 지지 부족"
         ],
         "policy": "TREND_PROFIT_V2",
-        "asof": "2026-10-26T07:30:00+09:00"
+        "asof": "2026-10-27T07:30:00+09:00"
       },
       "hold_signal_reasons": [
-        "모멘텀 ↑",
-        "거래대금 9.58배 / 가속 5.25배"
+        "모멘텀 →",
+        "거래대금 0.99배 / 가속 0.38배",
+        "상승 추세 또는 거래대금 지지 부족"
       ],
-      "hold_signal_checked_at": "2026-10-26T07:33:34.681098+09:00",
-      "hold_state": "TREND",
-      "weakening_count": 0,
-      "weakening_policy": "TREND_PROFIT_V2"
+      "hold_signal_checked_at": "2026-10-27T07:32:33.224913+09:00",
+      "hold_state": "WEAKENING",
+      "weakening_count": 1,
+      "weakening_policy": "TREND_PROFIT_V2",
+      "weakening_since": "2026-10-27T07:30:00+09:00"
     },
     "ZKC": {
       "market": "KRW-ZKC",
@@ -913,8 +916,8 @@
       "first_selected_date": "2026-10-25",
       "last_selected_date": "2026-10-25",
       "consecutive_top10_days": 1,
-      "signal_rank": 16.0,
-      "signal_vpd": 85.0,
+      "signal_rank": 45.0,
+      "signal_vpd": 59.0,
       "signal_entry_score": 68.08,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 6.94,
@@ -927,33 +930,30 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 7.01,
+      "last_price": 6.99,
       "peak_price": 7.08,
       "tp_warning_sent": false,
       "sl_warning_sent": false,
       "hold_assessment": {
-        "observed_peak_price": 7.05,
-        "net_return_pct": -0.056152793093644515,
-        "peak_net_return_pct": 1.2362245414784034,
-        "profit_giveback_pct_point": 1.292377334572048,
-        "kind": "WEAKENING",
+        "observed_peak_price": 7.08,
+        "net_return_pct": 0.3746396517637196,
+        "peak_net_return_pct": 1.6670169863357787,
+        "profit_giveback_pct_point": 1.292377334572059,
+        "kind": "TREND",
         "reasons": [
-          "모멘텀 →",
-          "거래대금 3.62배 / 가속 1.70배",
-          "상승 추세 또는 거래대금 지지 부족"
+          "모멘텀 ↑↑",
+          "거래대금 1.13배 / 가속 0.42배"
         ],
         "policy": "TREND_PROFIT_V2",
-        "asof": "2026-10-26T07:30:00+09:00"
+        "asof": "2026-10-27T07:30:00+09:00"
       },
       "hold_signal_reasons": [
-        "모멘텀 →",
-        "거래대금 3.62배 / 가속 1.70배",
-        "상승 추세 또는 거래대금 지지 부족"
+        "모멘텀 ↑↑",
+        "거래대금 1.13배 / 가속 0.42배"
       ],
-      "hold_signal_checked_at": "2026-10-26T07:33:34.681196+09:00",
-      "weakening_count": 1,
-      "hold_state": "WEAKENING",
-      "weakening_since": "2026-10-26T07:30:00+09:00",
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225188+09:00",
+      "weakening_count": 0,
+      "hold_state": "TREND",
       "weakening_policy": "TREND_PROFIT_V2"
     },
     "MIRA": {
@@ -1035,8 +1035,8 @@
       "first_selected_date": "2026-10-25",
       "last_selected_date": "2026-10-25",
       "consecutive_top10_days": 1,
-      "signal_rank": 59.0,
-      "signal_vpd": 73.0,
+      "signal_rank": 39.0,
+      "signal_vpd": 60.0,
       "signal_entry_score": 58.23,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 89.3,
@@ -1049,33 +1049,30 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 86.1,
+      "last_price": 86.2,
       "peak_price": 90.4,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
       "hold_assessment": {
         "observed_peak_price": 90.4,
-        "net_return_pct": -1.6526094532443802,
+        "net_return_pct": -3.6642606235189223,
         "peak_net_return_pct": 1.0295921071216796,
-        "profit_giveback_pct_point": 2.68220156036606,
-        "kind": "WEAKENING",
+        "profit_giveback_pct_point": 4.693852730640602,
+        "kind": "TREND",
         "reasons": [
-          "모멘텀 →",
-          "거래대금 1.81배 / 가속 1.03배",
-          "상승 추세 또는 거래대금 지지 부족"
+          "모멘텀 ↑",
+          "거래대금 1.15배 / 가속 0.55배"
         ],
         "policy": "TREND_PROFIT_V2",
-        "asof": "2026-10-26T07:30:00+09:00"
+        "asof": "2026-10-27T07:30:00+09:00"
       },
       "hold_signal_reasons": [
-        "모멘텀 →",
-        "거래대금 1.81배 / 가속 1.03배",
-        "상승 추세 또는 거래대금 지지 부족"
+        "모멘텀 ↑",
+        "거래대금 1.15배 / 가속 0.55배"
       ],
-      "hold_signal_checked_at": "2026-10-26T07:33:34.681276+09:00",
-      "weakening_count": 1,
-      "hold_state": "WEAKENING",
-      "weakening_since": "2026-10-26T07:30:00+09:00",
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225256+09:00",
+      "weakening_count": 0,
+      "hold_state": "TREND",
       "weakening_policy": "TREND_PROFIT_V2"
     },
     "ASTR": {
@@ -1087,8 +1084,8 @@
       "first_selected_date": "2026-10-26",
       "last_selected_date": "2026-10-26",
       "consecutive_top10_days": 1,
-      "signal_rank": 2,
-      "signal_vpd": 91.0,
+      "signal_rank": 16.0,
+      "signal_vpd": 73.0,
       "signal_entry_score": 65.29,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 8.38,
@@ -1101,10 +1098,31 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 8.81,
+      "last_price": 8.6,
       "peak_price": 8.81,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_assessment": {
+        "observed_peak_price": 8.81,
+        "net_return_pct": 2.4203040140179155,
+        "peak_net_return_pct": 4.9212649259881225,
+        "profit_giveback_pct_point": 2.500960911970207,
+        "kind": "TREND",
+        "reasons": [
+          "모멘텀 ↑↑",
+          "거래대금 2.42배 / 가속 1.03배"
+        ],
+        "policy": "TREND_PROFIT_V2",
+        "asof": "2026-10-27T07:30:00+09:00"
+      },
+      "hold_signal_reasons": [
+        "모멘텀 ↑↑",
+        "거래대금 2.42배 / 가속 1.03배"
+      ],
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225310+09:00",
+      "hold_state": "TREND",
+      "weakening_count": 0,
+      "weakening_policy": "TREND_PROFIT_V2"
     },
     "CBK": {
       "market": "KRW-CBK",
@@ -1115,8 +1133,8 @@
       "first_selected_date": "2026-10-26",
       "last_selected_date": "2026-10-26",
       "consecutive_top10_days": 1,
-      "signal_rank": 9,
-      "signal_vpd": 87.0,
+      "signal_rank": 106.0,
+      "signal_vpd": 43.0,
       "signal_entry_score": 62.17,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 270.0,
@@ -1129,10 +1147,34 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 263.0,
+      "last_price": 265.0,
       "peak_price": 271.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_assessment": {
+        "observed_peak_price": 271.0,
+        "net_return_pct": -2.0479030474032767,
+        "peak_net_return_pct": 0.1698802798253407,
+        "profit_giveback_pct_point": 2.2177833272286174,
+        "kind": "WEAKENING",
+        "reasons": [
+          "모멘텀 →",
+          "거래대금 0.55배 / 가속 0.21배",
+          "상승 추세 또는 거래대금 지지 부족"
+        ],
+        "policy": "TREND_PROFIT_V2",
+        "asof": "2026-10-27T07:30:00+09:00"
+      },
+      "hold_signal_reasons": [
+        "모멘텀 →",
+        "거래대금 0.55배 / 가속 0.21배",
+        "상승 추세 또는 거래대금 지지 부족"
+      ],
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225342+09:00",
+      "weakening_count": 1,
+      "hold_state": "WEAKENING",
+      "weakening_since": "2026-10-27T07:30:00+09:00",
+      "weakening_policy": "TREND_PROFIT_V2"
     },
     "PUNDIX": {
       "market": "KRW-PUNDIX",
@@ -1143,8 +1185,8 @@
       "first_selected_date": "2026-10-26",
       "last_selected_date": "2026-10-26",
       "consecutive_top10_days": 1,
-      "signal_rank": 7,
-      "signal_vpd": 88.0,
+      "signal_rank": 63.0,
+      "signal_vpd": 50.0,
       "signal_entry_score": 61.56,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 139.0,
@@ -1160,7 +1202,31 @@
       "last_price": 140.0,
       "peak_price": 141.0,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_assessment": {
+        "observed_peak_price": 141.0,
+        "net_return_pct": 0.5182371333828151,
+        "peak_net_return_pct": 1.2362245414784256,
+        "profit_giveback_pct_point": 0.7179874080956106,
+        "kind": "WEAKENING",
+        "reasons": [
+          "모멘텀 ↑↑",
+          "거래대금 0.88배 / 가속 0.35배",
+          "상승 추세 또는 거래대금 지지 부족"
+        ],
+        "policy": "TREND_PROFIT_V2",
+        "asof": "2026-10-27T07:30:00+09:00"
+      },
+      "hold_signal_reasons": [
+        "모멘텀 ↑↑",
+        "거래대금 0.88배 / 가속 0.35배",
+        "상승 추세 또는 거래대금 지지 부족"
+      ],
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225392+09:00",
+      "weakening_count": 1,
+      "hold_state": "WEAKENING",
+      "weakening_since": "2026-10-27T07:30:00+09:00",
+      "weakening_policy": "TREND_PROFIT_V2"
     },
     "CVC": {
       "market": "KRW-CVC",
@@ -1171,8 +1237,8 @@
       "first_selected_date": "2026-10-26",
       "last_selected_date": "2026-10-26",
       "consecutive_top10_days": 1,
-      "signal_rank": 10,
-      "signal_vpd": 87.0,
+      "signal_rank": 52.0,
+      "signal_vpd": 54.0,
       "signal_entry_score": 60.86,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 31.9,
@@ -1185,10 +1251,31 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 32.5,
+      "last_price": 32.4,
       "peak_price": 32.9,
       "tp_warning_sent": false,
-      "sl_warning_sent": false
+      "sl_warning_sent": false,
+      "hold_assessment": {
+        "observed_peak_price": 32.9,
+        "net_return_pct": 0.7329623395422535,
+        "peak_net_return_pct": 2.287483363300602,
+        "profit_giveback_pct_point": 1.5545210237583484,
+        "kind": "TREND",
+        "reasons": [
+          "모멘텀 ↑",
+          "거래대금 1.21배 / 가속 0.44배"
+        ],
+        "policy": "TREND_PROFIT_V2",
+        "asof": "2026-10-27T07:30:00+09:00"
+      },
+      "hold_signal_reasons": [
+        "모멘텀 ↑",
+        "거래대금 1.21배 / 가속 0.44배"
+      ],
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225425+09:00",
+      "hold_state": "TREND",
+      "weakening_count": 0,
+      "weakening_policy": "TREND_PROFIT_V2"
     },
     "AGLD": {
       "market": "KRW-AGLD",
@@ -1199,8 +1286,8 @@
       "first_selected_date": "2026-10-26",
       "last_selected_date": "2026-10-26",
       "consecutive_top10_days": 1,
-      "signal_rank": 8,
-      "signal_vpd": 88.0,
+      "signal_rank": 25.0,
+      "signal_vpd": 67.0,
       "signal_entry_score": 56.36,
       "signal_entry_policy": "ENTRY_SCORE_V1_1",
       "signal_price": 237.0,
@@ -1215,6 +1302,58 @@
       "warning_profit_pct": 10.0,
       "last_price": 228.0,
       "peak_price": 238.0,
+      "tp_warning_sent": false,
+      "sl_warning_sent": false,
+      "hold_assessment": {
+        "observed_peak_price": 238.0,
+        "net_return_pct": -3.9896331756730574,
+        "peak_net_return_pct": 0.22134782539393605,
+        "profit_giveback_pct_point": 4.210981001066994,
+        "kind": "WEAKENING",
+        "reasons": [
+          "모멘텀 →",
+          "거래대금 1.77배 / 가속 0.83배",
+          "상승 추세 또는 거래대금 지지 부족"
+        ],
+        "policy": "TREND_PROFIT_V2",
+        "asof": "2026-10-27T07:30:00+09:00"
+      },
+      "hold_signal_reasons": [
+        "모멘텀 →",
+        "거래대금 1.77배 / 가속 0.83배",
+        "상승 추세 또는 거래대금 지지 부족"
+      ],
+      "hold_signal_checked_at": "2026-10-27T07:32:33.225465+09:00",
+      "weakening_count": 1,
+      "hold_state": "WEAKENING",
+      "weakening_since": "2026-10-27T07:30:00+09:00",
+      "weakening_policy": "TREND_PROFIT_V2"
+    },
+    "MET2": {
+      "market": "KRW-MET2",
+      "status": "OPEN",
+      "entry_at": "2026-10-27T07:32:33.225595+09:00",
+      "entry_session": "REQUEST",
+      "entry_session_id": "2026-10-27-VPD-0730",
+      "first_selected_date": "2026-10-27",
+      "last_selected_date": "2026-10-27",
+      "consecutive_top10_days": 1,
+      "signal_rank": 1,
+      "signal_vpd": 91.0,
+      "signal_entry_score": 64.21,
+      "signal_entry_policy": "ENTRY_SCORE_V1_1",
+      "signal_price": 428.0,
+      "entry_market_price": 426.0,
+      "entry_price": 426.42599999999993,
+      "buy_notional_krw": 274899.10295624606,
+      "buy_fee_krw": 137.4495514780865,
+      "qty": 644.6584001825548,
+      "cost_krw": 275036.55250772415,
+      "target_profit_pct": 12.0,
+      "stop_loss_pct": -6.0,
+      "warning_profit_pct": 10.0,
+      "last_price": 426.0,
+      "peak_price": 426.0,
       "tp_warning_sent": false,
       "sl_warning_sent": false
     }
@@ -1293,149 +1432,152 @@
       "coin": "SONIC"
     }
   ],
-  "realized_pnl_krw": -17934.193622771476,
+  "realized_pnl_krw": 0.0,
   "lifetime_realized_pnl_krw": -173505.29079409142,
-  "updated_at": "2026-10-27T07:14:17.729750+09:00",
-  "cohort_id": "2026-10-26-VPD-0730",
-  "cohort_date": "2026-10-26",
+  "updated_at": "2026-10-27T07:32:33.225681+09:00",
+  "cohort_id": "2026-10-27-VPD-0730",
+  "cohort_date": "2026-10-27",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
-  "last_rebalance_date": "2026-10-26",
-  "last_rebalance_vpd_asof": "2026-10-26T07:30:00+09:00",
-  "source_snapshot_asof_kst": "2026-10-26 07:30:00 KST",
+  "last_rebalance_date": "2026-10-27",
+  "last_rebalance_vpd_asof": "2026-10-27T07:30:00+09:00",
+  "source_snapshot_asof_kst": "2026-10-27 07:30:00 KST",
   "source_snapshot_revision": null,
-  "daily_equal_buy_krw": 278179.2623770889,
-  "daily_equal_buy_date": "2026-10-26",
+  "daily_equal_buy_krw": 275036.55250772415,
+  "daily_equal_buy_date": "2026-10-27",
   "daily_equal_buy_source": "MORNING_AVAILABLE_CASH_PER_NEW_SLOT",
   "last_rebalance_result": {
-    "asof": "2026-10-26T07:30:00+09:00",
+    "asof": "2026-10-27T07:30:00+09:00",
     "kept": [
-      "HOLO"
+      "HOME",
+      "LAYER",
+      "ASTR",
+      "CVC"
     ],
     "weakening": [
-      "YGG",
-      "HOME",
-      "LAYER"
-    ],
-    "sold": [
-      "USDE"
-    ],
-    "bought": [
-      "ASTR",
+      "HOLO",
       "CBK",
       "PUNDIX",
-      "CVC",
       "AGLD"
+    ],
+    "sold": [],
+    "bought": [
+      "MET2"
     ],
     "entry_policy": "ENTRY_SCORE_V1_1",
     "entry_audit": [
       {
-        "coin": "ASTR",
-        "rank": 2,
-        "score": 65.29,
-        "eligible": true,
-        "reasons": [
-          "PASS"
-        ]
-      },
-      {
-        "coin": "HOLO",
-        "rank": 3,
-        "score": 65.22,
-        "eligible": true,
-        "reasons": [
-          "PASS"
-        ]
-      },
-      {
-        "coin": "CBK",
-        "rank": 9,
-        "score": 62.17,
-        "eligible": true,
-        "reasons": [
-          "PASS"
-        ]
-      },
-      {
-        "coin": "PUNDIX",
-        "rank": 7,
-        "score": 61.56,
-        "eligible": true,
-        "reasons": [
-          "PASS"
-        ]
-      },
-      {
-        "coin": "CVC",
-        "rank": 10,
-        "score": 60.86,
-        "eligible": true,
-        "reasons": [
-          "PASS"
-        ]
-      },
-      {
-        "coin": "AGLD",
-        "rank": 8,
-        "score": 56.36,
-        "eligible": true,
-        "reasons": [
-          "PASS"
-        ]
-      },
-      {
-        "coin": "USDE",
-        "rank": 4,
-        "score": 52.49,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "BARD",
+        "coin": "MET2",
         "rank": 1,
-        "score": 50.0,
+        "score": 64.21,
+        "eligible": true,
+        "reasons": [
+          "PASS"
+        ]
+      },
+      {
+        "coin": "SOON",
+        "rank": 2,
+        "score": 54.33,
         "eligible": false,
         "reasons": [
           "ENTRY_SCORE<55"
         ]
       },
       {
-        "coin": "AUCTION",
-        "rank": 5,
-        "score": 48.56,
-        "eligible": false,
-        "reasons": [
-          "ENTRY_SCORE<55"
-        ]
-      },
-      {
-        "coin": "EUL",
+        "coin": "CTC",
         "rank": 6,
-        "score": 47.88,
+        "score": 53.54,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "BEAM",
+        "rank": 8,
+        "score": 50.69,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "NEWT",
+        "rank": 5,
+        "score": 49.25,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "EGLD",
+        "rank": 3,
+        "score": 47.13,
+        "eligible": false,
+        "reasons": [
+          "GIVEBACK_HARD"
+        ]
+      },
+      {
+        "coin": "POKT",
+        "rank": 9,
+        "score": 47.1,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "TOSHI",
+        "rank": 4,
+        "score": 44.47,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "BREV",
+        "rank": 7,
+        "score": 44.24,
+        "eligible": false,
+        "reasons": [
+          "ENTRY_SCORE<55"
+        ]
+      },
+      {
+        "coin": "CAP",
+        "rank": 10,
+        "score": 25.03,
         "eligible": false,
         "reasons": [
           "ENTRY_SCORE<55"
         ]
       }
     ],
-    "cash_krw": 278179.26,
+    "cash_krw": 275036.55,
     "paper_only": true
   },
   "last_rebalance_decisions": [
-    "USDE · VPD 91 (4위) · 신호 약화\n  모멘텀 → · 거래대금 4.79배 / 가속 1.98배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -0.13% · 약화 2회 · 24.0시간 지속 → 청산",
-    "YGG · VPD 87 (12위) · 신호 약화\n  모멘텀 → · 거래대금 2.92배 / 가속 1.16배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -3.43% · 약화 1회 · 0.0/24시간 · 매도 유예",
-    "HOLO · VPD 91 (3위) · 추세 유지\n  모멘텀 ↑ · 거래대금 9.58배 / 가속 5.25배 · 순수익 -0.08%",
-    "HOME · VPD 85 (16위) · 신호 약화\n  모멘텀 → · 거래대금 3.62배 / 가속 1.70배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -0.06% · 약화 1회 · 0.0/24시간 · 매도 유예",
-    "LAYER · VPD 73 (59위) · 신호 약화\n  모멘텀 → · 거래대금 1.81배 / 가속 1.03배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -1.65% · 약화 1회 · 0.0/24시간 · 매도 유예",
-    "ASTR · 신규진입 · EntryScore 65.29 · VPD 91 (2위)",
-    "CBK · 신규진입 · EntryScore 62.17 · VPD 87 (9위)",
-    "PUNDIX · 신규진입 · EntryScore 61.56 · VPD 88 (7위)",
-    "CVC · 신규진입 · EntryScore 60.86 · VPD 87 (10위)",
-    "AGLD · 신규진입 · EntryScore 56.36 · VPD 88 (8위)",
-    "BARD · 신규진입 제외 · EntryScore 50.00\n  ENTRY_SCORE<55",
-    "AUCTION · 신규진입 제외 · EntryScore 48.56\n  ENTRY_SCORE<55",
-    "EUL · 신규진입 제외 · EntryScore 47.88\n  ENTRY_SCORE<55"
+    "HOLO · VPD 52 (57위) · 신호 약화\n  모멘텀 → · 거래대금 0.99배 / 가속 0.38배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -1.69% · 약화 1회 · 0.0/24시간 · 매도 유예",
+    "HOME · VPD 59 (45위) · 추세 유지\n  모멘텀 ↑↑ · 거래대금 1.13배 / 가속 0.42배 · 순수익 +0.37%",
+    "LAYER · VPD 60 (39위) · 추세 유지\n  모멘텀 ↑ · 거래대금 1.15배 / 가속 0.55배 · 순수익 -3.66%",
+    "ASTR · VPD 73 (16위) · 추세 유지\n  모멘텀 ↑↑ · 거래대금 2.42배 / 가속 1.03배 · 순수익 +2.42%",
+    "CBK · VPD 43 (106위) · 신호 약화\n  모멘텀 → · 거래대금 0.55배 / 가속 0.21배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -2.05% · 약화 1회 · 0.0/24시간 · 매도 유예",
+    "PUNDIX · VPD 50 (63위) · 신호 약화\n  모멘텀 ↑↑ · 거래대금 0.88배 / 가속 0.35배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 +0.52% · 약화 1회 · 0.0/24시간 · 매도 유예",
+    "CVC · VPD 54 (52위) · 추세 유지\n  모멘텀 ↑ · 거래대금 1.21배 / 가속 0.44배 · 순수익 +0.73%",
+    "AGLD · VPD 67 (25위) · 신호 약화\n  모멘텀 → · 거래대금 1.77배 / 가속 0.83배 · 상승 추세 또는 거래대금 지지 부족 · 순수익 -3.99% · 약화 1회 · 0.0/24시간 · 매도 유예",
+    "MET2 · 신규진입 · EntryScore 64.21 · VPD 91 (1위)",
+    "SOON · 신규진입 제외 · EntryScore 54.33\n  ENTRY_SCORE<55",
+    "CTC · 신규진입 제외 · EntryScore 53.54\n  ENTRY_SCORE<55",
+    "BEAM · 신규진입 제외 · EntryScore 50.69\n  ENTRY_SCORE<55",
+    "NEWT · 신규진입 제외 · EntryScore 49.25\n  ENTRY_SCORE<55",
+    "EGLD · 신규진입 제외 · EntryScore 47.13\n  GIVEBACK_HARD",
+    "POKT · 신규진입 제외 · EntryScore 47.10\n  ENTRY_SCORE<55",
+    "TOSHI · 신규진입 제외 · EntryScore 44.47\n  ENTRY_SCORE<55",
+    "BREV · 신규진입 제외 · EntryScore 44.24\n  ENTRY_SCORE<55",
+    "CAP · 신규진입 제외 · EntryScore 25.03\n  ENTRY_SCORE<55"
   ],
   "last_refill_at": "2026-10-24T20:12:14.778139+09:00",
   "last_refill_session_id": "2026-10-24-REFILL-201214",
