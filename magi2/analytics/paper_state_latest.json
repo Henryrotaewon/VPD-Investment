@@ -6,7 +6,7 @@
   "mode": "PAPER",
   "paper_only": true,
   "initial_cash_krw": 3000000,
-  "cash_krw": 278179.2623770889,
+  "cash_krw": 550073.1050154483,
   "positions": {
     "BOUNTY": {
       "market": "KRW-BOUNTY",
@@ -637,7 +637,7 @@
     },
     "YGG": {
       "market": "KRW-YGG",
-      "status": "OPEN",
+      "status": "CLOSED",
       "entry_at": "2026-10-24T20:12:14.777845+09:00",
       "entry_session": "REFILL",
       "entry_session_id": "2026-10-24-REFILL-201214",
@@ -658,7 +658,7 @@
       "target_profit_pct": 12.0,
       "stop_loss_pct": -6.0,
       "warning_profit_pct": 10.0,
-      "last_price": 32.5,
+      "last_price": 32.0,
       "peak_price": 34.7,
       "tp_warning_sent": false,
       "sl_warning_sent": true,
@@ -685,7 +685,14 @@
       "hold_state": "WEAKENING",
       "weakening_count": 1,
       "weakening_policy": "TREND_PROFIT_V2",
-      "weakening_since": "2026-10-26T07:30:00+09:00"
+      "weakening_since": "2026-10-26T07:30:00+09:00",
+      "exit_at": "2026-10-26T11:08:54.666447+09:00",
+      "exit_price": 32.0,
+      "sell_fee_krw": 136.0149287835715,
+      "net_proceeds_krw": 271893.8426383594,
+      "pnl_krw": -17571.573128089425,
+      "return_pct": -6.070353199729672,
+      "exit_reason": "HARD_STOP"
     },
     "ZKP": {
       "market": "KRW-ZKP",
@@ -1286,9 +1293,9 @@
       "coin": "SONIC"
     }
   ],
-  "realized_pnl_krw": -362.6204946820508,
-  "lifetime_realized_pnl_krw": -155933.717666002,
-  "updated_at": "2026-10-26T09:13:32.688938+09:00",
+  "realized_pnl_krw": -17934.193622771476,
+  "lifetime_realized_pnl_krw": -173505.29079409142,
+  "updated_at": "2026-10-26T11:08:54.671301+09:00",
   "cohort_id": "2026-10-26-VPD-0730",
   "cohort_date": "2026-10-26",
   "started_at": "2026-10-17T22:03:06.628000+09:00",
