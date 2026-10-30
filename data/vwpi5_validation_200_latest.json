@@ -2,71 +2,71 @@
   "name": "VWPI5 Shadow 3.0 200-Market Validation",
   "markets_requested": 200,
   "markets_valid": 190,
-  "rows": 6627,
+  "rows": 6630,
   "primary_rule": "VPDReplay>=65 AND MaxPriceReturn<=10 AND VWPI5>=20",
   "base": {
-    "N": 6627,
-    "AvgD1%": -0.33,
-    "AvgD3%": -1.36,
-    "AvgD5%": -2.47,
-    "AvgMFE5%": 11.07,
-    "AvgMAE5%": -8.18,
-    "D3WinRate%": 34.5
+    "N": 6630,
+    "AvgD1%": -0.59,
+    "AvgD3%": -1.67,
+    "AvgD5%": -2.74,
+    "AvgMFE5%": 10.93,
+    "AvgMAE5%": -8.64,
+    "D3WinRate%": 32.3
   },
   "primary": {
-    "N": 96,
-    "AvgD1%": -0.16,
-    "AvgD3%": 0.32,
-    "AvgD5%": -2.84,
-    "AvgMFE5%": 17.0,
-    "AvgMAE5%": -8.24,
-    "D3WinRate%": 36.6
+    "N": 101,
+    "AvgD1%": -0.32,
+    "AvgD3%": -0.06,
+    "AvgD5%": -2.95,
+    "AvgMFE5%": 16.76,
+    "AvgMAE5%": -8.51,
+    "D3WinRate%": 35.1
   },
   "controls": {
     "VWPI0+": {
-      "N": 179,
-      "AvgD1%": -0.45,
-      "AvgD3%": -0.22,
-      "AvgD5%": -2.94,
-      "AvgMFE5%": 13.31,
-      "AvgMAE5%": -8.27,
-      "D3WinRate%": 35.1
+      "N": 186,
+      "AvgD1%": -0.57,
+      "AvgD3%": -0.54,
+      "AvgD5%": -3.08,
+      "AvgMFE5%": 13.04,
+      "AvgMAE5%": -8.46,
+      "D3WinRate%": 34.1
     },
     "VWPI10+": {
-      "N": 141,
-      "AvgD1%": -0.02,
-      "AvgD3%": 0.32,
-      "AvgD5%": -2.66,
-      "AvgMFE5%": 15.56,
-      "AvgMAE5%": -8.33,
-      "D3WinRate%": 35.8
+      "N": 147,
+      "AvgD1%": -0.18,
+      "AvgD3%": 0.04,
+      "AvgD5%": -2.81,
+      "AvgMFE5%": 15.12,
+      "AvgMAE5%": -8.48,
+      "D3WinRate%": 34.8
     },
     "VWPI20+": {
-      "N": 96,
-      "AvgD1%": -0.16,
-      "AvgD3%": 0.32,
-      "AvgD5%": -2.84,
-      "AvgMFE5%": 17.0,
-      "AvgMAE5%": -8.24,
-      "D3WinRate%": 36.6
+      "N": 101,
+      "AvgD1%": -0.32,
+      "AvgD3%": -0.06,
+      "AvgD5%": -2.95,
+      "AvgMFE5%": 16.76,
+      "AvgMAE5%": -8.51,
+      "D3WinRate%": 35.1
     },
     "VWPI30+": {
-      "N": 71,
-      "AvgD1%": -0.22,
-      "AvgD3%": 0.79,
-      "AvgD5%": -3.04,
-      "AvgMFE5%": 17.35,
-      "AvgMAE5%": -8.56,
-      "D3WinRate%": 35.7
+      "N": 73,
+      "AvgD1%": -0.43,
+      "AvgD3%": 0.48,
+      "AvgD5%": -3.17,
+      "AvgMFE5%": 16.97,
+      "AvgMAE5%": -8.75,
+      "D3WinRate%": 34.3
     },
     "VWPI40+": {
-      "N": 46,
-      "AvgD1%": -0.55,
-      "AvgD3%": 2.03,
-      "AvgD5%": -3.87,
-      "AvgMFE5%": 21.67,
-      "AvgMAE5%": -8.79,
-      "D3WinRate%": 37.0
+      "N": 48,
+      "AvgD1%": -0.62,
+      "AvgD3%": 1.95,
+      "AvgD5%": -3.8,
+      "AvgMFE5%": 21.25,
+      "AvgMAE5%": -8.86,
+      "D3WinRate%": 36.2
     }
   },
   "primary_by_coin": [
@@ -97,7 +97,7 @@
       "AvgD3%": -1.85,
       "AvgD5%": -2.85,
       "AvgMFE5%": 8.77,
-      "AvgMAE5%": -6.1,
+      "AvgMAE5%": -6.86,
       "D3WinRate%": 0.0
     },
     {
@@ -126,7 +126,7 @@
       "AvgD1%": 0.02,
       "AvgD3%": 1.27,
       "AvgD5%": null,
-      "AvgMFE5%": 4.03,
+      "AvgMFE5%": 5.74,
       "AvgMAE5%": -3.17,
       "D3WinRate%": 100.0
     },
@@ -167,7 +167,7 @@
       "AvgD3%": -3.22,
       "AvgD5%": -12.5,
       "AvgMFE5%": 2.3,
-      "AvgMAE5%": -7.8,
+      "AvgMAE5%": -9.19,
       "D3WinRate%": 50.0
     },
     {
@@ -225,7 +225,7 @@
       "N": 2,
       "AvgD1%": -1.86,
       "AvgD3%": -3.34,
-      "AvgD5%": -4.27,
+      "AvgD5%": -3.38,
       "AvgMFE5%": 46.73,
       "AvgMAE5%": -10.17,
       "D3WinRate%": 0.0
@@ -247,7 +247,7 @@
       "AvgD3%": -3.08,
       "AvgD5%": -1.23,
       "AvgMFE5%": 1.42,
-      "AvgMAE5%": -6.25,
+      "AvgMAE5%": -7.67,
       "D3WinRate%": 0.0
     },
     {
@@ -319,6 +319,16 @@
       "AvgMFE5%": 0.26,
       "AvgMAE5%": -11.26,
       "D3WinRate%": 0.0
+    },
+    {
+      "coin": "AVNT",
+      "N": 1,
+      "AvgD1%": null,
+      "AvgD3%": null,
+      "AvgD5%": null,
+      "AvgMFE5%": null,
+      "AvgMAE5%": null,
+      "D3WinRate%": null
     },
     {
       "coin": "AWE",
@@ -396,8 +406,8 @@
       "AvgD1%": -0.09,
       "AvgD3%": 4.84,
       "AvgD5%": null,
-      "AvgMFE5%": 5.01,
-      "AvgMAE5%": -3.02,
+      "AvgMFE5%": 5.79,
+      "AvgMAE5%": -3.41,
       "D3WinRate%": 100.0
     },
     {
@@ -421,16 +431,6 @@
       "D3WinRate%": 0.0
     },
     {
-      "coin": "CC",
-      "N": 1,
-      "AvgD1%": 11.54,
-      "AvgD3%": 19.23,
-      "AvgD5%": 7.69,
-      "AvgMFE5%": 28.85,
-      "AvgMAE5%": -1.28,
-      "D3WinRate%": 100.0
-    },
-    {
       "coin": "CHZ",
       "N": 1,
       "AvgD1%": -0.86,
@@ -439,6 +439,16 @@
       "AvgMFE5%": 3.02,
       "AvgMAE5%": -14.22,
       "D3WinRate%": 0.0
+    },
+    {
+      "coin": "COW",
+      "N": 1,
+      "AvgD1%": null,
+      "AvgD3%": null,
+      "AvgD5%": null,
+      "AvgMFE5%": null,
+      "AvgMAE5%": null,
+      "D3WinRate%": null
     },
     {
       "coin": "CRV",
@@ -469,6 +479,16 @@
       "AvgMFE5%": 232.21,
       "AvgMAE5%": -2.01,
       "D3WinRate%": 100.0
+    },
+    {
+      "coin": "ELF",
+      "N": 1,
+      "AvgD1%": -3.77,
+      "AvgD3%": -1.89,
+      "AvgD5%": -1.89,
+      "AvgMFE5%": 1.89,
+      "AvgMAE5%": -4.72,
+      "D3WinRate%": 0.0
     },
     {
       "coin": "ENSO",
@@ -641,6 +661,16 @@
       "D3WinRate%": 100.0
     },
     {
+      "coin": "LINK",
+      "N": 1,
+      "AvgD1%": null,
+      "AvgD3%": null,
+      "AvgD5%": null,
+      "AvgMFE5%": null,
+      "AvgMAE5%": null,
+      "D3WinRate%": null
+    },
+    {
       "coin": "LIT",
       "N": 1,
       "AvgD1%": -3.53,
@@ -674,11 +704,11 @@
       "coin": "MET2",
       "N": 1,
       "AvgD1%": -0.7,
-      "AvgD3%": null,
+      "AvgD3%": -13.75,
       "AvgD5%": null,
       "AvgMFE5%": 1.4,
-      "AvgMAE5%": -4.2,
-      "D3WinRate%": null
+      "AvgMAE5%": -13.99,
+      "D3WinRate%": 0.0
     },
     {
       "coin": "META",
@@ -741,6 +771,26 @@
       "D3WinRate%": 0.0
     },
     {
+      "coin": "MORPHO",
+      "N": 1,
+      "AvgD1%": null,
+      "AvgD3%": null,
+      "AvgD5%": null,
+      "AvgMFE5%": null,
+      "AvgMAE5%": null,
+      "D3WinRate%": null
+    },
+    {
+      "coin": "NEO",
+      "N": 1,
+      "AvgD1%": null,
+      "AvgD3%": null,
+      "AvgD5%": null,
+      "AvgMFE5%": null,
+      "AvgMAE5%": null,
+      "D3WinRate%": null
+    },
+    {
       "coin": "NEWT",
       "N": 1,
       "AvgD1%": -3.4,
@@ -767,7 +817,7 @@
       "AvgD3%": -1.96,
       "AvgD5%": null,
       "AvgMFE5%": 1.96,
-      "AvgMAE5%": -4.41,
+      "AvgMAE5%": -8.82,
       "D3WinRate%": 0.0
     },
     {
