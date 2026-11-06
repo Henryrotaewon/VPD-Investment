@@ -1,0 +1,38 @@
+{
+  "version": "crypto-macro-research-v0.1",
+  "status": "DATA_NOT_CONNECTED",
+  "targets": ["BTC_USD", "ETH_USD"],
+  "horizons_calendar_days": [1, 7],
+  "feature_contract": "Precomputed economic transformations with their actual availability timestamps; no backdated latest history.",
+  "features": [
+    {"id":"us2y_change_bps","family":"macro","max_age_days":7,"source":"FRED DGS2 / H.15 with release-time archive"},
+    {"id":"us10y_change_bps","family":"macro","max_age_days":7,"source":"FRED DGS10 / H.15 with release-time archive"},
+    {"id":"us_real10y_change_bps","family":"macro","max_age_days":7,"source":"FRED DFII10 / H.15 with release-time archive"},
+    {"id":"curve_10y_2y_bps","family":"macro","max_age_days":7,"source":"DGS10 minus DGS2, same observation date"},
+    {"id":"sp500_return_1session","family":"macro","max_age_days":7,"source":"FRED SP500 or licensed S&P index history"},
+    {"id":"nasdaq_return_1session","family":"macro","max_age_days":7,"source":"FRED NASDAQCOM; Nasdaq Composite, not Nasdaq-100"},
+    {"id":"nikkei_return_1session","family":"macro","max_age_days":7,"source":"FRED NIKKEI225; Tokyo close availability"},
+    {"id":"usd_broad_return_1session","family":"macro","max_age_days":7,"source":"FRED DTWEXBGS; not ICE DXY"},
+    {"id":"vix_change_points","family":"macro","max_age_days":7,"source":"FRED VIXCLS / Cboe"},
+    {"id":"gold_futures_return_1session","family":"macro","max_age_days":7,"source":"Licensed CME GC contracts with saved roll rule and contract IDs"},
+    {"id":"wti_futures_return_1session","family":"macro","max_age_days":7,"source":"Licensed CME CL contracts; no silent substitution of spot WTI"},
+    {"id":"btc_return_7d","family":"crypto","max_age_days":1.1,"source":"Public BTC/USD bars at a fixed daily UTC cutoff"},
+    {"id":"eth_return_7d","family":"crypto","max_age_days":1.1,"source":"Public ETH/USD bars at the same cutoff"},
+    {"id":"btc_realized_vol_30d","family":"crypto","max_age_days":1.1,"source":"Trailing BTC/USD bars; no centered window"},
+    {"id":"eth_realized_vol_30d","family":"crypto","max_age_days":1.1,"source":"Trailing ETH/USD bars; no centered window"}
+  ],
+  "extended_candidates": [
+    {"id":"cpi_surprise","family":"release","requires":"BLS first release minus consensus captured before release"},
+    {"id":"payroll_surprise","family":"release","requires":"BLS first release, prior revisions separately, timestamped consensus"},
+    {"id":"pce_surprise","family":"release","requires":"BEA first vintage and timestamped consensus"},
+    {"id":"ism_surprise","family":"release","requires":"Licensed release and timestamped consensus"},
+    {"id":"fomc_target_path_surprise","family":"release","requires":"Identified announcement-window surprise; usable only after window closes"},
+    {"id":"btc_blocks_to_halving","family":"event","requires":"Observed block height and protocol schedule; no realized future halving date backfill"},
+    {"id":"btc_issuance_rate","family":"event","requires":"Issuance observed by decision time"},
+    {"id":"eth_net_issuance","family":"event","requires":"Time-stamped issuance minus fee burn; ETH has no Bitcoin-style periodic halving"},
+    {"id":"eth_upgrade_countdown","family":"event","requires":"Historically announced upgrade schedule and subsequent schedule revisions"},
+    {"id":"unlock_supply_ratio","family":"event","requires":"Only for applicable coins, historically known unlock schedule / then-circulating supply"}
+  ],
+  "extensions_policy": "Add candidates through a separately frozen manifest only after point-in-time coverage is verified; missing surprises are never set to zero.",
+  "promotion": "Disabled. Requires independent final holdout, block-bootstrap uncertainty, multiple-testing control, stability across regimes, and forward observation."
+}
