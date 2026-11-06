@@ -1,0 +1,1373 @@
+{
+  "market": "KRW-ARK",
+  "training_days": 400,
+  "cutoff_utc": "2026-09-12T00:00:00Z",
+  "dates": [
+    {
+      "date": "2026-08-28",
+      "open": 158,
+      "high": 158,
+      "low": 149,
+      "close": 155,
+      "return_pct": -1.898734177215189,
+      "volume_change_pct": -72.1450662957785,
+      "values": {
+        "macd_hist": 3.592912363033813,
+        "rsi": 66.1965837442028,
+        "williams": -25.53191489361702,
+        "macd": 4.275015089861,
+        "macd_signal": 0.6821027268271872,
+        "volume": 2565452.84695279,
+        "volume_ratio_prior20_mean": 0.802050568203582,
+        "volume_ratio_prior20_median": 1.6232404055699612,
+        "volume_ma5": 7631039.589702198,
+        "volume_ma10": 5647031.540852689,
+        "volume_ma20": 3256569.6462321607,
+        "rsi_signal_sma9": 64.06303799049998,
+        "rsi_signal_ema9": 61.38449155942458
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.34796337266222377,
+          "acceleration": -0.4247150479703201
+        },
+        "rsi": {
+          "velocity": -4.922598159525123,
+          "acceleration": -6.316267225819004
+        },
+        "williams": {
+          "velocity": -6.382978723404253,
+          "acceleration": -10.638297872340424
+        },
+        "macd": {
+          "velocity": 0.5502647180962299,
+          "acceleration": -0.5117058911358754
+        },
+        "macd_signal": {
+          "velocity": 0.8982280907584533,
+          "acceleration": -0.08699084316555572
+        },
+        "volume": {
+          "velocity": -6644595.448958209,
+          "acceleration": 1933934.8675850537
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -2.481261933814226,
+          "acceleration": 2.6741935551004943
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -5.084046757616786,
+          "acceleration": 1.1633326721636745
+        },
+        "volume_ma5": {
+          "velocity": 23416.48371743411,
+          "acceleration": -479941.3434542017
+        },
+        "volume_ma10": {
+          "velocity": 186096.51057560276,
+          "acceleration": -691020.5734122526
+        },
+        "volume_ma20": {
+          "velocity": 57952.31628145231,
+          "acceleration": -335556.3649339229
+        },
+        "rsi_signal_sma9": {
+          "velocity": 3.1829816337690673,
+          "acceleration": -1.742077812825947
+        },
+        "rsi_signal_ema9": {
+          "velocity": 1.2030230461945521,
+          "acceleration": -1.5314053014299205
+        }
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "open": 155,
+      "high": 156,
+      "low": 152,
+      "close": 154,
+      "return_pct": -0.6451612903225823,
+      "volume_change_pct": -61.17630638002139,
+      "values": {
+        "macd_hist": 3.1164329949672562,
+        "rsi": 64.59168486191768,
+        "williams": -27.659574468085108,
+        "macd": 4.577643970536258,
+        "macd_signal": 1.4612109755690015,
+        "volume": 996003.55326597,
+        "volume_ratio_prior20_mean": 0.30584438887046145,
+        "volume_ratio_prior20_median": 0.5640634074006151,
+        "volume_ma5": 7300753.745044264,
+        "volume_ma10": 5568928.511641804,
+        "volume_ma20": 3273747.9455905776,
+        "rsi_signal_sma9": 65.80932598651417,
+        "rsi_signal_ema9": 62.025930219923204
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.47647936806655666,
+          "acceleration": -0.12851599540433245
+        },
+        "rsi": {
+          "velocity": -1.604898882285113,
+          "acceleration": 3.31769927724001
+        },
+        "williams": {
+          "velocity": -2.127659574468087,
+          "acceleration": 4.255319148936167
+        },
+        "macd": {
+          "velocity": 0.3026288806752575,
+          "acceleration": -0.2476358374209724
+        },
+        "macd_signal": {
+          "velocity": 0.7791082487418143,
+          "acceleration": -0.11911984201663905
+        },
+        "volume": {
+          "velocity": -1569449.29368682,
+          "acceleration": 5075146.1552713895
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.49620617933312056,
+          "acceleration": 1.9850557544811052
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -1.0591769981693462,
+          "acceleration": 4.024869759447441
+        },
+        "volume_ma5": {
+          "velocity": -330285.84465793427,
+          "acceleration": -353702.3283753684
+        },
+        "volume_ma10": {
+          "velocity": -78103.02921088506,
+          "acceleration": -264199.5397864878
+        },
+        "volume_ma20": {
+          "velocity": 17178.299358416814,
+          "acceleration": -40774.016923035495
+        },
+        "rsi_signal_sma9": {
+          "velocity": 1.746287996014189,
+          "acceleration": -1.4366936377548782
+        },
+        "rsi_signal_ema9": {
+          "velocity": 0.641438660498622,
+          "acceleration": -0.5615843856959302
+        }
+      }
+    },
+    {
+      "date": "2026-08-30",
+      "open": 155,
+      "high": 161,
+      "low": 149,
+      "close": 153,
+      "return_pct": -0.649350649350644,
+      "volume_change_pct": 210.17258482912104,
+      "values": {
+        "macd_hist": 2.5772771453835968,
+        "rsi": 62.94814693386428,
+        "williams": -29.78723404255319,
+        "macd": 4.6828074072984975,
+        "macd_signal": 2.105530261914901,
+        "volume": 3089329.96615495,
+        "volume_ratio_prior20_mean": 0.9436676303427634,
+        "volume_ratio_prior20_median": 1.7495700508097034,
+        "volume_ma5": 6729882.654947793,
+        "volume_ma10": 5702411.846453458,
+        "volume_ma20": 3391024.408366871,
+        "rsi_signal_sma9": 65.69706857214584,
+        "rsi_signal_ema9": 62.21037356271142
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.5391558495836595,
+          "acceleration": -0.06267648151710281
+        },
+        "rsi": {
+          "velocity": -1.643537928053405,
+          "acceleration": -0.038639045768292135
+        },
+        "williams": {
+          "velocity": -2.1276595744680833,
+          "acceleration": 3.552713678800501e-15
+        },
+        "macd": {
+          "velocity": 0.10516343676223983,
+          "acceleration": -0.19746544391301768
+        },
+        "macd_signal": {
+          "velocity": 0.6443192863458993,
+          "acceleration": -0.13478896239591498
+        },
+        "volume": {
+          "velocity": 2093326.4128889802,
+          "acceleration": 3662775.7065758
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": 0.637823241472302,
+          "acceleration": 1.1340294208054225
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": 1.1855066434090884,
+          "acceleration": 2.244683641578434
+        },
+        "volume_ma5": {
+          "velocity": -570871.0900964709,
+          "acceleration": -240585.24543853663
+        },
+        "volume_ma10": {
+          "velocity": 133483.33481165394,
+          "acceleration": 211586.364022539
+        },
+        "volume_ma20": {
+          "velocity": 117276.46277629351,
+          "acceleration": 100098.1634178767
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.11225741436832948,
+          "acceleration": -1.8585454103825185
+        },
+        "rsi_signal_ema9": {
+          "velocity": 0.18444334278821373,
+          "acceleration": -0.45699531771040824
+        }
+      }
+    },
+    {
+      "date": "2026-08-31",
+      "open": 151,
+      "high": 155,
+      "low": 151,
+      "close": 152,
+      "return_pct": -0.6535947712418277,
+      "volume_change_pct": -34.379035807890766,
+      "values": {
+        "macd_hist": 2.0212261960343367,
+        "rsi": 61.26922618516075,
+        "williams": -31.914893617021278,
+        "macd": 4.6320630069578215,
+        "macd_signal": 2.6108368109234847,
+        "volume": 2027248.11086664,
+        "volume_ratio_prior20_mean": 0.5978276375318011,
+        "volume_ratio_prior20_median": 0.9595522603436316,
+        "volume_ma5": 3577616.5546302698,
+        "volume_ma10": 5340940.9167217,
+        "volume_ma20": 3450324.1271627494,
+        "rsi_signal_sma9": 65.31519959470279,
+        "rsi_signal_ema9": 62.02214408720128
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.55605094934926,
+          "acceleration": -0.016895099765600552
+        },
+        "rsi": {
+          "velocity": -1.6789207487035327,
+          "acceleration": -0.035382820650127655
+        },
+        "williams": {
+          "velocity": -2.127659574468087,
+          "acceleration": -3.552713678800501e-15
+        },
+        "macd": {
+          "velocity": -0.050744400340676066,
+          "acceleration": -0.1559078371029159
+        },
+        "macd_signal": {
+          "velocity": 0.505306549008584,
+          "acceleration": -0.13901273733731534
+        },
+        "volume": {
+          "velocity": -1062081.8552883102,
+          "acceleration": -3155408.2681772904
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.3458399928109622,
+          "acceleration": -0.9836632342832641
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -0.7900177904660718,
+          "acceleration": -1.9755244338751603
+        },
+        "volume_ma5": {
+          "velocity": -3152266.1003175233,
+          "acceleration": -2581395.010221052
+        },
+        "volume_ma10": {
+          "velocity": -361470.9297317583,
+          "acceleration": -494954.26454341225
+        },
+        "volume_ma20": {
+          "velocity": 59299.71879587835,
+          "acceleration": -57976.743980415165
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.38186897744304815,
+          "acceleration": -0.2696115630747187
+        },
+        "rsi_signal_ema9": {
+          "velocity": -0.18822947551013414,
+          "acceleration": -0.37267281829834786
+        }
+      }
+    },
+    {
+      "date": "2026-09-01",
+      "open": 152,
+      "high": 155,
+      "low": 149,
+      "close": 151,
+      "return_pct": -0.6578947368421018,
+      "volume_change_pct": -19.556530983327704,
+      "values": {
+        "macd_hist": 1.4791280517072116,
+        "rsi": 59.558518462984665,
+        "williams": -34.04255319148936,
+        "macd": 4.459746875557499,
+        "macd_signal": 2.9806188238502878,
+        "volume": 1630788.70595608,
+        "volume_ratio_prior20_mean": 0.4726479733071051,
+        "volume_ratio_prior20_median": 0.7287433867122299,
+        "volume_ma5": 2061764.6366392858,
+        "volume_ma10": 4834693.871312025,
+        "volume_ma20": 3373341.605395959,
+        "rsi_signal_sma9": 64.74325198146238,
+        "rsi_signal_ema9": 61.52941896235796
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.5420981443271251,
+          "acceleration": 0.013952805022134918
+        },
+        "rsi": {
+          "velocity": -1.7107077221760818,
+          "acceleration": -0.03178697347254911
+        },
+        "williams": {
+          "velocity": -2.1276595744680833,
+          "acceleration": 3.552713678800501e-15
+        },
+        "macd": {
+          "velocity": -0.1723161314003221,
+          "acceleration": -0.12157173105964603
+        },
+        "macd_signal": {
+          "velocity": 0.369782012926803,
+          "acceleration": -0.13552453608178094
+        },
+        "volume": {
+          "velocity": -396459.40491056,
+          "acceleration": 665622.4503777502
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.125179664224696,
+          "acceleration": 0.22066032858626627
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -0.23080887363140168,
+          "acceleration": 0.5592089168346701
+        },
+        "volume_ma5": {
+          "velocity": -1515851.917990984,
+          "acceleration": 1636414.1823265394
+        },
+        "volume_ma10": {
+          "velocity": -506247.04540967476,
+          "acceleration": -144776.11567791644
+        },
+        "volume_ma20": {
+          "velocity": -76982.52176679019,
+          "acceleration": -136282.24056266854
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.5719476132404111,
+          "acceleration": -0.19007863579736295
+        },
+        "rsi_signal_ema9": {
+          "velocity": -0.4927251248433251,
+          "acceleration": -0.30449564933319095
+        }
+      }
+    },
+    {
+      "date": "2026-09-02",
+      "open": 151,
+      "high": 157,
+      "low": 150,
+      "close": 151,
+      "return_pct": 0.0,
+      "volume_change_pct": 47.64969015017741,
+      "values": {
+        "macd_hist": 1.0346393675485084,
+        "rsi": 59.558518462984665,
+        "williams": -38.095238095238095,
+        "macd": 4.2739180332859235,
+        "macd_signal": 3.239278665737415,
+        "volume": 2407854.47134824,
+        "volume_ratio_prior20_mean": 0.7137891008419257,
+        "volume_ratio_prior20_median": 1.2658654111574543,
+        "volume_ma5": 2030244.961518376,
+        "volume_ma10": 4830642.275610287,
+        "volume_ma20": 3458147.4313009656,
+        "rsi_signal_sma9": 64.34019449958713,
+        "rsi_signal_ema9": 61.1352388624833
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.44448868415870324,
+          "acceleration": 0.09760946016842187
+        },
+        "rsi": {
+          "velocity": 0.0,
+          "acceleration": 1.7107077221760818
+        },
+        "williams": {
+          "velocity": -4.052684903748734,
+          "acceleration": -1.9250253292806505
+        },
+        "macd": {
+          "velocity": -0.18582884227157592,
+          "acceleration": -0.01351271087125383
+        },
+        "macd_signal": {
+          "velocity": 0.2586598418871273,
+          "acceleration": -0.1111221710396757
+        },
+        "volume": {
+          "velocity": 777065.76539216,
+          "acceleration": 1173525.17030272
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": 0.2411411275348206,
+          "acceleration": 0.3663207917595166
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": 0.5371220244452244,
+          "acceleration": 0.7679308980766261
+        },
+        "volume_ma5": {
+          "velocity": -31519.67512090993,
+          "acceleration": 1484332.242870074
+        },
+        "volume_ma10": {
+          "velocity": -4051.5957017382607,
+          "acceleration": 502195.4497079365
+        },
+        "volume_ma20": {
+          "velocity": 84805.82590500638,
+          "acceleration": 161788.34767179657
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.40305748187525126,
+          "acceleration": 0.16889013136515985
+        },
+        "rsi_signal_ema9": {
+          "velocity": -0.3941800998746601,
+          "acceleration": 0.09854502496866502
+        }
+      }
+    },
+    {
+      "date": "2026-09-03",
+      "open": 152,
+      "high": 169,
+      "low": 152,
+      "close": 155,
+      "return_pct": 2.6490066225165476,
+      "volume_change_pct": 512.4022127035807,
+      "values": {
+        "macd_hist": 0.9275437361862151,
+        "rsi": 64.19611470691146,
+        "williams": -38.888888888888886,
+        "macd": 4.398708335970184,
+        "macd_signal": 3.471164599783969,
+        "volume": 14745754.06121873,
+        "volume_ratio_prior20_mean": 4.264061713433464,
+        "volume_ratio_prior20_median": 6.64956617704871,
+        "volume_ma5": 4780195.063108928,
+        "volume_ma10": 6040474.404076596,
+        "volume_ma20": 4167397.8670632467,
+        "rsi_signal_sma9": 64.35149867768759,
+        "rsi_signal_ema9": 61.74741403136893
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.10709563136229328,
+          "acceleration": 0.33739305279640996
+        },
+        "rsi": {
+          "velocity": 4.637596243926794,
+          "acceleration": 4.637596243926794
+        },
+        "williams": {
+          "velocity": -0.7936507936507908,
+          "acceleration": 3.259034110097943
+        },
+        "macd": {
+          "velocity": 0.12479030268426072,
+          "acceleration": 0.31061914495583665
+        },
+        "macd_signal": {
+          "velocity": 0.231885934046554,
+          "acceleration": -0.02677390784057332
+        },
+        "volume": {
+          "velocity": 12337899.58987049,
+          "acceleration": 11560833.824478328
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": 3.5502726125915385,
+          "acceleration": 3.3091314850567177
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": 5.3837007658912555,
+          "acceleration": 4.846578741446031
+        },
+        "volume_ma5": {
+          "velocity": 2749950.1015905514,
+          "acceleration": 2781469.7767114616
+        },
+        "volume_ma10": {
+          "velocity": 1209832.128466309,
+          "acceleration": 1213883.7241680473
+        },
+        "volume_ma20": {
+          "velocity": 709250.4357622811,
+          "acceleration": 624444.6098572747
+        },
+        "rsi_signal_sma9": {
+          "velocity": 0.011304178100459694,
+          "acceleration": 0.41436165997571095
+        },
+        "rsi_signal_ema9": {
+          "velocity": 0.612175168885635,
+          "acceleration": 1.006355268760295
+        }
+      }
+    },
+    {
+      "date": "2026-09-04",
+      "open": 155,
+      "high": 170,
+      "low": 155,
+      "close": 160,
+      "return_pct": 3.2258064516129004,
+      "volume_change_pct": 1.2718847620565965,
+      "values": {
+        "macd_hist": 1.0992372679103077,
+        "rsi": 68.98402507577146,
+        "williams": -34.48275862068966,
+        "macd": 4.845211184671854,
+        "macd_signal": 3.745973916761546,
+        "volume": 14933303.06017371,
+        "volume_ratio_prior20_mean": 3.583363896737118,
+        "volume_ratio_prior20_median": 6.150169470550516,
+        "volume_ma5": 7148989.68191268,
+        "volume_ma10": 6939436.168430237,
+        "volume_ma20": 4891316.034669925,
+        "rsi_signal_sma9": 64.26911114861396,
+        "rsi_signal_ema9": 63.19473624024944
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": 0.17169353172409263,
+          "acceleration": 0.2787891630863859
+        },
+        "rsi": {
+          "velocity": 4.787910368859997,
+          "acceleration": 0.15031412493320317
+        },
+        "williams": {
+          "velocity": 4.406130268199227,
+          "acceleration": 5.199781061850018
+        },
+        "macd": {
+          "velocity": 0.44650284870166956,
+          "acceleration": 0.32171254601740884
+        },
+        "macd_signal": {
+          "velocity": 0.27480931697757693,
+          "acceleration": 0.042923382931022935
+        },
+        "volume": {
+          "velocity": 187548.99895498157,
+          "acceleration": -12150350.590915509
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.680697816696346,
+          "acceleration": -4.2309704292878845
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -0.4993967064981941,
+          "acceleration": -5.88309747238945
+        },
+        "volume_ma5": {
+          "velocity": 2368794.6188037526,
+          "acceleration": -381155.4827867991
+        },
+        "volume_ma10": {
+          "velocity": 898961.7643536413,
+          "acceleration": -310870.36411266774
+        },
+        "volume_ma20": {
+          "velocity": 723918.1676066788,
+          "acceleration": 14667.731844397727
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.08238752907362823,
+          "acceleration": -0.09369170717408792
+        },
+        "rsi_signal_ema9": {
+          "velocity": 1.4473222088805073,
+          "acceleration": 0.8351470399948724
+        }
+      }
+    },
+    {
+      "date": "2026-09-05",
+      "open": 161,
+      "high": 162,
+      "low": 158,
+      "close": 161,
+      "return_pct": 0.6250000000000089,
+      "volume_change_pct": -85.40532176647288,
+      "values": {
+        "macd_hist": 1.178893948013192,
+        "rsi": 69.85235336446033,
+        "williams": -32.142857142857146,
+        "macd": 5.2195913517780355,
+        "macd_signal": 4.0406974037648435,
+        "volume": 2179467.53126981,
+        "volume_ratio_prior20_mean": 0.4455789639887549,
+        "volume_ratio_prior20_median": 0.8693834671033154,
+        "volume_ma5": 7179433.565993314,
+        "volume_ma10": 5378525.060311792,
+        "volume_ma20": 4981171.503300512,
+        "rsi_signal_sma9": 64.12835242202867,
+        "rsi_signal_ema9": 64.52625966509162
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": 0.07965668010288418,
+          "acceleration": -0.09203685162120845
+        },
+        "rsi": {
+          "velocity": 0.8683282886888719,
+          "acceleration": -3.919582080171125
+        },
+        "williams": {
+          "velocity": 2.3399014778325125,
+          "acceleration": -2.066228790366715
+        },
+        "macd": {
+          "velocity": 0.3743801671061817,
+          "acceleration": -0.07212268159548785
+        },
+        "macd_signal": {
+          "velocity": 0.29472348700329754,
+          "acceleration": 0.0199141700257206
+        },
+        "volume": {
+          "velocity": -12753835.528903902,
+          "acceleration": -12941384.527858881
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -3.1377849327483633,
+          "acceleration": -2.4570871160520174
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -5.280786003447201,
+          "acceleration": -4.781389296949007
+        },
+        "volume_ma5": {
+          "velocity": 30443.88408063352,
+          "acceleration": -2338350.734723119
+        },
+        "volume_ma10": {
+          "velocity": -1560911.1081184447,
+          "acceleration": -2459872.872472086
+        },
+        "volume_ma20": {
+          "velocity": 89855.46863058675,
+          "acceleration": -634062.698976092
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.14075872658528965,
+          "acceleration": -0.05837119751166142
+        },
+        "rsi_signal_ema9": {
+          "velocity": 1.3315234248421746,
+          "acceleration": -0.11579878403833277
+        }
+      }
+    },
+    {
+      "date": "2026-09-06",
+      "open": 160,
+      "high": 162,
+      "low": 157,
+      "close": 160,
+      "return_pct": -0.6211180124223614,
+      "volume_change_pct": -24.83795106844401,
+      "values": {
+        "macd_hist": 1.066365712364048,
+        "rsi": 67.80796268469825,
+        "williams": -37.03703703703704,
+        "macd": 5.373654544219903,
+        "macd_signal": 4.307288831855855,
+        "volume": 1638132.45230039,
+        "volume_ratio_prior20_mean": 0.32886489678481606,
+        "volume_ratio_prior20_median": 0.6534464269470519,
+        "volume_ma5": 7180902.315262176,
+        "volume_ma10": 4621333.475950731,
+        "volume_ma20": 5041134.253113909,
+        "rsi_signal_sma9": 64.30739452652817,
+        "rsi_signal_ema9": 65.18260026901294
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.11252823564914394,
+          "acceleration": -0.19218491575202812
+        },
+        "rsi": {
+          "velocity": -2.044390679762074,
+          "acceleration": -2.912718968450946
+        },
+        "williams": {
+          "velocity": -4.894179894179892,
+          "acceleration": -7.234081372012405
+        },
+        "macd": {
+          "velocity": 0.1540631924418676,
+          "acceleration": -0.2203169746643141
+        },
+        "macd_signal": {
+          "velocity": 0.26659142809101155,
+          "acceleration": -0.028132058912285984
+        },
+        "volume": {
+          "velocity": -541335.0789694202,
+          "acceleration": 12212500.44993448
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.11671406720393884,
+          "acceleration": 3.0210708655444245
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -0.21593704015626347,
+          "acceleration": 5.064848963290937
+        },
+        "volume_ma5": {
+          "velocity": 1468.7492688624188,
+          "acceleration": -28975.134811771102
+        },
+        "volume_ma10": {
+          "velocity": -757191.5843610615,
+          "acceleration": 803719.5237573832
+        },
+        "volume_ma20": {
+          "velocity": 59962.749813396484,
+          "acceleration": -29892.718817190267
+        },
+        "rsi_signal_sma9": {
+          "velocity": 0.17904210449950142,
+          "acceleration": 0.31980083108479107
+        },
+        "rsi_signal_ema9": {
+          "velocity": 0.656340603921322,
+          "acceleration": -0.6751828209208526
+        }
+      }
+    },
+    {
+      "date": "2026-09-07",
+      "open": 160,
+      "high": 161,
+      "low": 155,
+      "close": 156,
+      "return_pct": -2.500000000000002,
+      "volume_change_pct": -26.29137126003981,
+      "values": {
+        "macd_hist": 0.6453951562037918,
+        "rsi": 60.216227221115545,
+        "williams": -58.333333333333336,
+        "macd": 5.1140327771105945,
+        "macd_signal": 4.468637620906803,
+        "volume": 1207444.9675349,
+        "volume_ratio_prior20_mean": 0.2395185104997077,
+        "volume_ratio_prior20_median": 0.4816464008529377,
+        "volume_ma5": 6940820.414499508,
+        "volume_ma10": 4485532.688008942,
+        "volume_ma20": 5066282.114430816,
+        "rsi_signal_sma9": 63.82123256643904,
+        "rsi_signal_ema9": 64.18932565943346
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.42097055616025614,
+          "acceleration": -0.3084423205111122
+        },
+        "rsi": {
+          "velocity": -7.591735463582708,
+          "acceleration": -5.547344783820634
+        },
+        "williams": {
+          "velocity": -21.296296296296298,
+          "acceleration": -16.402116402116405
+        },
+        "macd": {
+          "velocity": -0.2596217671093086,
+          "acceleration": -0.41368495955117623
+        },
+        "macd_signal": {
+          "velocity": 0.16134878905094752,
+          "acceleration": -0.10524263904006403
+        },
+        "volume": {
+          "velocity": -430687.48476549005,
+          "acceleration": 110647.59420393012
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.08934638628510835,
+          "acceleration": 0.027367680918830517
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -0.1718000260941142,
+          "acceleration": 0.044137014062149316
+        },
+        "volume_ma5": {
+          "velocity": -240081.90076266788,
+          "acceleration": -241550.6500315303
+        },
+        "volume_ma10": {
+          "velocity": -135800.78794178925,
+          "acceleration": 621390.7964192722
+        },
+        "volume_ma20": {
+          "velocity": 25147.86131690722,
+          "acceleration": -34814.888496489264
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.4861619600891274,
+          "acceleration": -0.6652040645886217
+        },
+        "rsi_signal_ema9": {
+          "velocity": -0.9932746095794727,
+          "acceleration": -1.6496152135007947
+        }
+      }
+    },
+    {
+      "date": "2026-09-08",
+      "open": 156,
+      "high": 160,
+      "low": 155,
+      "close": 158,
+      "return_pct": 1.2820512820512775,
+      "volume_change_pct": 0.11357770334741168,
+      "values": {
+        "macd_hist": 0.43460189803768223,
+        "rsi": 62.478255746072605,
+        "williams": -50.0,
+        "macd": 5.011889993453906,
+        "macd_signal": 4.577288095416224,
+        "volume": 1208816.35579821,
+        "volume_ratio_prior20_mean": 0.23860028488248083,
+        "volume_ratio_prior20_median": 0.48219344377328194,
+        "volume_ma5": 4233432.873415405,
+        "volume_ma10": 4506813.968262166,
+        "volume_ma20": 5037871.239951985,
+        "rsi_signal_sma9": 63.769022434462194,
+        "rsi_signal_ema9": 63.847111676761294
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.2107932581661096,
+          "acceleration": 0.21017729799414653
+        },
+        "rsi": {
+          "velocity": 2.26202852495706,
+          "acceleration": 9.853763988539768
+        },
+        "williams": {
+          "velocity": 8.333333333333336,
+          "acceleration": 29.629629629629633
+        },
+        "macd": {
+          "velocity": -0.10214278365668861,
+          "acceleration": 0.15747898345262
+        },
+        "macd_signal": {
+          "velocity": 0.108650474509421,
+          "acceleration": -0.052698314541526514
+        },
+        "volume": {
+          "velocity": 1371.388263310073,
+          "acceleration": 432058.8730288001
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -0.0009182256172268755,
+          "acceleration": 0.08842816066788148
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": 0.0005470429203442428,
+          "acceleration": 0.17234706901445845
+        },
+        "volume_ma5": {
+          "velocity": -2707387.5410841033,
+          "acceleration": -2467305.6403214354
+        },
+        "volume_ma10": {
+          "velocity": 21281.280253224075,
+          "acceleration": 157082.06819501333
+        },
+        "volume_ma20": {
+          "velocity": -28410.874478830956,
+          "acceleration": -53558.735795738176
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.05221013197684954,
+          "acceleration": 0.43395182811227784
+        },
+        "rsi_signal_ema9": {
+          "velocity": -0.3422139826721704,
+          "acceleration": 0.6510606269073094
+        }
+      }
+    },
+    {
+      "date": "2026-09-09",
+      "open": 158,
+      "high": 164,
+      "low": 157,
+      "close": 160,
+      "return_pct": 1.2658227848101333,
+      "volume_change_pct": 223.42474046582214,
+      "values": {
+        "macd_hist": 0.365603283719234,
+        "rsi": 64.64321422685126,
+        "williams": -47.61904761904762,
+        "macd": 5.034292200065266,
+        "macd_signal": 4.668688916346032,
+        "volume": 3909611.16144877,
+        "volume_ratio_prior20_mean": 0.7760442804580356,
+        "volume_ratio_prior20_median": 1.5595328940669473,
+        "volume_ma5": 2028694.4936704158,
+        "volume_ma10": 4588842.087791548,
+        "volume_ma20": 5145626.967122504,
+        "rsi_signal_sma9": 64.14390999465003,
+        "rsi_signal_ema9": 64.00633218677929
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.06899861431844823,
+          "acceleration": 0.14179464384766138
+        },
+        "rsi": {
+          "velocity": 2.164958480778651,
+          "acceleration": -0.09707004417840892
+        },
+        "williams": {
+          "velocity": 2.3809523809523796,
+          "acceleration": -5.952380952380956
+        },
+        "macd": {
+          "velocity": 0.022402206611360498,
+          "acceleration": 0.1245449902680491
+        },
+        "macd_signal": {
+          "velocity": 0.09140082092980872,
+          "acceleration": -0.01724965357961228
+        },
+        "volume": {
+          "velocity": 2700794.80565056,
+          "acceleration": 2699423.41738725
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": 0.5374439955755548,
+          "acceleration": 0.5383622211927817
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": 1.0773394502936653,
+          "acceleration": 1.076792407373321
+        },
+        "volume_ma5": {
+          "velocity": -2204738.379744989,
+          "acceleration": 502649.1613391144
+        },
+        "volume_ma10": {
+          "velocity": 82028.11952938233,
+          "acceleration": 60746.83927615825
+        },
+        "volume_ma20": {
+          "velocity": 107755.7271705186,
+          "acceleration": 136166.60164934956
+        },
+        "rsi_signal_sma9": {
+          "velocity": 0.37488756018783675,
+          "acceleration": 0.4270976921646863
+        },
+        "rsi_signal_ema9": {
+          "velocity": 0.1592205100179953,
+          "acceleration": 0.5014344926901657
+        }
+      }
+    },
+    {
+      "date": "2026-09-10",
+      "open": 160,
+      "high": 200,
+      "low": 150,
+      "close": 151,
+      "return_pct": -5.625000000000002,
+      "volume_change_pct": 1300.6578192935256,
+      "values": {
+        "macd_hist": -0.31373175930868147,
+        "rsi": 50.517622406027265,
+        "williams": -96.07843137254902,
+        "macd": 4.276524217210181,
+        "macd_signal": 4.590255976518862,
+        "volume": 54760274.43680462,
+        "volume_ratio_prior20_mean": 10.642099551073215,
+        "volume_ratio_prior20_median": 21.00958217454589,
+        "volume_ma5": 12544855.874777379,
+        "volume_ma10": 9862144.720385347,
+        "volume_ma20": 7601542.818553522,
+        "rsi_signal_sma9": 63.13936598832143,
+        "rsi_signal_ema9": 61.30859023062889
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.6793350430279155,
+          "acceleration": -0.6103364287094672
+        },
+        "rsi": {
+          "velocity": -14.125591820823992,
+          "acceleration": -16.290550301602636
+        },
+        "williams": {
+          "velocity": -48.4593837535014,
+          "acceleration": -50.84033613445378
+        },
+        "macd": {
+          "velocity": -0.7577679828550856,
+          "acceleration": -0.7801701894664461
+        },
+        "macd_signal": {
+          "velocity": -0.07843293982717015,
+          "acceleration": -0.16983376075697887
+        },
+        "volume": {
+          "velocity": 50850663.27535585,
+          "acceleration": 48149868.46970529
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": 9.86605527061518,
+          "acceleration": 9.328611275039624
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": 19.450049280478943,
+          "acceleration": 18.37270983018528
+        },
+        "volume_ma5": {
+          "velocity": 10516161.381106963,
+          "acceleration": 12720899.760851951
+        },
+        "volume_ma10": {
+          "velocity": 5273302.632593798,
+          "acceleration": 5191274.513064416
+        },
+        "volume_ma20": {
+          "velocity": 2455915.8514310187,
+          "acceleration": 2348160.1242605
+        },
+        "rsi_signal_sma9": {
+          "velocity": -1.0045440063286009,
+          "acceleration": -1.3794315665164376
+        },
+        "rsi_signal_ema9": {
+          "velocity": -2.697741956150402,
+          "acceleration": -2.8569624661684045
+        }
+      }
+    },
+    {
+      "date": "2026-09-11",
+      "open": 151,
+      "high": 159,
+      "low": 147,
+      "close": 156,
+      "return_pct": 3.31125827814569,
+      "volume_change_pct": -88.32939674346422,
+      "values": {
+        "macd_hist": -0.4458396345785456,
+        "rsi": 56.23879629110188,
+        "williams": -83.01886792452831,
+        "macd": 4.032956433295681,
+        "macd_signal": 4.478796067874226,
+        "volume": 6390854.37170965,
+        "volume_ratio_prior20_mean": 0.8407312205242237,
+        "volume_ratio_prior20_median": 2.451944981447113,
+        "volume_ma5": 13495400.258659232,
+        "volume_ma10": 10338151.286960702,
+        "volume_ma20": 7586422.579136364,
+        "rsi_signal_sma9": 62.770507969223345,
+        "rsi_signal_ema9": 60.294631442723485
+      },
+      "changes": {
+        "macd_hist": {
+          "velocity": -0.13210787526986412,
+          "acceleration": 0.5472271677580514
+        },
+        "rsi": {
+          "velocity": 5.721173885074613,
+          "acceleration": 19.846765705898605
+        },
+        "williams": {
+          "velocity": 13.059563448020711,
+          "acceleration": 61.51894720152211
+        },
+        "macd": {
+          "velocity": -0.24356778391450007,
+          "acceleration": 0.5142001989405856
+        },
+        "macd_signal": {
+          "velocity": -0.11145990864463595,
+          "acceleration": -0.03302696881746581
+        },
+        "volume": {
+          "velocity": -48369420.06509497,
+          "acceleration": -99220083.34045082
+        },
+        "volume_ratio_prior20_mean": {
+          "velocity": -9.801368330548993,
+          "acceleration": -19.667423601164174
+        },
+        "volume_ratio_prior20_median": {
+          "velocity": -18.557637193098778,
+          "acceleration": -38.00768647357772
+        },
+        "volume_ma5": {
+          "velocity": 950544.3838818539,
+          "acceleration": -9565616.99722511
+        },
+        "volume_ma10": {
+          "velocity": 476006.5665753558,
+          "acceleration": -4797296.066018443
+        },
+        "volume_ma20": {
+          "velocity": -15120.239417158067,
+          "acceleration": -2471036.0908481767
+        },
+        "rsi_signal_sma9": {
+          "velocity": -0.36885801909808436,
+          "acceleration": 0.6356859872305165
+        },
+        "rsi_signal_ema9": {
+          "velocity": -1.013958787905402,
+          "acceleration": 1.6837831682450002
+        }
+      }
+    }
+  ],
+  "review": {
+    "version": "daily-indicator-review-v1",
+    "venue": "upbit",
+    "symbol": "KRW-ARK",
+    "signal_day_ms": 1789084800000,
+    "signal_available_ms": 1789171200000,
+    "next_daily_open_ms": 1789171200000,
+    "asof_ms": 1789171200000,
+    "observed_after_open_ms": 0,
+    "observations": [
+      {
+        "day_ms": 1788912000000,
+        "values": {
+          "macd_hist": 0.365603283719234,
+          "rsi": 64.64321422685126,
+          "williams": -47.61904761904762,
+          "macd": 5.034292200065266,
+          "macd_signal": 4.668688916346032,
+          "volume": 3909611.16144877,
+          "volume_ma5": 2028694.4936704158,
+          "volume_ma10": 4588842.087791548,
+          "volume_ma20": 5145626.967122504,
+          "price_ma5": 159.0,
+          "price_ma10": 156.4,
+          "price_ma20": 154.15,
+          "price_ma60": 144.55,
+          "price_ma120": 169.95833333333334,
+          "rsi_signal9": null
+        }
+      },
+      {
+        "day_ms": 1788998400000,
+        "values": {
+          "macd_hist": -0.31373175930868147,
+          "rsi": 50.517622406027265,
+          "williams": -96.07843137254902,
+          "macd": 4.276524217210181,
+          "macd_signal": 4.590255976518862,
+          "volume": 54760274.43680462,
+          "volume_ma5": 12544855.874777379,
+          "volume_ma10": 9862144.720385347,
+          "volume_ma20": 7601542.818553522,
+          "price_ma5": 157.0,
+          "price_ma10": 156.3,
+          "price_ma20": 154.3,
+          "price_ma60": 144.41666666666666,
+          "price_ma120": 169.03333333333333,
+          "rsi_signal9": null
+        }
+      },
+      {
+        "day_ms": 1789084800000,
+        "values": {
+          "macd_hist": -0.4458396345785456,
+          "rsi": 56.23879629110188,
+          "williams": -83.01886792452831,
+          "macd": 4.032956433295681,
+          "macd_signal": 4.478796067874226,
+          "volume": 6390854.37170965,
+          "volume_ma5": 13495400.258659232,
+          "volume_ma10": 10338151.286960702,
+          "volume_ma20": 7586422.579136364,
+          "price_ma5": 156.2,
+          "price_ma10": 156.8,
+          "price_ma20": 154.65,
+          "price_ma60": 144.41666666666666,
+          "price_ma120": 168.13333333333333,
+          "rsi_signal9": null
+        }
+      }
+    ],
+    "changes": {
+      "macd_hist": {
+        "previous_velocity": -0.6793350430279155,
+        "velocity": -0.13210787526986412,
+        "acceleration": 0.5472271677580514
+      },
+      "rsi": {
+        "previous_velocity": -14.125591820823992,
+        "velocity": 5.721173885074613,
+        "acceleration": 19.846765705898605
+      },
+      "williams": {
+        "previous_velocity": -48.4593837535014,
+        "velocity": 13.059563448020711,
+        "acceleration": 61.51894720152211
+      },
+      "macd": {
+        "previous_velocity": -0.7577679828550856,
+        "velocity": -0.24356778391450007,
+        "acceleration": 0.5142001989405856
+      },
+      "macd_signal": {
+        "previous_velocity": -0.07843293982717015,
+        "velocity": -0.11145990864463595,
+        "acceleration": -0.03302696881746581
+      },
+      "volume": {
+        "previous_velocity": 50850663.27535585,
+        "velocity": -48369420.06509497,
+        "acceleration": -99220083.34045082
+      },
+      "volume_ma5": {
+        "previous_velocity": 10516161.381106963,
+        "velocity": 950544.3838818539,
+        "acceleration": -9565616.99722511
+      },
+      "volume_ma10": {
+        "previous_velocity": 5273302.632593798,
+        "velocity": 476006.5665753558,
+        "acceleration": -4797296.066018443
+      },
+      "volume_ma20": {
+        "previous_velocity": 2455915.8514310187,
+        "velocity": -15120.239417158067,
+        "acceleration": -2471036.0908481767
+      },
+      "price_ma5": {
+        "previous_velocity": -2.0,
+        "velocity": -0.8000000000000114,
+        "acceleration": 1.1999999999999886
+      },
+      "price_ma10": {
+        "previous_velocity": -0.09999999999999432,
+        "velocity": 0.5,
+        "acceleration": 0.5999999999999943
+      },
+      "price_ma20": {
+        "previous_velocity": 0.15000000000000568,
+        "velocity": 0.3499999999999943,
+        "acceleration": 0.19999999999998863
+      },
+      "price_ma60": {
+        "previous_velocity": -0.13333333333335418,
+        "velocity": 0.0,
+        "acceleration": 0.13333333333335418
+      },
+      "price_ma120": {
+        "previous_velocity": -0.9250000000000114,
+        "velocity": -0.9000000000000057,
+        "acceleration": 0.025000000000005684
+      }
+    },
+    "composite": null,
+    "weights": null,
+    "scales": null,
+    "rsi_method": "WILDER14",
+    "rsi_signal_method": null,
+    "signal": null,
+    "entry_enabled": false,
+    "policy_status": "WEIGHTS_THRESHOLD_EXECUTION_AND_EXIT_UNAPPROVED",
+    "timing_note": "D_CLOSE_THEN_D_PLUS_1_OPEN_REFERENCE_NOT_A_GUARANTEED_FILL"
+  },
+  "experimental_equal_weight": {
+    "scales": {
+      "macd_hist": 0.15818861729319167,
+      "rsi": 2.133292899522406,
+      "williams": 6.316489361702127,
+      "volume": 624918.823237995
+    },
+    "contributions": {
+      "macd_hist": {
+        "velocity": -0.8351288324684658,
+        "acceleration": 3.459333402881976
+      },
+      "rsi": {
+        "velocity": 2.681851088688032,
+        "acceleration": 9.303347754235636
+      },
+      "williams": {
+        "velocity": 2.067535097455069,
+        "acceleration": 9.73942069379887
+      },
+      "volume": {
+        "velocity": -77.40112518050026,
+        "acceleration": -158.77275519777982
+      }
+    },
+    "composite": {
+      "velocity": -18.371716956706408,
+      "acceleration": -34.06766333671583
+    },
+    "approved": false
+  },
+  "next_day_outcome": {
+    "date": "2026-09-12",
+    "opening_price": 157,
+    "close": 182,
+    "opening_gap_pct": 0.6410256410256387,
+    "open_to_close_gross_pct": 15.923566878980889,
+    "note": "OUTCOME_ONLY_NOT_SIGNAL_INPUT_NOT_ASSUMED_EXECUTION"
+  },
+  "checks": {
+    "no_future_leak": true,
+    "contiguous_history": true
+  }
+}

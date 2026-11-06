@@ -1,0 +1,2955 @@
+{
+  "scope": {
+    "mode": "EXPLORATORY_SINGLE_ASSET_TARGET_CASE_REVIEW_NOT_VALIDATION",
+    "targets": [
+      {
+        "buy_labels": [
+          "09/11",
+          "09/12"
+        ],
+        "sell_label": "09/14"
+      },
+      {
+        "buy_labels": [
+          "09/18"
+        ],
+        "sell_label": "09/20"
+      },
+      {
+        "buy_labels": [
+          "09/22"
+        ],
+        "sell_label": "09/26"
+      }
+    ],
+    "requested_at_kst": "2026-09-26T02:45:20+09:00",
+    "data_cutoff_kst": "2026-09-26T02:30:00+09:00",
+    "source": "Reuse archived full-period daily and five-minute public candles. No new market data or other assets are required for this preliminary review.",
+    "time_labels": "Upbit daily labels begin at 09:00 KST. Report actual KST signal/fill times separately. Sep26 daily candle has not started at the cutoff.",
+    "daily_buy_hypothesis": "Previous completed daily RSI and Williams both declined. Current RSI and Williams rise versus that previous day, while MACD histogram second difference is positive. Histogram level and first difference need not be positive.",
+    "intraday_buy_probe": "Apply the same hypothesis to a provisional daily candle reconstructed only from observed trades. Require two consecutive completed one-hour checkpoints on the same daily candle. Use next actual five-minute opening reference after confirmation.",
+    "intraday_sell_probe": "While holding, activate after running high reaches +12% from entry. Require at least two of provisional daily MACD histogram/RSI/Williams to decline in each of the last two hourly intervals (same daily candle), AND current hourly close below the previous hourly low. Use next actual five-minute opening reference. Full exit; no arbitrary target-date scheduling.",
+    "volume": "Descriptive confirmation only in this hypothesis: no 1bn KRW turnover screen and no mandatory prior-volume surge/current-volume-decline gate. This change is explicit because Sep22 contradicts the old volume gate.",
+    "parameters": {
+      "hour_ms": 3600000,
+      "activation_gross_pct": 12,
+      "epsilon": 1e-10
+    },
+    "comparison": "Check all available days, including non-target Sep16 and premature sell dates. Target dates never enter entry/exit predicates.",
+    "caveat": "Formulated after reviewing the same ARK path. Do not optimize thresholds until all target labels match. This is a design probe, not an approved strategy or independent performance evidence. No deployment, no orders, no cross-asset simulation this turn."
+  },
+  "daily": [
+    {
+      "values": {
+        "macd_hist": -0.4458380550424028,
+        "rsi": 56.238844810099586,
+        "williams": -83.01886792452831
+      },
+      "velocity": {
+        "macd_hist": -0.13210800163272296,
+        "rsi": 5.721165582198402,
+        "williams": 13.059563448020711
+      },
+      "acceleration": {
+        "macd_hist": 0.5472271778670974,
+        "rsi": 19.846767099988206,
+        "williams": 61.51894720152211
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "open_ms": 1789084800000,
+      "available_ms": 1789171200000,
+      "available_kst": "09/12 09:00",
+      "ohlc": [
+        151.0,
+        159.0,
+        147.0,
+        156.0
+      ],
+      "volume": 6390854.37170965,
+      "volume_vs_previous": 0.1167060325653578,
+      "volume_vs_prior20_median": 2.451944981447113
+    },
+    {
+      "values": {
+        "macd_hist": 1.1131577518856588,
+        "rsi": 73.43742648992858,
+        "williams": -33.9622641509434
+      },
+      "velocity": {
+        "macd_hist": 1.5589958069280616,
+        "rsi": 17.198581679828997,
+        "williams": 49.05660377358491
+      },
+      "acceleration": {
+        "macd_hist": 1.6911038085607846,
+        "rsi": 11.477416097630595,
+        "williams": 35.997040325564214
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/12",
+      "open_ms": 1789171200000,
+      "available_ms": 1789257600000,
+      "available_kst": "09/13 09:00",
+      "ohlc": [
+        157.0,
+        182.0,
+        155.0,
+        182.0
+      ],
+      "volume": 27170665.11503655,
+      "volume_vs_previous": 4.2514918248353055,
+      "volume_vs_prior20_median": 10.424424043568356
+    },
+    {
+      "values": {
+        "macd_hist": 2.499124467173755,
+        "rsi": 76.49804479920454,
+        "williams": -68.84057971014492
+      },
+      "velocity": {
+        "macd_hist": 1.3859667152880961,
+        "rsi": 3.0606183092759522,
+        "williams": -34.878315559201525
+      },
+      "acceleration": {
+        "macd_hist": -0.1730290916399655,
+        "rsi": -14.137963370553045,
+        "williams": -83.93491933278644
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/13",
+      "open_ms": 1789257600000,
+      "available_ms": 1789344000000,
+      "available_kst": "09/14 09:00",
+      "ohlc": [
+        182.0,
+        285.0,
+        171.0,
+        190.0
+      ],
+      "volume": 285646914.87465906,
+      "volume_vs_previous": 10.513063028279674,
+      "volume_vs_prior20_median": 99.58470576027078
+    },
+    {
+      "values": {
+        "macd_hist": 5.676636802701692,
+        "rsi": 85.35631221697142,
+        "williams": -42.65734265734266
+      },
+      "velocity": {
+        "macd_hist": 3.177512335527937,
+        "rsi": 8.858267417766882,
+        "williams": 26.183237052802262
+      },
+      "acceleration": {
+        "macd_hist": 1.791545620239841,
+        "rsi": 5.79764910849093,
+        "williams": 61.06155261200378
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/14",
+      "open_ms": 1789344000000,
+      "available_ms": 1789430400000,
+      "available_kst": "09/15 09:00",
+      "ohlc": [
+        189.0,
+        290.0,
+        182.0,
+        229.0
+      ],
+      "volume": 238885583.95394608,
+      "volume_vs_previous": 0.8362967408864482,
+      "volume_vs_prior20_median": 68.26335001212823
+    },
+    {
+      "values": {
+        "macd_hist": 5.394127770813359,
+        "rsi": 65.04635213832486,
+        "williams": -63.63636363636363
+      },
+      "velocity": {
+        "macd_hist": -0.282509031888333,
+        "rsi": -20.309960078646554,
+        "williams": -20.979020979020973
+      },
+      "acceleration": {
+        "macd_hist": -3.46002136741627,
+        "rsi": -29.168227496413436,
+        "williams": -47.162258031823235
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/15",
+      "open_ms": 1789430400000,
+      "available_ms": 1789516800000,
+      "available_kst": "09/16 09:00",
+      "ohlc": [
+        230.0,
+        253.0,
+        192.0,
+        199.0
+      ],
+      "volume": 49466025.10975604,
+      "volume_vs_previous": 0.20706994658703398,
+      "volume_vs_prior20_median": 14.135288240863396
+    },
+    {
+      "values": {
+        "macd_hist": 5.306713220801138,
+        "rsi": 67.01835357364754,
+        "williams": -58.74125874125874
+      },
+      "velocity": {
+        "macd_hist": -0.08741455001222143,
+        "rsi": 1.9720014353226816,
+        "williams": 4.895104895104893
+      },
+      "acceleration": {
+        "macd_hist": 0.19509448187611156,
+        "rsi": 22.281961513969236,
+        "williams": 25.874125874125873
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "open_ms": 1789516800000,
+      "available_ms": 1789603200000,
+      "available_kst": "09/17 09:00",
+      "ohlc": [
+        198.0,
+        225.0,
+        195.0,
+        206.0
+      ],
+      "volume": 45232399.00694175,
+      "volume_vs_previous": 0.9144134566417931,
+      "volume_vs_prior20_median": 12.92549778095599
+    },
+    {
+      "values": {
+        "macd_hist": 3.8662611869037917,
+        "rsi": 58.84614629981864,
+        "williams": -69.93006993006993
+      },
+      "velocity": {
+        "macd_hist": -1.4404520338973459,
+        "rsi": -8.172207273828903,
+        "williams": -11.188811188811194
+      },
+      "acceleration": {
+        "macd_hist": -1.3530374838851245,
+        "rsi": -10.144208709151584,
+        "williams": -16.083916083916087
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/17",
+      "open_ms": 1789603200000,
+      "available_ms": 1789689600000,
+      "available_kst": "09/18 09:00",
+      "ohlc": [
+        205.0,
+        209.0,
+        188.0,
+        190.0
+      ],
+      "volume": 13177847.76376664,
+      "volume_vs_previous": 0.2913364767971793,
+      "volume_vs_prior20_median": 3.7656689843534767
+    },
+    {
+      "values": {
+        "macd_hist": 3.0484389593297063,
+        "rsi": 60.77764845814734,
+        "williams": -65.73426573426573
+      },
+      "velocity": {
+        "macd_hist": -0.8178222275740854,
+        "rsi": 1.9315021583286978,
+        "williams": 4.1958041958042
+      },
+      "acceleration": {
+        "macd_hist": 0.6226298063232605,
+        "rsi": 10.1037094321576,
+        "williams": 15.384615384615394
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "open_ms": 1789689600000,
+      "available_ms": 1789776000000,
+      "available_kst": "09/19 09:00",
+      "ohlc": [
+        190.0,
+        197.0,
+        185.0,
+        196.0
+      ],
+      "volume": 10374341.02056252,
+      "volume_vs_previous": 0.787256098760486,
+      "volume_vs_prior20_median": 2.014344106519513
+    },
+    {
+      "values": {
+        "macd_hist": 3.1035162622713237,
+        "rsi": 64.64900456021279,
+        "williams": -56.64335664335665
+      },
+      "velocity": {
+        "macd_hist": 0.05507730294161739,
+        "rsi": 3.871356102065448,
+        "williams": 9.090909090909086
+      },
+      "acceleration": {
+        "macd_hist": 0.8728995305157028,
+        "rsi": 1.9398539437367504,
+        "williams": 4.895104895104893
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/19",
+      "open_ms": 1789776000000,
+      "available_ms": 1789862400000,
+      "available_kst": "09/20 09:00",
+      "ohlc": [
+        196.0,
+        220.0,
+        191.0,
+        209.0
+      ],
+      "volume": 16011584.03706025,
+      "volume_vs_previous": 1.5433832380605574,
+      "volume_vs_prior20_median": 1.910098112478988
+    },
+    {
+      "values": {
+        "macd_hist": 2.8661196658668224,
+        "rsi": 64.64900456021279,
+        "williams": -56.64335664335665
+      },
+      "velocity": {
+        "macd_hist": -0.23739659640450128,
+        "rsi": 0.0,
+        "williams": 0.0
+      },
+      "acceleration": {
+        "macd_hist": -0.29247389934611867,
+        "rsi": -3.871356102065448,
+        "williams": -9.090909090909086
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/20",
+      "open_ms": 1789862400000,
+      "available_ms": 1789948800000,
+      "available_kst": "09/21 09:00",
+      "ohlc": [
+        208.0,
+        243.0,
+        203.0,
+        209.0
+      ],
+      "volume": 36590051.72807206,
+      "volume_vs_previous": 2.2852237257338874,
+      "volume_vs_prior20_median": 3.1071466064689375
+    },
+    {
+      "values": {
+        "macd_hist": 2.3875006870834365,
+        "rsi": 64.08470476111822,
+        "williams": -57.34265734265734
+      },
+      "velocity": {
+        "macd_hist": -0.4786189787833859,
+        "rsi": -0.5642997990945702,
+        "williams": -0.6993006993006929
+      },
+      "acceleration": {
+        "macd_hist": -0.2412223823788846,
+        "rsi": -0.5642997990945702,
+        "williams": -0.6993006993006929
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/21",
+      "open_ms": 1789948800000,
+      "available_ms": 1790035200000,
+      "available_kst": "09/22 09:00",
+      "ohlc": [
+        208.0,
+        211.0,
+        201.0,
+        208.0
+      ],
+      "volume": 9469805.49308925,
+      "volume_vs_previous": 0.25880820184312475,
+      "volume_vs_prior20_median": 0.6782653292682246
+    },
+    {
+      "values": {
+        "macd_hist": 2.0964249121079934,
+        "rsi": 65.38619833765708,
+        "williams": -54.54545454545455
+      },
+      "velocity": {
+        "macd_hist": -0.2910757749754431,
+        "rsi": 1.30149357653886,
+        "williams": 2.797202797202793
+      },
+      "acceleration": {
+        "macd_hist": 0.18754320380794276,
+        "rsi": 1.8657933756334302,
+        "williams": 3.496503496503486
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "open_ms": 1790035200000,
+      "available_ms": 1790121600000,
+      "available_kst": "09/23 09:00",
+      "ohlc": [
+        208.0,
+        215.0,
+        204.0,
+        212.0
+      ],
+      "volume": 10761040.46005537,
+      "volume_vs_previous": 1.1363528498983873,
+      "volume_vs_prior20_median": 0.770748739901215
+    },
+    {
+      "values": {
+        "macd_hist": 2.12483107208301,
+        "rsi": 67.59900593951474,
+        "williams": -49.65034965034965
+      },
+      "velocity": {
+        "macd_hist": 0.02840615997501672,
+        "rsi": 2.212807601857662,
+        "williams": 4.895104895104893
+      },
+      "acceleration": {
+        "macd_hist": 0.31948193495045984,
+        "rsi": 0.9113140253188021,
+        "williams": 2.0979020979021
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/23",
+      "open_ms": 1790121600000,
+      "available_ms": 1790208000000,
+      "available_kst": "09/24 09:00",
+      "ohlc": [
+        212.0,
+        225.0,
+        209.0,
+        219.0
+      ],
+      "volume": 15625390.55926918,
+      "volume_vs_previous": 1.4520334364757868,
+      "volume_vs_prior20_median": 1.1191529414581436
+    },
+    {
+      "values": {
+        "macd_hist": 4.836039190712983,
+        "rsi": 77.69167114260622,
+        "williams": -17.482517482517483
+      },
+      "velocity": {
+        "macd_hist": 2.7112081186299726,
+        "rsi": 10.092665203091485,
+        "williams": 32.167832167832174
+      },
+      "acceleration": {
+        "macd_hist": 2.682801958654956,
+        "rsi": 7.879857601233823,
+        "williams": 27.27272727272728
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/24",
+      "open_ms": 1790208000000,
+      "available_ms": 1790294400000,
+      "available_kst": "09/25 09:00",
+      "ohlc": [
+        219.0,
+        267.0,
+        214.0,
+        265.0
+      ],
+      "volume": 52766571.47325394,
+      "volume_vs_previous": 3.3769761640903204,
+      "volume_vs_prior20_median": 3.754138121468599
+    }
+  ],
+  "hourly_diagnostic_points": [
+    {
+      "values": {
+        "macd_hist": -0.5734733826777374,
+        "rsi": 54.11683280362836,
+        "williams": -86.79245283018868
+      },
+      "velocity": {
+        "macd_hist": -0.25974332926805754,
+        "rsi": 3.599153575727179,
+        "williams": 9.28597854236034
+      },
+      "acceleration": {
+        "macd_hist": 0.4195918502317628,
+        "rsi": 17.724755093516983,
+        "williams": 57.74536229586174
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789128000000,
+      "observed_kst": "09/11 21:00",
+      "hour_open": 153.0,
+      "hour_high": 155.0,
+      "hour_low": 153.0,
+      "hour_close": 154.0,
+      "hour_volume": 470664.48106757,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789128000000,
+      "provisional_daily_high": 155.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 3531326.36865,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.5096557188600928,
+        "rsi": 55.202954368205404,
+        "williams": -84.90566037735849
+      },
+      "velocity": {
+        "macd_hist": -0.1959256654504129,
+        "rsi": 4.6852751403042205,
+        "williams": 11.172770995190533
+      },
+      "acceleration": {
+        "macd_hist": 0.48340951404940746,
+        "rsi": 18.810876658094024,
+        "williams": 59.63215474869193
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789131600000,
+      "observed_kst": "09/11 22:00",
+      "hour_open": 153.0,
+      "hour_high": 157.0,
+      "hour_low": 152.0,
+      "hour_close": 155.0,
+      "hour_volume": 743953.10195615,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789131600000,
+      "provisional_daily_high": 157.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 4275279.47060615,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.4458380550424028,
+        "rsi": 56.238844810099586,
+        "williams": -83.01886792452831
+      },
+      "velocity": {
+        "macd_hist": -0.13210800163272296,
+        "rsi": 5.721165582198402,
+        "williams": 13.059563448020711
+      },
+      "acceleration": {
+        "macd_hist": 0.5472271778670974,
+        "rsi": 19.846767099988206,
+        "williams": 61.51894720152211
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789135200000,
+      "observed_kst": "09/11 23:00",
+      "hour_open": 154.0,
+      "hour_high": 157.0,
+      "hour_low": 153.0,
+      "hour_close": 156.0,
+      "hour_volume": 556636.3196693601,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789135200000,
+      "provisional_daily_high": 157.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 4831915.79027551,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.4458380550424028,
+        "rsi": 56.238844810099586,
+        "williams": -83.01886792452831
+      },
+      "velocity": {
+        "macd_hist": -0.13210800163272296,
+        "rsi": 5.721165582198402,
+        "williams": 13.059563448020711
+      },
+      "acceleration": {
+        "macd_hist": 0.5472271778670974,
+        "rsi": 19.846767099988206,
+        "williams": 61.51894720152211
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789138800000,
+      "observed_kst": "09/12 00:00",
+      "hour_open": 156.0,
+      "hour_high": 157.0,
+      "hour_low": 156.0,
+      "hour_close": 156.0,
+      "hour_volume": 318769.26852183,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789138800000,
+      "provisional_daily_high": 157.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5150685.05879734,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.3820203912247351,
+        "rsi": 57.22791001671395,
+        "williams": -81.13207547169812
+      },
+      "velocity": {
+        "macd_hist": -0.06829033781505522,
+        "rsi": 6.7102307888127655,
+        "williams": 14.946355900850904
+      },
+      "acceleration": {
+        "macd_hist": 0.6110448416847651,
+        "rsi": 20.83583230660257,
+        "williams": 63.4057396543523
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789142400000,
+      "observed_kst": "09/12 01:00",
+      "hour_open": 156.0,
+      "hour_high": 158.0,
+      "hour_low": 156.0,
+      "hour_close": 157.0,
+      "hour_volume": 194669.23523703,
+      "native_bars": 9,
+      "price_bar_close_ms": 1789142400000,
+      "provisional_daily_high": 158.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5345354.29403437,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.31820272740706734,
+        "rsi": 58.17325476902587,
+        "williams": -79.24528301886792
+      },
+      "velocity": {
+        "macd_hist": -0.0044726739973874885,
+        "rsi": 7.6555755411246835,
+        "williams": 16.833148353681096
+      },
+      "acceleration": {
+        "macd_hist": 0.6748625055024329,
+        "rsi": 21.781177058914487,
+        "williams": 65.2925321071825
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789146000000,
+      "observed_kst": "09/12 02:00",
+      "hour_open": 157.0,
+      "hour_high": 158.0,
+      "hour_low": 157.0,
+      "hour_close": 158.0,
+      "hour_volume": 81496.95790909001,
+      "native_bars": 6,
+      "price_bar_close_ms": 1789146000000,
+      "provisional_daily_high": 158.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5426851.25194346,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.3820203912247351,
+        "rsi": 57.22791001671395,
+        "williams": -81.13207547169812
+      },
+      "velocity": {
+        "macd_hist": -0.06829033781505522,
+        "rsi": 6.7102307888127655,
+        "williams": 14.946355900850904
+      },
+      "acceleration": {
+        "macd_hist": 0.6110448416847651,
+        "rsi": 20.83583230660257,
+        "williams": 63.4057396543523
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789149600000,
+      "observed_kst": "09/12 03:00",
+      "hour_open": 159.0,
+      "hour_high": 159.0,
+      "hour_low": 157.0,
+      "hour_close": 157.0,
+      "hour_volume": 61319.29711054,
+      "native_bars": 4,
+      "price_bar_close_ms": 1789149300000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5488170.549054,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.31820272740706734,
+        "rsi": 58.17325476902587,
+        "williams": -79.24528301886792
+      },
+      "velocity": {
+        "macd_hist": -0.0044726739973874885,
+        "rsi": 7.6555755411246835,
+        "williams": 16.833148353681096
+      },
+      "acceleration": {
+        "macd_hist": 0.6748625055024329,
+        "rsi": 21.781177058914487,
+        "williams": 65.2925321071825
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789153200000,
+      "observed_kst": "09/12 04:00",
+      "hour_open": 156.0,
+      "hour_high": 158.0,
+      "hour_low": 156.0,
+      "hour_close": 158.0,
+      "hour_volume": 155580.80109851,
+      "native_bars": 3,
+      "price_bar_close_ms": 1789152300000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5643751.35015251,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.3820203912247351,
+        "rsi": 57.22791001671395,
+        "williams": -81.13207547169812
+      },
+      "velocity": {
+        "macd_hist": -0.06829033781505522,
+        "rsi": 6.7102307888127655,
+        "williams": 14.946355900850904
+      },
+      "acceleration": {
+        "macd_hist": 0.6110448416847651,
+        "rsi": 20.83583230660257,
+        "williams": 63.4057396543523
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789156800000,
+      "observed_kst": "09/12 05:00",
+      "hour_open": 157.0,
+      "hour_high": 157.0,
+      "hour_low": 156.0,
+      "hour_close": 157.0,
+      "hour_volume": 63373.12162532,
+      "native_bars": 6,
+      "price_bar_close_ms": 1789156500000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5707124.47177783,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.4458380550424028,
+        "rsi": 56.238844810099586,
+        "williams": -83.01886792452831
+      },
+      "velocity": {
+        "macd_hist": -0.13210800163272296,
+        "rsi": 5.721165582198402,
+        "williams": 13.059563448020711
+      },
+      "acceleration": {
+        "macd_hist": 0.5472271778670974,
+        "rsi": 19.846767099988206,
+        "williams": 61.51894720152211
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789160400000,
+      "observed_kst": "09/12 06:00",
+      "hour_open": 157.0,
+      "hour_high": 157.0,
+      "hour_low": 156.0,
+      "hour_close": 156.0,
+      "hour_volume": 42429.48338825,
+      "native_bars": 6,
+      "price_bar_close_ms": 1789159500000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5749553.95516608,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": -0.5096557188600928,
+        "rsi": 55.202954368205404,
+        "williams": -84.90566037735849
+      },
+      "velocity": {
+        "macd_hist": -0.1959256654504129,
+        "rsi": 4.6852751403042205,
+        "williams": 11.172770995190533
+      },
+      "acceleration": {
+        "macd_hist": 0.48340951404940746,
+        "rsi": 18.810876658094024,
+        "williams": 59.63215474869193
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789164000000,
+      "observed_kst": "09/12 07:00",
+      "hour_open": 156.0,
+      "hour_high": 156.0,
+      "hour_low": 155.0,
+      "hour_close": 155.0,
+      "hour_volume": 142281.16964256,
+      "native_bars": 9,
+      "price_bar_close_ms": 1789163700000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 5891835.12480864,
+      "buy_confirmed": true,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": -0.5734733826777374,
+        "rsi": 54.11683280362836,
+        "williams": -86.79245283018868
+      },
+      "velocity": {
+        "macd_hist": -0.25974332926805754,
+        "rsi": 3.599153575727179,
+        "williams": 9.28597854236034
+      },
+      "acceleration": {
+        "macd_hist": 0.4195918502317628,
+        "rsi": 17.724755093516983,
+        "williams": 57.74536229586174
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789167600000,
+      "observed_kst": "09/12 08:00",
+      "hour_open": 154.0,
+      "hour_high": 155.0,
+      "hour_low": 154.0,
+      "hour_close": 154.0,
+      "hour_volume": 217393.57438138002,
+      "native_bars": 6,
+      "price_bar_close_ms": 1789167600000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 6109228.69919002,
+      "buy_confirmed": true,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": -0.4458380550424028,
+        "rsi": 56.238844810099586,
+        "williams": -83.01886792452831
+      },
+      "velocity": {
+        "macd_hist": -0.13210800163272296,
+        "rsi": 5.721165582198402,
+        "williams": 13.059563448020711
+      },
+      "acceleration": {
+        "macd_hist": 0.5472271778670974,
+        "rsi": 19.846767099988206,
+        "williams": 61.51894720152211
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/11",
+      "day_ms": 1789084800000,
+      "observed_ms": 1789171200000,
+      "observed_kst": "09/12 09:00",
+      "hour_open": 155.0,
+      "hour_high": 157.0,
+      "hour_low": 154.0,
+      "hour_close": 156.0,
+      "hour_volume": 281625.67251963,
+      "native_bars": 10,
+      "price_bar_close_ms": 1789171200000,
+      "provisional_daily_high": 159.0,
+      "provisional_daily_low": 147.0,
+      "provisional_daily_volume": 6390854.37170965,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 3.2011187691680734,
+        "rsi": 79.71226281552151,
+        "williams": -60.869565217391305
+      },
+      "velocity": {
+        "macd_hist": 2.0879610172824146,
+        "rsi": 6.274836325592929,
+        "williams": -26.907301066447907
+      },
+      "acceleration": {
+        "macd_hist": 0.528965210354353,
+        "rsi": -10.923745354236068,
+        "williams": -75.96390484003282
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/13",
+      "day_ms": 1789257600000,
+      "observed_ms": 1789315200000,
+      "observed_kst": "09/14 01:00",
+      "hour_open": 206.0,
+      "hour_high": 224.0,
+      "hour_low": 195.0,
+      "hour_close": 201.0,
+      "hour_volume": 7522334.534980141,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789315200000,
+      "provisional_daily_high": 285.0,
+      "provisional_daily_low": 171.0,
+      "provisional_daily_volume": 272372734.6015139,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.6905774586267794,
+        "rsi": 77.4714712025117,
+        "williams": -66.66666666666667
+      },
+      "velocity": {
+        "macd_hist": 1.5774197067411206,
+        "rsi": 4.0340447125831105,
+        "williams": -32.704402515723274
+      },
+      "acceleration": {
+        "macd_hist": 0.01842389981305903,
+        "rsi": -13.164536967245887,
+        "williams": -81.76100628930818
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/13",
+      "day_ms": 1789257600000,
+      "observed_ms": 1789329600000,
+      "observed_kst": "09/14 05:00",
+      "hour_open": 198.0,
+      "hour_high": 200.0,
+      "hour_low": 192.0,
+      "hour_close": 193.0,
+      "hour_volume": 427265.84183085,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789329600000,
+      "provisional_daily_high": 285.0,
+      "provisional_daily_low": 171.0,
+      "provisional_daily_volume": 277390987.66491115,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.1800361480854633,
+        "rsi": 74.67422564187396,
+        "williams": -72.46376811594203
+      },
+      "velocity": {
+        "macd_hist": 1.0668783961998045,
+        "rsi": 1.2367991519453767,
+        "williams": -38.50150396499863
+      },
+      "acceleration": {
+        "macd_hist": -0.4921174107282571,
+        "rsi": -15.96178252788362,
+        "williams": -87.55810773858354
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/13",
+      "day_ms": 1789257600000,
+      "observed_ms": 1789340400000,
+      "observed_kst": "09/14 08:00",
+      "hour_open": 189.0,
+      "hour_high": 190.0,
+      "hour_low": 182.0,
+      "hour_close": 185.0,
+      "hour_volume": 2135283.15200796,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789340400000,
+      "provisional_daily_high": 285.0,
+      "provisional_daily_low": 171.0,
+      "provisional_daily_volume": 283253892.9864845,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 4.7831895092543935,
+        "rsi": 83.06494416050226,
+        "williams": -52.44755244755245
+      },
+      "velocity": {
+        "macd_hist": 2.2840650420806385,
+        "rsi": 6.566899361297729,
+        "williams": 16.393027262592476
+      },
+      "acceleration": {
+        "macd_hist": 0.8980983267925424,
+        "rsi": 3.5062810520217766,
+        "williams": 51.27134282179399
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/14",
+      "day_ms": 1789344000000,
+      "observed_ms": 1789390800000,
+      "observed_kst": "09/14 22:00",
+      "hour_open": 224.0,
+      "hour_high": 227.0,
+      "hour_low": 211.0,
+      "hour_close": 215.0,
+      "hour_volume": 5535941.02778754,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789390800000,
+      "provisional_daily_high": 290.0,
+      "provisional_daily_low": 182.0,
+      "provisional_daily_volume": 209008556.349724,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.229913155978066,
+        "rsi": 84.29375954495808,
+        "williams": -47.55244755244755
+      },
+      "velocity": {
+        "macd_hist": 2.730788688804311,
+        "rsi": 7.795714745753543,
+        "williams": 21.28813215769737
+      },
+      "acceleration": {
+        "macd_hist": 1.3448219735162148,
+        "rsi": 4.7350964364775905,
+        "williams": 56.1664477168989
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/14",
+      "day_ms": 1789344000000,
+      "observed_ms": 1789408800000,
+      "observed_kst": "09/15 03:00",
+      "hour_open": 231.0,
+      "hour_high": 238.0,
+      "hour_low": 217.0,
+      "hour_close": 222.0,
+      "hour_volume": 1956616.6952856202,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789408800000,
+      "provisional_daily_high": 290.0,
+      "provisional_daily_low": 182.0,
+      "provisional_daily_volume": 228245140.66656065,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 6.096122072807656,
+        "rsi": 71.2638263714094,
+        "williams": -55.94405594405595
+      },
+      "velocity": {
+        "macd_hist": 0.41948527010596415,
+        "rsi": -14.092485845562024,
+        "williams": -13.286713286713287
+      },
+      "acceleration": {
+        "macd_hist": -2.758027065421973,
+        "rsi": -22.950753263328906,
+        "williams": -39.46995033951555
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/15",
+      "day_ms": 1789430400000,
+      "observed_ms": 1789441200000,
+      "observed_kst": "09/15 12:00",
+      "hour_open": 217.0,
+      "hour_high": 217.0,
+      "hour_low": 207.0,
+      "hour_close": 210.0,
+      "hour_volume": 3435042.6130520403,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789441200000,
+      "provisional_daily_high": 253.0,
+      "provisional_daily_low": 207.0,
+      "provisional_daily_volume": 26909679.59784394,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.457945434631027,
+        "rsi": 65.56638816595398,
+        "williams": -62.93706293706294
+      },
+      "velocity": {
+        "macd_hist": -0.21869136807066525,
+        "rsi": -19.789924051017437,
+        "williams": -20.27972027972028
+      },
+      "acceleration": {
+        "macd_hist": -3.3962037035986024,
+        "rsi": -28.64819146878432,
+        "williams": -46.46295733252254
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/15",
+      "day_ms": 1789430400000,
+      "observed_ms": 1789459200000,
+      "observed_kst": "09/15 17:00",
+      "hour_open": 205.0,
+      "hour_high": 208.0,
+      "hour_low": 200.0,
+      "hour_close": 200.0,
+      "hour_volume": 2224226.95498793,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789459200000,
+      "provisional_daily_high": 253.0,
+      "provisional_daily_low": 200.0,
+      "provisional_daily_volume": 36286796.18588463,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.625801539889451,
+        "rsi": 68.29597188831963,
+        "williams": -55.24475524475525
+      },
+      "velocity": {
+        "macd_hist": 0.23167376907609238,
+        "rsi": 3.249619749994764,
+        "williams": 8.391608391608386
+      },
+      "acceleration": {
+        "macd_hist": 0.5141828009644254,
+        "rsi": 23.55957982864132,
+        "williams": 29.370629370629366
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789527600000,
+      "observed_kst": "09/16 12:00",
+      "hour_open": 211.0,
+      "hour_high": 214.0,
+      "hour_low": 204.0,
+      "hour_close": 211.0,
+      "hour_volume": 3072240.75656966,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789527600000,
+      "provisional_daily_high": 214.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 8340158.82848835,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 6.263978178066079,
+        "rsi": 70.57561171496832,
+        "williams": -48.25174825174825
+      },
+      "velocity": {
+        "macd_hist": 0.86985040725272,
+        "rsi": 5.5292595766434545,
+        "williams": 15.38461538461538
+      },
+      "acceleration": {
+        "macd_hist": 1.152359439141053,
+        "rsi": 25.83921965529001,
+        "williams": 36.36363636363635
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789531200000,
+      "observed_kst": "09/16 13:00",
+      "hour_open": 211.0,
+      "hour_high": 225.0,
+      "hour_low": 209.0,
+      "hour_close": 221.0,
+      "hour_volume": 5410889.18670333,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789531200000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 13751048.01519168,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 5.561983876071784,
+        "rsi": 68.04842868097312,
+        "williams": -55.94405594405595
+      },
+      "velocity": {
+        "macd_hist": 0.16785610525842465,
+        "rsi": 3.002076542648254,
+        "williams": 7.692307692307686
+      },
+      "acceleration": {
+        "macd_hist": 0.45036513714675763,
+        "rsi": 23.31203662129481,
+        "williams": 28.67132867132866
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789534800000,
+      "observed_kst": "09/16 14:00",
+      "hour_open": 221.0,
+      "hour_high": 224.0,
+      "hour_low": 206.0,
+      "hour_close": 210.0,
+      "hour_volume": 4740025.63646553,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789534800000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 18491073.65165721,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 5.179077893165779,
+        "rsi": 66.47800180910552,
+        "williams": -60.13986013986014
+      },
+      "velocity": {
+        "macd_hist": -0.21504987764758,
+        "rsi": 1.4316496707806579,
+        "williams": 3.496503496503493
+      },
+      "acceleration": {
+        "macd_hist": 0.067459154240753,
+        "rsi": 21.741609749427212,
+        "williams": 24.47552447552446
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789538400000,
+      "observed_kst": "09/16 15:00",
+      "hour_open": 210.0,
+      "hour_high": 215.0,
+      "hour_low": 202.0,
+      "hour_close": 204.0,
+      "hour_volume": 4189181.2351728203,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789538400000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 22680254.886830032,
+      "buy_confirmed": true,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.306713220801138,
+        "rsi": 67.01835357364754,
+        "williams": -58.74125874125874
+      },
+      "velocity": {
+        "macd_hist": -0.08741455001222143,
+        "rsi": 1.9720014353226816,
+        "williams": 4.895104895104893
+      },
+      "acceleration": {
+        "macd_hist": 0.19509448187611156,
+        "rsi": 22.281961513969236,
+        "williams": 25.874125874125873
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789542000000,
+      "observed_kst": "09/16 16:00",
+      "hour_open": 205.0,
+      "hour_high": 209.0,
+      "hour_low": 205.0,
+      "hour_close": 206.0,
+      "hour_volume": 1266908.89630956,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789542000000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 23947163.78313959,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 5.115260229348113,
+        "rsi": 66.20113148545232,
+        "williams": -60.83916083916084
+      },
+      "velocity": {
+        "macd_hist": -0.27886754146524595,
+        "rsi": 1.1547793471274588,
+        "williams": 2.797202797202793
+      },
+      "acceleration": {
+        "macd_hist": 0.003641490423087035,
+        "rsi": 21.464739425774013,
+        "williams": 23.776223776223766
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789545600000,
+      "observed_kst": "09/16 17:00",
+      "hour_open": 206.0,
+      "hour_high": 209.0,
+      "hour_low": 202.0,
+      "hour_close": 203.0,
+      "hour_volume": 1429864.60375246,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789545600000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 25377028.38689205,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 4.923807237895133,
+        "rsi": 65.34238202935441,
+        "williams": -62.93706293706294
+      },
+      "velocity": {
+        "macd_hist": -0.47032053291822606,
+        "rsi": 0.2960298910295478,
+        "williams": 0.6993006993006929
+      },
+      "acceleration": {
+        "macd_hist": -0.18781150102989308,
+        "rsi": 20.605989969676102,
+        "williams": 21.67832167832166
+      },
+      "pullback_setup": true,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789549200000,
+      "observed_kst": "09/16 18:00",
+      "hour_open": 203.0,
+      "hour_high": 203.0,
+      "hour_low": 195.0,
+      "hour_close": 200.0,
+      "hour_volume": 3555922.95713099,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789549200000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 28932951.34402304,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.43434854843645,
+        "rsi": 67.54156148112594,
+        "williams": -57.34265734265734
+      },
+      "velocity": {
+        "macd_hist": 0.04022077762309095,
+        "rsi": 2.4952093428010755,
+        "williams": 6.293706293706293
+      },
+      "acceleration": {
+        "macd_hist": 0.32272980951142394,
+        "rsi": 22.80516942144763,
+        "williams": 27.27272727272726
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789560000000,
+      "observed_kst": "09/16 21:00",
+      "hour_open": 202.0,
+      "hour_high": 216.0,
+      "hour_low": 202.0,
+      "hour_close": 208.0,
+      "hour_volume": 6520570.89571262,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789560000000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 37513659.24313149,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 4.668536582624487,
+        "rsi": 63.421205322143294,
+        "williams": -65.73426573426573
+      },
+      "velocity": {
+        "macd_hist": -0.7255911881888721,
+        "rsi": -1.6251468161815694,
+        "williams": -2.0979020979021
+      },
+      "acceleration": {
+        "macd_hist": -0.44308215630053915,
+        "rsi": 18.684813262464985,
+        "williams": 18.881118881118873
+      },
+      "pullback_setup": true,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789570800000,
+      "observed_kst": "09/17 00:00",
+      "hour_open": 198.0,
+      "hour_high": 198.0,
+      "hour_low": 196.0,
+      "hour_close": 196.0,
+      "hour_volume": 660943.55129561,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789570800000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 40358483.21505166,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.24289555698347,
+        "rsi": 66.75037290963203,
+        "williams": -59.44055944055944
+      },
+      "velocity": {
+        "macd_hist": -0.15123221382988916,
+        "rsi": 1.704020771307171,
+        "williams": 4.195804195804193
+      },
+      "acceleration": {
+        "macd_hist": 0.13127681805844382,
+        "rsi": 22.013980849953725,
+        "williams": 25.174825174825166
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789578000000,
+      "observed_kst": "09/17 02:00",
+      "hour_open": 205.0,
+      "hour_high": 210.0,
+      "hour_low": 202.0,
+      "hour_close": 205.0,
+      "hour_volume": 1292098.3233444,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789578000000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 42104404.99089258,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 4.859989574077465,
+        "rsi": 65.04635213832485,
+        "williams": -63.63636363636363
+      },
+      "velocity": {
+        "macd_hist": -0.5341381967358938,
+        "rsi": -1.4210854715202004e-14,
+        "williams": 0.0
+      },
+      "acceleration": {
+        "macd_hist": -0.2516291648475608,
+        "rsi": 20.30996007864654,
+        "williams": 20.979020979020973
+      },
+      "pullback_setup": true,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789581600000,
+      "observed_kst": "09/17 03:00",
+      "hour_open": 206.0,
+      "hour_high": 206.0,
+      "hour_low": 199.0,
+      "hour_close": 199.0,
+      "hour_volume": 447478.51069778,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789581600000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 42551883.50159036,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 5.306713220801138,
+        "rsi": 67.01835357364754,
+        "williams": -58.74125874125874
+      },
+      "velocity": {
+        "macd_hist": -0.08741455001222143,
+        "rsi": 1.9720014353226816,
+        "williams": 4.895104895104893
+      },
+      "acceleration": {
+        "macd_hist": 0.19509448187611156,
+        "rsi": 22.281961513969236,
+        "williams": 25.874125874125873
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789592400000,
+      "observed_kst": "09/17 06:00",
+      "hour_open": 205.0,
+      "hour_high": 206.0,
+      "hour_low": 204.0,
+      "hour_close": 206.0,
+      "hour_volume": 379481.54926328,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789592400000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 43335616.99337197,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 5.370530884618782,
+        "rsi": 67.28204910867578,
+        "williams": -58.04195804195804
+      },
+      "velocity": {
+        "macd_hist": -0.023596886194576783,
+        "rsi": 2.235696970350915,
+        "williams": 5.594405594405593
+      },
+      "acceleration": {
+        "macd_hist": 0.2589121456937562,
+        "rsi": 22.54565704899747,
+        "williams": 26.573426573426566
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789596000000,
+      "observed_kst": "09/17 07:00",
+      "hour_open": 206.0,
+      "hour_high": 209.0,
+      "hour_low": 203.0,
+      "hour_close": 207.0,
+      "hour_volume": 489028.51645026,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789596000000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 43824645.50982223,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 5.179077893165779,
+        "rsi": 66.47800180910552,
+        "williams": -60.13986013986014
+      },
+      "velocity": {
+        "macd_hist": -0.21504987764758,
+        "rsi": 1.4316496707806579,
+        "williams": 3.496503496503493
+      },
+      "acceleration": {
+        "macd_hist": 0.067459154240753,
+        "rsi": 21.741609749427212,
+        "williams": 24.47552447552446
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789599600000,
+      "observed_kst": "09/17 08:00",
+      "hour_open": 207.0,
+      "hour_high": 207.0,
+      "hour_low": 204.0,
+      "hour_close": 204.0,
+      "hour_volume": 446414.89375275,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789599600000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 44271060.40357498,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 5.306713220801138,
+        "rsi": 67.01835357364754,
+        "williams": -58.74125874125874
+      },
+      "velocity": {
+        "macd_hist": -0.08741455001222143,
+        "rsi": 1.9720014353226816,
+        "williams": 4.895104895104893
+      },
+      "acceleration": {
+        "macd_hist": 0.19509448187611156,
+        "rsi": 22.281961513969236,
+        "williams": 25.874125874125873
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/16",
+      "day_ms": 1789516800000,
+      "observed_ms": 1789603200000,
+      "observed_kst": "09/17 09:00",
+      "hour_open": 204.0,
+      "hour_high": 207.0,
+      "hour_low": 202.0,
+      "hour_close": 206.0,
+      "hour_volume": 961338.60336677,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789603200000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 195.0,
+      "provisional_daily_volume": 45232399.00694175,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 4.504437825080442,
+        "rsi": 63.700948440140614,
+        "williams": -62.93706293706294
+      },
+      "velocity": {
+        "macd_hist": -0.8022753957206952,
+        "rsi": -3.317405133506931,
+        "williams": -4.1958041958042
+      },
+      "acceleration": {
+        "macd_hist": -0.7148608457084737,
+        "rsi": -5.289406568829605,
+        "williams": -9.090909090909093
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/17",
+      "day_ms": 1789603200000,
+      "observed_ms": 1789614000000,
+      "observed_kst": "09/17 12:00",
+      "hour_open": 201.0,
+      "hour_high": 202.0,
+      "hour_low": 198.0,
+      "hour_close": 200.0,
+      "hour_volume": 849210.80910305,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789614000000,
+      "provisional_daily_high": 209.0,
+      "provisional_daily_low": 198.0,
+      "provisional_daily_volume": 4168191.06252664,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.7293506402413925,
+        "rsi": 59.18116643515664,
+        "williams": -69.23076923076923
+      },
+      "velocity": {
+        "macd_hist": -1.1369105466623992,
+        "rsi": 0.3350201353379987,
+        "williams": 0.6993006993007072
+      },
+      "acceleration": {
+        "macd_hist": 0.30354148723494667,
+        "rsi": 8.507227409166902,
+        "williams": 11.8881118881119
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789725600000,
+      "observed_kst": "09/18 19:00",
+      "hour_open": 191.0,
+      "hour_high": 193.0,
+      "hour_low": 190.0,
+      "hour_close": 191.0,
+      "hour_volume": 361752.45597877,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789725600000,
+      "provisional_daily_high": 193.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 5368190.41981375,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.7931683040590602,
+        "rsi": 59.51077603602089,
+        "williams": -68.53146853146853
+      },
+      "velocity": {
+        "macd_hist": -1.0730928828447315,
+        "rsi": 0.6646297362022509,
+        "williams": 1.3986013986014
+      },
+      "acceleration": {
+        "macd_hist": 0.3673591510526144,
+        "rsi": 8.836837010031154,
+        "williams": 12.587412587412594
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789729200000,
+      "observed_kst": "09/18 20:00",
+      "hour_open": 191.0,
+      "hour_high": 193.0,
+      "hour_low": 190.0,
+      "hour_close": 192.0,
+      "hour_volume": 450417.02671519,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789729200000,
+      "provisional_daily_high": 193.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 5818607.4465289395,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.7931683040590602,
+        "rsi": 59.51077603602089,
+        "williams": -68.53146853146853
+      },
+      "velocity": {
+        "macd_hist": -1.0730928828447315,
+        "rsi": 0.6646297362022509,
+        "williams": 1.3986013986014
+      },
+      "acceleration": {
+        "macd_hist": 0.3673591510526144,
+        "rsi": 8.836837010031154,
+        "williams": 12.587412587412594
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789732800000,
+      "observed_kst": "09/18 21:00",
+      "hour_open": 192.0,
+      "hour_high": 194.0,
+      "hour_low": 191.0,
+      "hour_close": 192.0,
+      "hour_volume": 282766.94911567,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789732800000,
+      "provisional_daily_high": 194.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 6101374.39564461,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.9208036316943726,
+        "rsi": 60.154279578734254,
+        "williams": -67.13286713286713
+      },
+      "velocity": {
+        "macd_hist": -0.9454575552094191,
+        "rsi": 1.3081332789156122,
+        "williams": 2.7972027972028
+      },
+      "acceleration": {
+        "macd_hist": 0.4949944786879268,
+        "rsi": 9.480340552744515,
+        "williams": 13.986013986013994
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789736400000,
+      "observed_kst": "09/18 22:00",
+      "hour_open": 193.0,
+      "hour_high": 195.0,
+      "hour_low": 192.0,
+      "hour_close": 194.0,
+      "hour_volume": 276531.98685258,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789736400000,
+      "provisional_daily_high": 195.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 6377906.38249719,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 3.0484389593297063,
+        "rsi": 60.77764845814734,
+        "williams": -65.73426573426573
+      },
+      "velocity": {
+        "macd_hist": -0.8178222275740854,
+        "rsi": 1.9315021583286978,
+        "williams": 4.1958041958042
+      },
+      "acceleration": {
+        "macd_hist": 0.6226298063232605,
+        "rsi": 10.1037094321576,
+        "williams": 15.384615384615394
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789740000000,
+      "observed_kst": "09/18 23:00",
+      "hour_open": 194.0,
+      "hour_high": 197.0,
+      "hour_low": 193.0,
+      "hour_close": 196.0,
+      "hour_volume": 743111.28416829,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789740000000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 7121017.66666548,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.9208036316943726,
+        "rsi": 60.154279578734254,
+        "williams": -67.13286713286713
+      },
+      "velocity": {
+        "macd_hist": -0.9454575552094191,
+        "rsi": 1.3081332789156122,
+        "williams": 2.7972027972028
+      },
+      "acceleration": {
+        "macd_hist": 0.4949944786879268,
+        "rsi": 9.480340552744515,
+        "williams": 13.986013986013994
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789743600000,
+      "observed_kst": "09/19 00:00",
+      "hour_open": 196.0,
+      "hour_high": 197.0,
+      "hour_low": 193.0,
+      "hour_close": 194.0,
+      "hour_volume": 474407.75590392,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789743600000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 7595425.4225694,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.7931683040590602,
+        "rsi": 59.51077603602089,
+        "williams": -68.53146853146853
+      },
+      "velocity": {
+        "macd_hist": -1.0730928828447315,
+        "rsi": 0.6646297362022509,
+        "williams": 1.3986013986014
+      },
+      "acceleration": {
+        "macd_hist": 0.3673591510526144,
+        "rsi": 8.836837010031154,
+        "williams": 12.587412587412594
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789747200000,
+      "observed_kst": "09/19 01:00",
+      "hour_open": 194.0,
+      "hour_high": 194.0,
+      "hour_low": 191.0,
+      "hour_close": 192.0,
+      "hour_volume": 543937.64281545,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789747200000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 8139363.06538485,
+      "buy_confirmed": true,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.6655329764237248,
+        "rsi": 58.84614629981865,
+        "williams": -69.93006993006993
+      },
+      "velocity": {
+        "macd_hist": -1.200728210480067,
+        "rsi": 7.105427357601002e-15,
+        "williams": 0.0
+      },
+      "acceleration": {
+        "macd_hist": 0.23972382341727894,
+        "rsi": 8.17220727382891,
+        "williams": 11.188811188811194
+      },
+      "pullback_setup": true,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789750800000,
+      "observed_kst": "09/19 02:00",
+      "hour_open": 192.0,
+      "hour_high": 192.0,
+      "hour_low": 189.0,
+      "hour_close": 190.0,
+      "hour_volume": 397783.20929903997,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789750800000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 8537146.27468389,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.9208036316943726,
+        "rsi": 60.154279578734254,
+        "williams": -67.13286713286713
+      },
+      "velocity": {
+        "macd_hist": -0.9454575552094191,
+        "rsi": 1.3081332789156122,
+        "williams": 2.7972027972028
+      },
+      "acceleration": {
+        "macd_hist": 0.4949944786879268,
+        "rsi": 9.480340552744515,
+        "williams": 13.986013986013994
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789758000000,
+      "observed_kst": "09/19 04:00",
+      "hour_open": 192.0,
+      "hour_high": 196.0,
+      "hour_low": 192.0,
+      "hour_close": 194.0,
+      "hour_volume": 378346.16606069,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789758000000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 9291810.52749222,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.856985967876705,
+        "rsi": 59.83510512172472,
+        "williams": -67.83216783216783
+      },
+      "velocity": {
+        "macd_hist": -1.0092752190270868,
+        "rsi": 0.9889588219060812,
+        "williams": 2.0979020979021072
+      },
+      "acceleration": {
+        "macd_hist": 0.43117681487025905,
+        "rsi": 9.161166095734984,
+        "williams": 13.2867132867133
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789761600000,
+      "observed_kst": "09/19 05:00",
+      "hour_open": 195.0,
+      "hour_high": 195.0,
+      "hour_low": 193.0,
+      "hour_close": 193.0,
+      "hour_volume": 89078.91453796,
+      "native_bars": 7,
+      "price_bar_close_ms": 1789761600000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 9380889.44203018,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.856985967876705,
+        "rsi": 59.83510512172472,
+        "williams": -67.83216783216783
+      },
+      "velocity": {
+        "macd_hist": -1.0092752190270868,
+        "rsi": 0.9889588219060812,
+        "williams": 2.0979020979021072
+      },
+      "acceleration": {
+        "macd_hist": 0.43117681487025905,
+        "rsi": 9.161166095734984,
+        "williams": 13.2867132867133
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789765200000,
+      "observed_kst": "09/19 06:00",
+      "hour_open": 193.0,
+      "hour_high": 194.0,
+      "hour_low": 192.0,
+      "hour_close": 193.0,
+      "hour_volume": 208676.84395553,
+      "native_bars": 9,
+      "price_bar_close_ms": 1789765200000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 9589566.28598571,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.9208036316943726,
+        "rsi": 60.154279578734254,
+        "williams": -67.13286713286713
+      },
+      "velocity": {
+        "macd_hist": -0.9454575552094191,
+        "rsi": 1.3081332789156122,
+        "williams": 2.7972027972028
+      },
+      "acceleration": {
+        "macd_hist": 0.4949944786879268,
+        "rsi": 9.480340552744515,
+        "williams": 13.986013986013994
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789768800000,
+      "observed_kst": "09/19 07:00",
+      "hour_open": 193.0,
+      "hour_high": 195.0,
+      "hour_low": 192.0,
+      "hour_close": 194.0,
+      "hour_volume": 253519.61607983,
+      "native_bars": 10,
+      "price_bar_close_ms": 1789768800000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 9843085.90206554,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.9846212955120386,
+        "rsi": 60.46842132358415,
+        "williams": -66.43356643356644
+      },
+      "velocity": {
+        "macd_hist": -0.8816398913917531,
+        "rsi": 1.6222750237655106,
+        "williams": 3.496503496503493
+      },
+      "acceleration": {
+        "macd_hist": 0.5588121425055927,
+        "rsi": 9.794482297594413,
+        "williams": 14.685314685314687
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789772400000,
+      "observed_kst": "09/19 08:00",
+      "hour_open": 194.0,
+      "hour_high": 196.0,
+      "hour_low": 194.0,
+      "hour_close": 195.0,
+      "hour_volume": 245474.16934213,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789772400000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 10088560.07140767,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 3.0484389593297063,
+        "rsi": 60.77764845814734,
+        "williams": -65.73426573426573
+      },
+      "velocity": {
+        "macd_hist": -0.8178222275740854,
+        "rsi": 1.9315021583286978,
+        "williams": 4.1958041958042
+      },
+      "acceleration": {
+        "macd_hist": 0.6226298063232605,
+        "rsi": 10.1037094321576,
+        "williams": 15.384615384615394
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/18",
+      "day_ms": 1789689600000,
+      "observed_ms": 1789776000000,
+      "observed_kst": "09/19 09:00",
+      "hour_open": 196.0,
+      "hour_high": 196.0,
+      "hour_low": 194.0,
+      "hour_close": 196.0,
+      "hour_volume": 285780.94915485,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789776000000,
+      "provisional_daily_high": 197.0,
+      "provisional_daily_low": 185.0,
+      "provisional_daily_volume": 10374341.02056252,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 3.039698598453679,
+        "rsi": 64.37854784999469,
+        "williams": -57.34265734265734
+      },
+      "velocity": {
+        "macd_hist": -0.008740360876027253,
+        "rsi": 3.6008993918473493,
+        "williams": 8.391608391608393
+      },
+      "acceleration": {
+        "macd_hist": 0.8090818666980581,
+        "rsi": 1.6693972335186515,
+        "williams": 4.1958041958042
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/19",
+      "day_ms": 1789776000000,
+      "observed_ms": 1789855200000,
+      "observed_kst": "09/20 07:00",
+      "hour_open": 210.0,
+      "hour_high": 211.0,
+      "hour_low": 207.0,
+      "hour_close": 208.0,
+      "hour_volume": 250033.31612382,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789855200000,
+      "provisional_daily_high": 220.0,
+      "provisional_daily_low": 191.0,
+      "provisional_daily_volume": 15238822.01899691,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.73848433823151,
+        "rsi": 63.608801722063575,
+        "williams": -58.04195804195804
+      },
+      "velocity": {
+        "macd_hist": -0.36503192403981366,
+        "rsi": -1.040202838149213,
+        "williams": -1.398601398601393
+      },
+      "acceleration": {
+        "macd_hist": -0.42010922698143105,
+        "rsi": -4.911558940214661,
+        "williams": -10.48951048951048
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/20",
+      "day_ms": 1789862400000,
+      "observed_ms": 1789894800000,
+      "observed_kst": "09/20 18:00",
+      "hour_open": 213.0,
+      "hour_high": 213.0,
+      "hour_low": 205.0,
+      "hour_close": 207.0,
+      "hour_volume": 2435285.67254548,
+      "native_bars": 12,
+      "price_bar_close_ms": 1789894800000,
+      "provisional_daily_high": 243.0,
+      "provisional_daily_low": 203.0,
+      "provisional_daily_volume": 31208029.16934261,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.73848433823151,
+        "rsi": 63.608801722063575,
+        "williams": -58.04195804195804
+      },
+      "velocity": {
+        "macd_hist": -0.36503192403981366,
+        "rsi": -1.040202838149213,
+        "williams": -1.398601398601393
+      },
+      "acceleration": {
+        "macd_hist": -0.42010922698143105,
+        "rsi": -4.911558940214661,
+        "williams": -10.48951048951048
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/20",
+      "day_ms": 1789862400000,
+      "observed_ms": 1789916400000,
+      "observed_kst": "09/21 00:00",
+      "hour_open": 209.0,
+      "hour_high": 209.0,
+      "hour_low": 206.0,
+      "hour_close": 207.0,
+      "hour_volume": 213076.05783028,
+      "native_bars": 11,
+      "price_bar_close_ms": 1789916100000,
+      "provisional_daily_high": 243.0,
+      "provisional_daily_low": 203.0,
+      "provisional_daily_volume": 34728455.8463623,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 2.73848433823151,
+        "rsi": 63.608801722063575,
+        "williams": -58.04195804195804
+      },
+      "velocity": {
+        "macd_hist": -0.36503192403981366,
+        "rsi": -1.040202838149213,
+        "williams": -1.398601398601393
+      },
+      "acceleration": {
+        "macd_hist": -0.42010922698143105,
+        "rsi": -4.911558940214661,
+        "williams": -10.48951048951048
+      },
+      "pullback_setup": false,
+      "recovery": false,
+      "buy_hypothesis": false,
+      "day": "09/20",
+      "day_ms": 1789862400000,
+      "observed_ms": 1789930800000,
+      "observed_kst": "09/21 04:00",
+      "hour_open": 209.0,
+      "hour_high": 209.0,
+      "hour_low": 206.0,
+      "hour_close": 207.0,
+      "hour_volume": 57225.23808921,
+      "native_bars": 10,
+      "price_bar_close_ms": 1789930800000,
+      "provisional_daily_high": 243.0,
+      "provisional_daily_low": 203.0,
+      "provisional_daily_volume": 35587903.11821473,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    },
+    {
+      "values": {
+        "macd_hist": 1.968789584472681,
+        "rsi": 64.74745996580154,
+        "williams": -55.94405594405595
+      },
+      "velocity": {
+        "macd_hist": -0.4187111026107555,
+        "rsi": 0.6627552046833216,
+        "williams": 1.398601398601393
+      },
+      "acceleration": {
+        "macd_hist": 0.05990787617263038,
+        "rsi": 1.2270550037778918,
+        "williams": 2.097902097902086
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790056800000,
+      "observed_kst": "09/22 15:00",
+      "hour_open": 211.0,
+      "hour_high": 212.0,
+      "hour_low": 209.0,
+      "hour_close": 210.0,
+      "hour_volume": 549169.75796364,
+      "native_bars": 12,
+      "price_bar_close_ms": 1790056800000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 206.0,
+      "provisional_daily_volume": 6004784.17400825,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.0326072482903257,
+        "rsi": 65.0697489175119,
+        "williams": -55.24475524475525
+      },
+      "velocity": {
+        "macd_hist": -0.35489343879311086,
+        "rsi": 0.985044156393684,
+        "williams": 2.097902097902093
+      },
+      "acceleration": {
+        "macd_hist": 0.12372553999027502,
+        "rsi": 1.5493439554882542,
+        "williams": 2.797202797202786
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790096400000,
+      "observed_kst": "09/23 02:00",
+      "hour_open": 212.0,
+      "hour_high": 212.0,
+      "hour_low": 209.0,
+      "hour_close": 211.0,
+      "hour_volume": 208188.87101006001,
+      "native_bars": 10,
+      "price_bar_close_ms": 1790096400000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 204.0,
+      "provisional_daily_volume": 9721437.20817245,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 1.968789584472681,
+        "rsi": 64.74745996580154,
+        "williams": -55.94405594405595
+      },
+      "velocity": {
+        "macd_hist": -0.4187111026107555,
+        "rsi": 0.6627552046833216,
+        "williams": 1.398601398601393
+      },
+      "acceleration": {
+        "macd_hist": 0.05990787617263038,
+        "rsi": 1.2270550037778918,
+        "williams": 2.097902097902086
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790100000000,
+      "observed_kst": "09/23 03:00",
+      "hour_open": 211.0,
+      "hour_high": 211.0,
+      "hour_low": 208.0,
+      "hour_close": 210.0,
+      "hour_volume": 83466.23962786,
+      "native_bars": 8,
+      "price_bar_close_ms": 1790100000000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 204.0,
+      "provisional_daily_volume": 9804903.44780031,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.0964249121079934,
+        "rsi": 65.38619833765708,
+        "williams": -54.54545454545455
+      },
+      "velocity": {
+        "macd_hist": -0.2910757749754431,
+        "rsi": 1.30149357653886,
+        "williams": 2.797202797202793
+      },
+      "acceleration": {
+        "macd_hist": 0.18754320380794276,
+        "rsi": 1.8657933756334302,
+        "williams": 3.496503496503486
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790110800000,
+      "observed_kst": "09/23 06:00",
+      "hour_open": 210.0,
+      "hour_high": 212.0,
+      "hour_low": 210.0,
+      "hour_close": 212.0,
+      "hour_volume": 32216.52337869,
+      "native_bars": 5,
+      "price_bar_close_ms": 1790110800000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 204.0,
+      "provisional_daily_volume": 9948096.57865849,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.0326072482903257,
+        "rsi": 65.0697489175119,
+        "williams": -55.24475524475525
+      },
+      "velocity": {
+        "macd_hist": -0.35489343879311086,
+        "rsi": 0.985044156393684,
+        "williams": 2.097902097902093
+      },
+      "acceleration": {
+        "macd_hist": 0.12372553999027502,
+        "rsi": 1.5493439554882542,
+        "williams": 2.797202797202786
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790114400000,
+      "observed_kst": "09/23 07:00",
+      "hour_open": 210.0,
+      "hour_high": 212.0,
+      "hour_low": 210.0,
+      "hour_close": 211.0,
+      "hour_volume": 56677.68853549,
+      "native_bars": 10,
+      "price_bar_close_ms": 1790114400000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 204.0,
+      "provisional_daily_volume": 10004774.26719398,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.0326072482903257,
+        "rsi": 65.0697489175119,
+        "williams": -55.24475524475525
+      },
+      "velocity": {
+        "macd_hist": -0.35489343879311086,
+        "rsi": 0.985044156393684,
+        "williams": 2.097902097902093
+      },
+      "acceleration": {
+        "macd_hist": 0.12372553999027502,
+        "rsi": 1.5493439554882542,
+        "williams": 2.797202797202786
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790118000000,
+      "observed_kst": "09/23 08:00",
+      "hour_open": 211.0,
+      "hour_high": 211.0,
+      "hour_low": 209.0,
+      "hour_close": 211.0,
+      "hour_volume": 208025.0653666,
+      "native_bars": 12,
+      "price_bar_close_ms": 1790118000000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 204.0,
+      "provisional_daily_volume": 10212799.33256058,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 2.0964249121079934,
+        "rsi": 65.38619833765708,
+        "williams": -54.54545454545455
+      },
+      "velocity": {
+        "macd_hist": -0.2910757749754431,
+        "rsi": 1.30149357653886,
+        "williams": 2.797202797202793
+      },
+      "acceleration": {
+        "macd_hist": 0.18754320380794276,
+        "rsi": 1.8657933756334302,
+        "williams": 3.496503496503486
+      },
+      "pullback_setup": true,
+      "recovery": true,
+      "buy_hypothesis": true,
+      "day": "09/22",
+      "day_ms": 1790035200000,
+      "observed_ms": 1790121600000,
+      "observed_kst": "09/23 09:00",
+      "hour_open": 211.0,
+      "hour_high": 213.0,
+      "hour_low": 211.0,
+      "hour_close": 212.0,
+      "hour_volume": 548241.12749479,
+      "native_bars": 12,
+      "price_bar_close_ms": 1790121600000,
+      "provisional_daily_high": 215.0,
+      "provisional_daily_low": 204.0,
+      "provisional_daily_volume": 10761040.46005537,
+      "buy_confirmed": true,
+      "sell_weakness": false
+    },
+    {
+      "values": {
+        "macd_hist": 1.9971957444476764,
+        "rsi": 66.99618199678932,
+        "williams": -51.04895104895105
+      },
+      "velocity": {
+        "macd_hist": -0.09922916766031697,
+        "rsi": 1.60998365913224,
+        "williams": 3.4965034965035002
+      },
+      "acceleration": {
+        "macd_hist": 0.19184660731512615,
+        "rsi": 0.30849008259338007,
+        "williams": 0.6993006993007072
+      },
+      "pullback_setup": false,
+      "recovery": true,
+      "buy_hypothesis": false,
+      "day": "09/23",
+      "day_ms": 1790121600000,
+      "observed_ms": 1790193600000,
+      "observed_kst": "09/24 05:00",
+      "hour_open": 219.0,
+      "hour_high": 220.0,
+      "hour_low": 217.0,
+      "hour_close": 217.0,
+      "hour_volume": 205979.97343881,
+      "native_bars": 9,
+      "price_bar_close_ms": 1790193600000,
+      "provisional_daily_high": 225.0,
+      "provisional_daily_low": 209.0,
+      "provisional_daily_volume": 14807078.6501781,
+      "buy_confirmed": false,
+      "sell_weakness": true
+    }
+  ],
+  "hourly_point_count": 353,
+  "first_buy_confirmation_by_day": {
+    "09/11": {
+      "observed_kst": "09/11 21:00",
+      "price": 154.0,
+      "values": {
+        "macd_hist": -0.5734733826777374,
+        "rsi": 54.11683280362836,
+        "williams": -86.79245283018868
+      },
+      "velocity": {
+        "macd_hist": -0.25974332926805754,
+        "rsi": 3.599153575727179,
+        "williams": 9.28597854236034
+      },
+      "acceleration": {
+        "macd_hist": 0.4195918502317628,
+        "rsi": 17.724755093516983,
+        "williams": 57.74536229586174
+      }
+    },
+    "09/16": {
+      "observed_kst": "09/16 12:00",
+      "price": 211.0,
+      "values": {
+        "macd_hist": 5.625801539889451,
+        "rsi": 68.29597188831963,
+        "williams": -55.24475524475525
+      },
+      "velocity": {
+        "macd_hist": 0.23167376907609238,
+        "rsi": 3.249619749994764,
+        "williams": 8.391608391608386
+      },
+      "acceleration": {
+        "macd_hist": 0.5141828009644254,
+        "rsi": 23.55957982864132,
+        "williams": 29.370629370629366
+      }
+    },
+    "09/18": {
+      "observed_kst": "09/18 19:00",
+      "price": 191.0,
+      "values": {
+        "macd_hist": 2.7293506402413925,
+        "rsi": 59.18116643515664,
+        "williams": -69.23076923076923
+      },
+      "velocity": {
+        "macd_hist": -1.1369105466623992,
+        "rsi": 0.3350201353379987,
+        "williams": 0.6993006993007072
+      },
+      "acceleration": {
+        "macd_hist": 0.30354148723494667,
+        "rsi": 8.507227409166902,
+        "williams": 11.8881118881119
+      }
+    },
+    "09/22": {
+      "observed_kst": "09/22 15:00",
+      "price": 210.0,
+      "values": {
+        "macd_hist": 1.968789584472681,
+        "rsi": 64.74745996580154,
+        "williams": -55.94405594405595
+      },
+      "velocity": {
+        "macd_hist": -0.4187111026107555,
+        "rsi": 0.6627552046833216,
+        "williams": 1.398601398601393
+      },
+      "acceleration": {
+        "macd_hist": 0.05990787617263038,
+        "rsi": 1.2270550037778918,
+        "williams": 2.097902097902086
+      }
+    }
+  },
+  "candidate_probe": {
+    "trades": [
+      {
+        "side": "BUY",
+        "signal_ms": 1789128000000,
+        "signal_kst": "09/11 21:00",
+        "daily_label": "09/11",
+        "fill_ms": 1789128000000,
+        "fill_kst": "09/11 21:00",
+        "reference": 153.0
+      },
+      {
+        "side": "SELL",
+        "signal_ms": 1789315200000,
+        "signal_kst": "09/14 01:00",
+        "daily_label": "09/13",
+        "fill_ms": 1789315200000,
+        "fill_kst": "09/14 01:00",
+        "reference": 201.0
+      },
+      {
+        "side": "BUY",
+        "signal_ms": 1789527600000,
+        "signal_kst": "09/16 12:00",
+        "daily_label": "09/16",
+        "fill_ms": 1789527600000,
+        "fill_kst": "09/16 12:00",
+        "reference": 211.0
+      },
+      {
+        "side": "SELL",
+        "signal_ms": 1789894800000,
+        "signal_kst": "09/20 18:00",
+        "daily_label": "09/20",
+        "fill_ms": 1789894800000,
+        "fill_kst": "09/20 18:00",
+        "reference": 207.0
+      },
+      {
+        "side": "BUY",
+        "signal_ms": 1790056800000,
+        "signal_kst": "09/22 15:00",
+        "daily_label": "09/22",
+        "fill_ms": 1790056800000,
+        "fill_kst": "09/22 15:00",
+        "reference": 210.0
+      }
+    ],
+    "open_position": {
+      "entry_ms": 1790056800000,
+      "entry_reference": 210.0,
+      "peak": 335.0,
+      "active": true
+    },
+    "pending": null
+  },
+  "target_ranges": [
+    {
+      "day": "09/11",
+      "open": 151.0,
+      "high": 159.0,
+      "low": 147.0,
+      "last": 156.0,
+      "first_high_bucket_kst": "09/12 02:05",
+      "last_observed_kst": "09/12 09:00"
+    },
+    {
+      "day": "09/12",
+      "open": 157.0,
+      "high": 182.0,
+      "low": 155.0,
+      "last": 182.0,
+      "first_high_bucket_kst": "09/13 08:50",
+      "last_observed_kst": "09/13 09:00"
+    },
+    {
+      "day": "09/14",
+      "open": 189.0,
+      "high": 290.0,
+      "low": 182.0,
+      "last": 229.0,
+      "first_high_bucket_kst": "09/14 15:30",
+      "last_observed_kst": "09/15 09:00"
+    },
+    {
+      "day": "09/18",
+      "open": 190.0,
+      "high": 197.0,
+      "low": 185.0,
+      "last": 196.0,
+      "first_high_bucket_kst": "09/18 22:20",
+      "last_observed_kst": "09/19 09:00"
+    },
+    {
+      "day": "09/20",
+      "open": 208.0,
+      "high": 243.0,
+      "low": 203.0,
+      "last": 209.0,
+      "first_high_bucket_kst": "09/20 09:10",
+      "last_observed_kst": "09/21 09:00"
+    },
+    {
+      "day": "09/22",
+      "open": 208.0,
+      "high": 215.0,
+      "low": 204.0,
+      "last": 212.0,
+      "first_high_bucket_kst": "09/22 09:05",
+      "last_observed_kst": "09/23 09:00"
+    },
+    {
+      "day": "09/25",
+      "open": 265.0,
+      "high": 335.0,
+      "low": 242.0,
+      "last": 314.0,
+      "first_high_bucket_kst": "09/25 20:20",
+      "last_observed_kst": "09/26 02:30"
+    }
+  ],
+  "current_provisional_day": {
+    "day": "09/25",
+    "observed_kst": "09/26 02:30",
+    "values": {
+      "macd_hist": 9.267080272786632,
+      "rsi": 83.56456017280422,
+      "williams": -11.666666666666666
+    },
+    "price": 314.0
+  },
+  "checks": [
+    "COMPLETED_DAY_ONLY_BASELINE",
+    "PAST_ONLY_INTRADAY_FEATURE_RECOMPUTATION",
+    "FUTURE_FILL_FIELDS_EXCLUDED",
+    "TARGET_LABELS_NOT_IN_SIGNAL_PREDICATES"
+  ]
+}
