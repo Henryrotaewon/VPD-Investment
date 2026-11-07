@@ -13,6 +13,10 @@ from zoneinfo import ZoneInfo
 
 ROOT=Path(__file__).resolve().parents[1]
 
+# User-directed suspension on 2026-11-07. Keep the shared Upbit feed for
+# protective paper exits / Bollinger; do not collect FAST baseline or captures.
+FAST_BASE_COLLECTION_STOP = True
+
 
 class Service:
     def __init__(self,state_dir,log,venue='upbit'):
@@ -59,18 +63,32 @@ class Service:
         while not self.stopped.is_set():
             try:
                 if self.venue!='upbit':
+                    if FAST_BASE_COLLECTION_STOP:
+                        self.log('fast_venue '+self.venue+' FAST_BASE_COLLECTION_STOPPED; existing PAPER ledgers retained')
+                        return
                     self.save(venue=self.venue,phase='STARTING',detail='거래소별 시세·기준자료·PAPER 연결')
                     code=self.worker('magi1.fast_venue','--venue',self.venue,'--continuous',
                                      '--paper-db',str(self.directory/'paper-v1.sqlite3'))
                     if code:raise RuntimeError('OBSERVE_EXIT_'+str(code))
                     continue
-                self.save(phase='STARTING',detail='공용 시세 수신 · FAST base 재개 검사')
-                code=self.worker('magi1.fast_observe','--continuous','--repair','--diagnostics',
-                                 '--resume-fast-id','fast-base-review-20261009-v1',
-                                 '--paper-db',str(self.directory/'paper-v1.sqlite3'),
-                                 '--experiment-dir',str(self.directory/'entry-experiment-v1'),
-                                 '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'),
-                                 '--models-dir',str(self.directory.parent/'fast-models-v1'))
+                if FAST_BASE_COLLECTION_STOP:
+                    # --disable-fast persists the stop, prevents fresh captures/new
+                    # FAST entries, while retaining shared feeds and protective exits.
+                    # Deliberately omit --repair to stop FAST history downloads.
+                    self.save(phase='STARTING',detail='FAST Base 수집 중단 · 공용 호가/타전략 유지')
+                    code=self.worker('magi1.fast_observe','--continuous','--disable-fast',
+                                     '--paper-db',str(self.directory/'paper-v1.sqlite3'),
+                                     '--experiment-dir',str(self.directory/'entry-experiment-v1'),
+                                     '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'),
+                                     '--models-dir',str(self.directory.parent/'fast-models-v1'))
+                else:
+                    self.save(phase='STARTING',detail='공용 시세 수신 · FAST base 재개 검사')
+                    code=self.worker('magi1.fast_observe','--continuous','--repair','--diagnostics',
+                                     '--resume-fast-id','fast-base-review-20261009-v1',
+                                     '--paper-db',str(self.directory/'paper-v1.sqlite3'),
+                                     '--experiment-dir',str(self.directory/'entry-experiment-v1'),
+                                     '--bollinger-db',str(self.directory.parent/'bollinger-paper'/'v1.sqlite3'),
+                                     '--models-dir',str(self.directory.parent/'fast-models-v1'))
                 if code:raise RuntimeError('OBSERVE_EXIT_'+str(code))
             except Exception as exc:
                 self.save(phase='RETRY_WAIT',detail=type(exc).__name__+': '+str(exc))
@@ -78,7 +96,7 @@ class Service:
                 if self.stopped.wait(60):break
     def start(self):
         threading.Thread(target=self.run,name='fast-observe-supervisor',daemon=True).start()
-        if self.venue=='upbit':
+        if self.venue=='upbit' and not FAST_BASE_COLLECTION_STOP:
             for venue in ('bithumb','binance','kraken'):
                 service=Service(self.state_dir,self.log,venue)
                 self.children.append(service)
@@ -87,6 +105,8 @@ class Service:
 
 
 def view(state_dir):
+    if FAST_BASE_COLLECTION_STOP:
+        return '⚡ FAST Base 수집 중지 · 신규 포착/매수 없음\n기존 결과·모의원장 보존 · 다른 전략의 공용 시세 처리 유지 대상'
     directory=Path(state_dir)/'fast-observe'
     try:data=json.loads((directory/'status.json').read_text())
     except (OSError,ValueError):return '⚡ FAST 포착·추적\n초기화 대기 · 주문 없음'
