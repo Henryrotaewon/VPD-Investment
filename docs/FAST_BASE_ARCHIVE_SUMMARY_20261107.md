@@ -41,3 +41,11 @@
 - 바이낸스 관측 DB: 압축 거래대금 5,601행, 최근 5분봉 146,657행, 이벤트 329,509행, 포착 228건, 포착 후 관측 결과 912건 (OBSERVED 693, MISSING 219).
 - Upbit 및 Kraken 관측 DB와 네 거래소의 PAPER 파일은 당시 디스크 포화로 read-only SQLite 조회 시 `OperationalError: disk I/O error`가 발생하여 **완전한 최신 실적을 확인하지 못함**. 출처가 없는 현재 거래 수치·손익은 추정하지 않음.
 - 이 진단을 위해 실거래 주문 또는 FAST 신규 수집은 재개하지 않았음. 네 거래소의 `paper-v1.sqlite3`, 타 전략 원장, 캡처 감사 원장, `paper_state.json`은 별도로 보존할 계획. 요약은 원시 데이터 대신 보존할 연구 결론이며, 원본 호가/봉 삭제 후 상세 리플레이는 불가능.
+
+## 2026-11-07 실제 정리 결과 및 잔존 모의원장 실측
+- Railway에서 FAST 전용 관측 DB 4개(Upbit/Bithumb/Binance/Kraken), 그 DB의 WAL/SHM만 정확히 지정해 제거. **실제 회수 655,429,632 bytes (약 625 MiB)**, 삭제 전 볼륨 가용 0, 삭제 후 655,429,632 bytes. 제거한 파일들의 합계 655,267,406 bytes. 다른 전략 데이터는 삭제하지 않음.
+- 정리 후 SQLite 읽기 정상화된 FAST Base 모의계좌: Upbit 완료 93건/수익 24건, 실현손익 +5,961.9828 KRW, 현금 2,704,164.0346 KRW, 모의 보유 1/대기 0. Bithumb 완료 53건/수익 8건, 실현손익 -210,052.2683 KRW, 현금 2,789,947.7317 KRW, 보유 0/대기 0.
+- Binance 완료 137건/수익 23건, 실현손익 -242.5962 **USDT 단위**, 현금 989.3222 USDT, 모의 보유 5/대기 0. Kraken 완료 0건/수익 0건, 실현손익 0 USD, 현금 2,216.0947 USD, 보유 0/대기 0. **거래소마다 통화가 달라 손익·현금을 합산하지 않음.** 사용한 수치는 손상된 VPD 원장이 아닌 별도 FAST PAPER 상태 DB에서 확인한 값.
+- FAST 관측 세부 호가/봉과 포착별 상세 재현성은 이 삭제로 소멸. 연구 조건과 실험 요약, PAPER 거래 원장/보유 상태는 별도로 보존됨. 남은 보유는 모의 포지션이며, MAGI2 중단 중 청산 실행 없음.
+- `/data/magi2/paper_state.json`은 54,999 bytes이고 SHA256 `f12cd5ef1a36d7bb45f885a9f12e7f4a37c6704971c6751e4c2906f6dc98d5c7`; JSON 파싱 오류 `Invalid control character at line 813 column 23 (char 27640)`가 남아 있음. **파일을 교정·덮어쓰거나 리셋하지 않았음**. GitHub `paper-history` 브랜치에 2026-10-27 백업 `magi2/analytics/paper_state_latest.json`은 존재하지만 그 이후 변경 가능성 때문에 검증 없는 복원 금지.
+- 사용자의 지시에 따라 MAGI1/MAGI2/MAGI3 일시 정지 설정, 원장/볼륨 보존. MAGI2의 완전 복구나 모의거래 재개는 별도 데이터 검증·승인 이후 시행.
