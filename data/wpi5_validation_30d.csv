@@ -1,4 +1,4 @@
-coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
+﻿coin,date,WPI5,VWPI5,LowerDominantDays5,UpperDominantDays5,LowerWickTotal5,UpperWickTotal5,VWLowerWeighted5,VWUpperWeighted5,WPI5Status,D1%,D3%,D5%,MFE5%,MAE5%
 RLUSD,2026-10-15,7.46,8.68,3,2,1.6505,1.4213,55862069.5,46943374.93,NEUTRAL,0.15,0.0,-1.26,0.44,-1.26
 RLUSD,2026-10-16,1.54,4.09,2,2,1.5652,1.5179,60464900.66,55709077.48,NEUTRAL,0.15,-0.52,-1.55,0.3,-1.7
 RLUSD,2026-10-17,7.08,9.14,2,1,1.7755,1.5406,66599453.72,55442056.58,NEUTRAL,-0.3,-1.55,-1.18,0.0,-1.85
