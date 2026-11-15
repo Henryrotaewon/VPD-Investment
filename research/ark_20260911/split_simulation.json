@@ -1,0 +1,143 @@
+{
+  "policy": {
+    "mode": "RESEARCH_ONLY_DESCRIPTIVE_NOT_RUNTIME",
+    "market": "KRW-ARK",
+    "entry_case": "User-selected Sep 11 signal example, enter Sep 12 09:00 KST. Not a whole-month detector backtest.",
+    "entry_utc": "2026-09-12T00:00:00+00:00",
+    "initial_capital_krw": 3000000,
+    "partial_fraction_of_original_quantity": 0.5,
+    "partial_exit": "Prior study C: running high reaches +12%, then completed 5m close at or below 95% of running high; use next actual 5m open.",
+    "remaining_exit": "Prior study A: at least two of MACD histogram, RSI14, Williams14 daily first differences are negative; use next actual 5m open after daily close.",
+    "priority": "If A occurs before or simultaneously with C, liquidate the full remaining quantity under A. Otherwise C sells half once, then A sells the remaining half.",
+    "study_endpoint": "Same five-day window as the prior study; report any endpoint exit separately from a signal exit.",
+    "reentry": false,
+    "proceeds_reinvested": false,
+    "additional_stop_loss": false,
+    "fee_per_side": 0.0005,
+    "slippage_per_side": 0.0005,
+    "quantity_rounding": "Fractional quantity without exchange size rounding; illustrative cash ledger, no historical order-book reconstruction.",
+    "interpretation": "Chosen after reviewing the prior ARK and ten-case results. Illustrative combination, not independent validation or fitted high-price execution. No runtime changes."
+  },
+  "ledger": {
+    "initial_capital_krw": 3000000,
+    "entry": {
+      "time_kst": "2026-09-12 09:00",
+      "reference_price_krw": 157.0,
+      "assumed_fill_price_krw": 157.0785,
+      "quantity": 19089.186296184314,
+      "buy_fee_krw": 1499.250374812594,
+      "total_cost_krw": 3000000
+    },
+    "sells": [
+      {
+        "time_kst": "2026-09-13 11:00",
+        "reference_price_krw": 200.0,
+        "assumed_fill_price_krw": 199.9,
+        "fraction_of_original_quantity": 0.5,
+        "quantity": 9544.593148092157,
+        "sale_fee_krw": 953.9820851518111,
+        "net_proceeds_krw": 1907010.1882184704,
+        "cumulative_cash_krw": 1907010.1882184704,
+        "reason": "CLOSE_BELOW_FIXED_TRAIL",
+        "signal_available_kst": "2026-09-13 11:00",
+        "allocated_cost_krw": 1500000.0,
+        "leg_net_pct": 27.134012547898024
+      },
+      {
+        "time_kst": "2026-09-16 09:00",
+        "reference_price_krw": 198.0,
+        "assumed_fill_price_krw": 197.901,
+        "fraction_of_original_quantity": 0.5,
+        "quantity": 9544.593148092157,
+        "sale_fee_krw": 944.4422643002931,
+        "net_proceeds_krw": 1887940.0863362858,
+        "cumulative_cash_krw": 3794950.2745547565,
+        "reason": "DAILY_INDICATOR_DECLINE",
+        "signal_available_kst": "2026-09-16 09:00",
+        "allocated_cost_krw": 1500000.0,
+        "leg_net_pct": 25.862672422419063
+      }
+    ],
+    "weighted_exit_reference_krw": 199.0,
+    "gross_pct": 26.751592356687894,
+    "net_pct": 26.498342485158545,
+    "final_cash_krw": 3794950.2745547565,
+    "net_profit_krw": 794950.2745547565,
+    "final_exit_kst": "2026-09-16 09:00",
+    "remaining_quantity": 0.0
+  },
+  "reference_signals": {
+    "A": {
+      "signal_bar_open_ms": 1789430400000,
+      "signal_available_ms": 1789516800000,
+      "exit_ms": 1789516800000,
+      "exit_reference": 198.0,
+      "reason": "DAILY_INDICATOR_DECLINE",
+      "detail": {
+        "values": {
+          "macd_hist": 5.394126978876097,
+          "rsi": 65.0463553111869,
+          "williams": -63.63636363636363
+        },
+        "velocity": {
+          "macd_hist": -0.2825089685334188,
+          "rsi": -20.309962477606874,
+          "williams": -20.979020979020973
+        },
+        "down": 3,
+        "price_break": false
+      },
+      "method": "A",
+      "entry_ms": 1789171200000,
+      "entry_reference": 157.0,
+      "gross_pct": 26.114649681528658,
+      "net_pct": 25.862672422419042,
+      "hours_held": 96.0,
+      "execution_gap_minutes": 0.0,
+      "peak_seen": 290.0,
+      "giveback_seen_pct": 31.72413793103448,
+      "exit_on_signal": true
+    },
+    "C": {
+      "signal_bar_open_ms": 1789264500000,
+      "signal_available_ms": 1789264800000,
+      "exit_ms": 1789264800000,
+      "exit_reference": 200.0,
+      "reason": "CLOSE_BELOW_FIXED_TRAIL",
+      "detail": {
+        "trail": 202.35,
+        "closed_bar_close": 200.0,
+        "peak_known": 213.0,
+        "atr_prior": null
+      },
+      "method": "C",
+      "entry_ms": 1789171200000,
+      "entry_reference": 157.0,
+      "gross_pct": 27.388535031847127,
+      "net_pct": 27.134012547898024,
+      "hours_held": 26.0,
+      "execution_gap_minutes": 0.0,
+      "peak_seen": 213.0,
+      "giveback_seen_pct": 6.103286384976525,
+      "exit_on_signal": true
+    }
+  },
+  "quality_checks": [
+    "DAILY_5M_OHLCV_MATCH",
+    "FUTURE_TRUNCATION_INVARIANT",
+    "QUANTITY_AND_CASH_CONSERVATION",
+    "DAILY_EXIT_PRIORITY"
+  ],
+  "comparators": {
+    "A": {
+      "exit_kst": "2026-09-16 09:00",
+      "price": 198.0,
+      "net_pct": 25.862672422419042
+    },
+    "C": {
+      "exit_kst": "2026-09-13 11:00",
+      "price": 200.0,
+      "net_pct": 27.134012547898024
+    }
+  }
+}

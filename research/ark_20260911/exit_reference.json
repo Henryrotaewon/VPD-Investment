@@ -1,0 +1,44 @@
+{
+  "source": "https://api.upbit.com/v1/candles/days?market=KRW-ARK&to=2026-09-17T00%3A00%3A00Z&count=3",
+  "retrieved_at": "2026-09-25T16:21:13.558842+00:00",
+  "market": "KRW-ARK",
+  "columns": [
+    "candle_date_time_utc",
+    "opening_price",
+    "high_price",
+    "low_price",
+    "trade_price",
+    "candle_acc_trade_volume",
+    "candle_acc_trade_price"
+  ],
+  "candles": [
+    [
+      "2026-09-14T00:00:00",
+      189,
+      290,
+      182,
+      229,
+      238885583.95394608,
+      57360403447.5694
+    ],
+    [
+      "2026-09-15T00:00:00",
+      230,
+      253,
+      192,
+      199,
+      49466025.10975604,
+      10797507400.578175
+    ],
+    [
+      "2026-09-16T00:00:00",
+      198,
+      225,
+      195,
+      206,
+      45232399.00694175,
+      9408821825.117104
+    ]
+  ],
+  "collection_run": "https://github.com/Henryrotaewon/VPD-Investment/actions/runs/36160198094"
+}

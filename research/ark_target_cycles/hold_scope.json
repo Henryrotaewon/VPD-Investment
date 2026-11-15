@@ -1,0 +1,13 @@
+{
+  "mode": "CONDITIONAL_SEP18_REENTRY_HOLD_REVIEW",
+  "user_update_kst": "2026-09-26T02:51:30+09:00",
+  "entry": "First two-consecutive-hour confirmation of the Sep18 provisional daily recovery hypothesis; enter next actual five-minute open. Conditional on being flat then, not a claim that the entire first-leg strategy creates this state.",
+  "initial_capital_krw": 3000000,
+  "hold_exit": "Reuse prior study B: at least two daily indicator first differences are negative AND completed daily close strictly below the prior daily low. No five-day endpoint liquidation or +12%/5% partial trail.",
+  "initial_structure_stop": "First completed hourly close strictly below the already observed signal-day low at entry. Fixed from information known at entry; never widened. Next actual five-minute opening reference.",
+  "control": "At the same entry, compare the prior 50% C plus 50% A scenario. Do not compare different entry prices as exit-rule performance.",
+  "fee_per_side": 0.0005,
+  "slippage_per_side": 0.0005,
+  "tomorrow": "2026-09-27 KST. No future price is available. Report current marked equity and hypothetical current liquidation separately; no realized sale on Sep27 and no scheduled action.",
+  "caveat": "Single-asset, post-outcome design review. The Sep16 false reentry signal is not solved by selecting the Sep18 case. No runtime changes, no orders, no claims of independent validation."
+}

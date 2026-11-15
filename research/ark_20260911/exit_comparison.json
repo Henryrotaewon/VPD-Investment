@@ -1,0 +1,272 @@
+{
+  "mode": "RESEARCH_ONLY_NOT_RUNTIME_PAPER",
+  "market": "KRW-ARK",
+  "entry": {
+    "date": "2026-09-12",
+    "reference_kst": "2026-09-12T09:00:00+09:00",
+    "reference_price": 157,
+    "assumed": true,
+    "approved_entry_rule": false
+  },
+  "signal_window": [
+    "2026-09-12",
+    "2026-09-15"
+  ],
+  "endpoint_kst": "2026-09-16T09:00:00+09:00",
+  "rules": {
+    "A": "At least 2 of 3 daily first differences < 0",
+    "B": "A AND close strictly below previous daily low",
+    "components": [
+      "macd_hist",
+      "rsi",
+      "williams"
+    ],
+    "epsilon": 1e-10,
+    "intraday_protection": false,
+    "other_tp_sl": false,
+    "normalization_threshold": null,
+    "volume_is_exit_gate": false
+  },
+  "execution_model": "NEXT_OPEN_REFERENCE_WITH_FIXED_COST_SCENARIO_NOT_ACTUAL_FILLS",
+  "costs": {
+    "fee_per_side": 0.0005,
+    "slippage_per_side": 0.0005,
+    "authenticated_fee": false,
+    "historical_depth_available": false
+  },
+  "days": [
+    {
+      "date": "2026-09-12",
+      "signal_available_kst": "2026-09-13T09:00:00+09:00",
+      "open": 157,
+      "high": 182,
+      "low": 155,
+      "close": 182,
+      "prior_low": 147,
+      "volume": 27170665.11503655,
+      "volume_change_pct": 325.1491824835306,
+      "values": {
+        "macd_hist": 1.1131562893521636,
+        "rsi": 73.43740020178163,
+        "williams": -33.9622641509434
+      },
+      "changes": {
+        "macd_hist": {
+          "previous_velocity": -0.13210787526986412,
+          "velocity": 1.5589959239307092,
+          "acceleration": 1.6911037992005733
+        },
+        "rsi": {
+          "previous_velocity": 5.721173885074613,
+          "velocity": 17.19860391067975,
+          "acceleration": 11.477430025605138
+        },
+        "williams": {
+          "previous_velocity": 13.059563448020711,
+          "velocity": 49.05660377358491,
+          "acceleration": 35.9970403255642
+        }
+      },
+      "falling": [],
+      "decelerating": [],
+      "price_break": false,
+      "rule_a_signal": false,
+      "rule_b_signal": false,
+      "next_open_reference": 182,
+      "close_reference_returns": {
+        "gross_pct": 15.923566878980889,
+        "cost_scenario_net_pct": 15.691951418587212
+      }
+    },
+    {
+      "date": "2026-09-13",
+      "signal_available_kst": "2026-09-14T09:00:00+09:00",
+      "open": 182,
+      "high": 285,
+      "low": 171,
+      "close": 190,
+      "prior_low": 155,
+      "volume": 285646914.87465906,
+      "volume_change_pct": 951.3063028279674,
+      "values": {
+        "macd_hist": 2.4991231129760774,
+        "rsi": 76.49802203798245,
+        "williams": -68.84057971014492
+      },
+      "changes": {
+        "macd_hist": {
+          "previous_velocity": 1.5589959239307092,
+          "velocity": 1.3859668236239138,
+          "acceleration": -0.1730291003067954
+        },
+        "rsi": {
+          "previous_velocity": 17.19860391067975,
+          "velocity": 3.0606218362008235,
+          "acceleration": -14.137982074478927
+        },
+        "williams": {
+          "previous_velocity": 49.05660377358491,
+          "velocity": -34.878315559201525,
+          "acceleration": -83.93491933278644
+        }
+      },
+      "falling": [
+        "williams"
+      ],
+      "decelerating": [
+        "macd_hist",
+        "rsi",
+        "williams"
+      ],
+      "price_break": false,
+      "rule_a_signal": false,
+      "rule_b_signal": false,
+      "next_open_reference": 189,
+      "close_reference_returns": {
+        "gross_pct": 21.019108280254773,
+        "cost_scenario_net_pct": 20.777311920503116
+      }
+    },
+    {
+      "date": "2026-09-14",
+      "signal_available_kst": "2026-09-15T09:00:00+09:00",
+      "open": 189,
+      "high": 290,
+      "low": 182,
+      "close": 229,
+      "prior_low": 171,
+      "volume": 238885583.95394608,
+      "volume_change_pct": -16.370325911355177,
+      "values": {
+        "macd_hist": 5.6766355488149305,
+        "rsi": 85.35629893277121,
+        "williams": -42.65734265734266
+      },
+      "changes": {
+        "macd_hist": {
+          "previous_velocity": 1.3859668236239138,
+          "velocity": 3.177512435838853,
+          "acceleration": 1.7915456122149394
+        },
+        "rsi": {
+          "previous_velocity": 3.0606218362008235,
+          "velocity": 8.858276894788759,
+          "acceleration": 5.797655058587935
+        },
+        "williams": {
+          "previous_velocity": -34.878315559201525,
+          "velocity": 26.183237052802262,
+          "acceleration": 61.06155261200379
+        }
+      },
+      "falling": [],
+      "decelerating": [],
+      "price_break": false,
+      "rule_a_signal": false,
+      "rule_b_signal": false,
+      "next_open_reference": 230,
+      "close_reference_returns": {
+        "gross_pct": 45.85987261146496,
+        "cost_scenario_net_pct": 45.56844436734324
+      }
+    },
+    {
+      "date": "2026-09-15",
+      "signal_available_kst": "2026-09-16T09:00:00+09:00",
+      "open": 230,
+      "high": 253,
+      "low": 192,
+      "close": 199,
+      "prior_low": 182,
+      "volume": 49466025.10975604,
+      "volume_change_pct": -79.29300534129659,
+      "values": {
+        "macd_hist": 5.394126609807076,
+        "rsi": 65.04634044609847,
+        "williams": -63.63636363636363
+      },
+      "changes": {
+        "macd_hist": {
+          "previous_velocity": 3.177512435838853,
+          "velocity": -0.28250893900785456,
+          "acceleration": -3.4600213748467077
+        },
+        "rsi": {
+          "previous_velocity": 8.858276894788759,
+          "velocity": -20.30995848667274,
+          "acceleration": -29.1682353814615
+        },
+        "williams": {
+          "previous_velocity": 26.183237052802262,
+          "velocity": -20.979020979020973,
+          "acceleration": -47.162258031823235
+        }
+      },
+      "falling": [
+        "macd_hist",
+        "rsi",
+        "williams"
+      ],
+      "decelerating": [
+        "macd_hist",
+        "rsi",
+        "williams"
+      ],
+      "price_break": false,
+      "rule_a_signal": true,
+      "rule_b_signal": false,
+      "next_open_reference": 198,
+      "close_reference_returns": {
+        "gross_pct": 26.751592356687894,
+        "cost_scenario_net_pct": 26.498342485158545
+      }
+    }
+  ],
+  "outcomes": {
+    "A_indicator_decline": {
+      "status": "EXIT_AT_NEXT_OPEN_REFERENCE",
+      "signal_day": "2026-09-15",
+      "exit_reference_kst": "2026-09-16T09:00:00+09:00",
+      "exit_reference_price": 198,
+      "gross_pct": 26.114649681528658,
+      "cost_scenario_net_pct": 25.862672422419042
+    },
+    "B_decline_and_price_break": {
+      "status": "OPEN_AT_ENDPOINT",
+      "signal_day": null,
+      "mark_kst": "2026-09-16T09:00:00+09:00",
+      "mark_reference_price": 198,
+      "gross_pct": 26.114649681528658,
+      "cost_scenario_net_pct": 25.862672422419042
+    }
+  },
+  "end_of_sep15": {
+    "price": 199,
+    "gross_pct": 26.751592356687894,
+    "cost_scenario_net_pct": 26.498342485158545,
+    "a_status": "EXIT_SIGNAL_PENDING_NEXT_SESSION",
+    "b_status": "OPEN"
+  },
+  "peak_reference": {
+    "date": "2026-09-14",
+    "price": 290,
+    "gross_gain_pct": 84.71337579617835,
+    "peak_to_endpoint_price_change_pct": -31.72413793103448,
+    "is_executable_exit": false,
+    "exact_intraday_mdd_known": false
+  },
+  "checks": {
+    "future_excluded": true,
+    "contiguous_history": true,
+    "overlap_days_identical": 2,
+    "same_endpoint_comparison": true
+  },
+  "caveats": [
+    "Conditional entry, not a validated signal strategy.",
+    "One selected case cannot establish profitability or generalize exit quality.",
+    "B remains open; no terminal return or winner is established.",
+    "Daily OHLC cannot reconstruct order depth, latency or intraday stop fills.",
+    "No per-indicator materiality threshold has been calibrated.",
+    "MACD/RSI/Williams are correlated price-derived measurements."
+  ]
+}
