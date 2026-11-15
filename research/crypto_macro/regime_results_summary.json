@@ -1,0 +1,484 @@
+{
+  "schema": "four-regime-research-v1",
+  "mode": "RESEARCH_ONLY",
+  "live_enabled": false,
+  "status": "EXPLORATORY_HISTORICAL_RESULTS",
+  "price_quality": "HISTORICAL_SNAPSHOT",
+  "asof_ms": 1789948800000,
+  "direction_basis": "PRICE_ONLY_BASELINE",
+  "data_start_ms": 1483228800000,
+  "data_end_ms": 1779494400000,
+  "current_status": "STALE_HISTORY",
+  "historical_last_regime": {
+    "decision_ms": 1779494400000,
+    "input_cutoff_ms": 1779321600000,
+    "regime": "UP_LOW",
+    "raw_regime": "UP_LOW",
+    "transition": false,
+    "risk_cap": 0.8,
+    "direction_basis": "TRAILING_90D_PRICE",
+    "direction": [
+      0.1323340067163279,
+      0.08056067940798073
+    ],
+    "volatility": 0.2721482857632518,
+    "volatility_threshold": 0.5654746889037576,
+    "asset_volatility": [
+      0.260862772031393,
+      0.2988337206869918
+    ],
+    "disagreement": false
+  },
+  "policy": {
+    "trend_days": 90,
+    "vol_days": 30,
+    "vol_reference_days": 252,
+    "vol_quantile": 0.65,
+    "confirmation_days": 2,
+    "signal_lag_days": 2,
+    "selection_window_days": 365,
+    "minimum_regime_samples": 30,
+    "selection_refit_days": 30
+  },
+  "risk_caps": {
+    "UP_LOW": 0.8,
+    "UP_HIGH": 0.4,
+    "DOWN_LOW": 0.2,
+    "DOWN_HIGH": 0.0
+  },
+  "scenarios": [
+    {
+      "one_way_cost_bps": 15,
+      "periods": {
+        "development": {
+          "start_ms": 1577836800000,
+          "end_ms": 1672531200000,
+          "portfolios": {
+            "adaptive": {
+              "days": 1096,
+              "total_return": 0.43517814483773165,
+              "cagr": 0.1278574605594669,
+              "max_drawdown": -0.4006564756453893,
+              "annualized_volatility": 0.36878061304806653,
+              "sharpe_zero_cash": 0.5121979083139134,
+              "mean_exposure": 0.31204379562043794,
+              "turnover_sum": 46.3214548492399
+            },
+            "regime_equal": {
+              "days": 1096,
+              "total_return": 1.7309784977856526,
+              "cagr": 0.3973549145997435,
+              "max_drawdown": -0.43493053671912196,
+              "annualized_volatility": 0.3859688520247977,
+              "sharpe_zero_cash": 1.061351491656218,
+              "mean_exposure": 0.4142335766423358,
+              "turnover_sum": 36.4902863794622
+            },
+            "fixed_50": {
+              "days": 1096,
+              "total_return": 1.9005495986460517,
+              "cagr": 0.425671414039148,
+              "max_drawdown": -0.48571579847059265,
+              "annualized_volatility": 0.40427075359561687,
+              "sharpe_zero_cash": 1.0823626295172637,
+              "mean_exposure": 0.5,
+              "turnover_sum": 9.873996222047694
+            },
+            "buy_hold_100": {
+              "days": 1096,
+              "total_return": 4.766011182053618,
+              "cagr": 0.7922300313882296,
+              "max_drawdown": -0.7784032229847425,
+              "annualized_volatility": 0.8662121002854154,
+              "sharpe_zero_cash": 1.1211181532763426,
+              "mean_exposure": 0.9999999999938184,
+              "turnover_sum": 0.9985022466456165
+            },
+            "cash": {
+              "days": 1096,
+              "total_return": 0.0,
+              "cagr": 0.0,
+              "max_drawdown": 0.0,
+              "annualized_volatility": 0.0,
+              "sharpe_zero_cash": null,
+              "mean_exposure": 0.0,
+              "turnover_sum": 0.0
+            }
+          },
+          "regimes": {
+            "UP_LOW": {
+              "days": 428,
+              "mean_risk_cap": 0.7771028037383179
+            },
+            "UP_HIGH": {
+              "days": 191,
+              "mean_risk_cap": 0.38324607329842925
+            },
+            "DOWN_LOW": {
+              "days": 251,
+              "mean_risk_cap": 0.19203187250996015
+            },
+            "DOWN_HIGH": {
+              "days": 226,
+              "mean_risk_cap": 0.0
+            }
+          },
+          "adaptive_vs_fixed_50": {
+            "status": "EXPLORATORY_DEPENDENT_BLOCK_BOOTSTRAP",
+            "block_days": 30,
+            "samples": 2000,
+            "annualized_log_growth_difference": -0.23432309016378924,
+            "annualized_log_growth_ci95": [
+              -0.5285836033341595,
+              0.127855356943741
+            ],
+            "one_sided_p": 0.9470264867566217,
+            "warning": "Historical snapshot, selected universe; not evidence for live promotion",
+            "holm_adjusted_p": 1.0
+          }
+        },
+        "evaluation": {
+          "start_ms": 1672531200000,
+          "end_ms": 1779494400000,
+          "portfolios": {
+            "adaptive": {
+              "days": 1238,
+              "total_return": -0.021716694142473125,
+              "cagr": -0.0064523808246961245,
+              "max_drawdown": -0.30143573857449546,
+              "annualized_volatility": 0.23895856723808534,
+              "sharpe_zero_cash": 0.0918332927031083,
+              "mean_exposure": 0.28885298869143783,
+              "turnover_sum": 36.42929753105801
+            },
+            "regime_equal": {
+              "days": 1238,
+              "total_return": 0.6356420176640296,
+              "cagr": 0.15611700369994308,
+              "max_drawdown": -0.3157830247830551,
+              "annualized_volatility": 0.2690149163575625,
+              "sharpe_zero_cash": 0.6731947019337853,
+              "mean_exposure": 0.44006462035541194,
+              "turnover_sum": 35.08762830777938
+            },
+            "fixed_50": {
+              "days": 1238,
+              "total_return": 0.9338273879770844,
+              "cagr": 0.21463177700894942,
+              "max_drawdown": -0.31959804685268234,
+              "annualized_volatility": 0.26348701691382476,
+              "sharpe_zero_cash": 0.8693619959341218,
+              "mean_exposure": 0.5,
+              "turnover_sum": 7.013858885623816
+            },
+            "buy_hold_100": {
+              "days": 1238,
+              "total_return": 1.3350269947208693,
+              "cagr": 0.28405503877624394,
+              "max_drawdown": -0.5711951797108683,
+              "annualized_volatility": 0.5543746418124318,
+              "sharpe_zero_cash": 0.7265755835546033,
+              "mean_exposure": 0.9999999999826663,
+              "turnover_sum": 1.7585504372706704e-11
+            },
+            "cash": {
+              "days": 1238,
+              "total_return": 0.0,
+              "cagr": 0.0,
+              "max_drawdown": 0.0,
+              "annualized_volatility": 0.0,
+              "sharpe_zero_cash": null,
+              "mean_exposure": 0.0,
+              "turnover_sum": 0.0
+            }
+          },
+          "regimes": {
+            "UP_LOW": {
+              "days": 509,
+              "mean_risk_cap": 0.7736738703339883
+            },
+            "UP_HIGH": {
+              "days": 217,
+              "mean_risk_cap": 0.39631336405529954
+            },
+            "DOWN_LOW": {
+              "days": 331,
+              "mean_risk_cap": 0.19637462235649547
+            },
+            "DOWN_HIGH": {
+              "days": 181,
+              "mean_risk_cap": 0.0
+            }
+          },
+          "adaptive_vs_fixed_50": {
+            "status": "EXPLORATORY_DEPENDENT_BLOCK_BOOTSTRAP",
+            "block_days": 30,
+            "samples": 2000,
+            "annualized_log_growth_difference": -0.2009142540830035,
+            "annualized_log_growth_ci95": [
+              -0.3897473136673094,
+              0.05314237663157934
+            ],
+            "one_sided_p": 0.9815092453773113,
+            "warning": "Historical snapshot, selected universe; not evidence for live promotion",
+            "holm_adjusted_p": 1.0
+          }
+        }
+      }
+    },
+    {
+      "one_way_cost_bps": 30,
+      "periods": {
+        "development": {
+          "start_ms": 1577836800000,
+          "end_ms": 1672531200000,
+          "portfolios": {
+            "adaptive": {
+              "days": 1096,
+              "total_return": 0.33881823802399125,
+              "cagr": 0.10205177737680704,
+              "max_drawdown": -0.410714389921614,
+              "annualized_volatility": 0.36870842462845604,
+              "sharpe_zero_cash": 0.4494645773913317,
+              "mean_exposure": 0.31204379562043794,
+              "turnover_sum": 46.3073277117613
+            },
+            "regime_equal": {
+              "days": 1096,
+              "total_return": 1.5854746503831358,
+              "cagr": 0.372106935547879,
+              "max_drawdown": -0.446274996722024,
+              "annualized_volatility": 0.38617961943527573,
+              "sharpe_zero_cash": 1.013741474958791,
+              "mean_exposure": 0.4142335766423358,
+              "turnover_sum": 36.47976064263645
+            },
+            "fixed_50": {
+              "days": 1096,
+              "total_return": 1.8579068064125335,
+              "cagr": 0.4186567218755679,
+              "max_drawdown": -0.4870697255828076,
+              "annualized_volatility": 0.40425785846352846,
+              "sharpe_zero_cash": 1.0701759091270497,
+              "mean_exposure": 0.5,
+              "turnover_sum": 9.87347011949756
+            },
+            "buy_hold_100": {
+              "days": 1096,
+              "total_return": 4.757388034722535,
+              "cagr": 0.7913369663061764,
+              "max_drawdown": -0.7784032229847435,
+              "annualized_volatility": 0.8662304672379427,
+              "sharpe_zero_cash": 1.1205363809576379,
+              "mean_exposure": 0.9999999999938203,
+              "turnover_sum": 0.9970089730963138
+            },
+            "cash": {
+              "days": 1096,
+              "total_return": 0.0,
+              "cagr": 0.0,
+              "max_drawdown": 0.0,
+              "annualized_volatility": 0.0,
+              "sharpe_zero_cash": null,
+              "mean_exposure": 0.0,
+              "turnover_sum": 0.0
+            }
+          },
+          "regimes": {
+            "UP_LOW": {
+              "days": 428,
+              "mean_risk_cap": 0.7771028037383179
+            },
+            "UP_HIGH": {
+              "days": 191,
+              "mean_risk_cap": 0.38324607329842925
+            },
+            "DOWN_LOW": {
+              "days": 251,
+              "mean_risk_cap": 0.19203187250996015
+            },
+            "DOWN_HIGH": {
+              "days": 226,
+              "mean_risk_cap": 0.0
+            }
+          },
+          "adaptive_vs_fixed_50": {
+            "status": "EXPLORATORY_DEPENDENT_BLOCK_BOOTSTRAP",
+            "block_days": 30,
+            "samples": 2000,
+            "annualized_log_growth_difference": -0.2525367588481299,
+            "annualized_log_growth_ci95": [
+              -0.5437946974215779,
+              0.11109289810700704
+            ],
+            "one_sided_p": 0.9575212393803099,
+            "warning": "Historical snapshot, selected universe; not evidence for live promotion",
+            "holm_adjusted_p": 1.0
+          }
+        },
+        "evaluation": {
+          "start_ms": 1672531200000,
+          "end_ms": 1779494400000,
+          "portfolios": {
+            "adaptive": {
+              "days": 1238,
+              "total_return": -0.07375479229057447,
+              "cagr": -0.022335588339960633,
+              "max_drawdown": -0.31593651123606015,
+              "annualized_volatility": 0.23891420836045998,
+              "sharpe_zero_cash": 0.024375565368374486,
+              "mean_exposure": 0.28885298869143783,
+              "turnover_sum": 36.41685454185237
+            },
+            "regime_equal": {
+              "days": 1238,
+              "total_return": 0.5517564964089163,
+              "cagr": 0.13831008801671163,
+              "max_drawdown": -0.32499436667693216,
+              "annualized_volatility": 0.2691104737787965,
+              "sharpe_zero_cash": 0.6153568162027409,
+              "mean_exposure": 0.44006462035541194,
+              "turnover_sum": 35.07558991059024
+            },
+            "fixed_50": {
+              "days": 1238,
+              "total_return": 0.9135882012021266,
+              "cagr": 0.21086992748406663,
+              "max_drawdown": -0.32032938104523145,
+              "annualized_volatility": 0.26348568869084005,
+              "sharpe_zero_cash": 0.8575879189746815,
+              "mean_exposure": 0.5,
+              "turnover_sum": 7.013859723732071
+            },
+            "buy_hold_100": {
+              "days": 1238,
+              "total_return": 1.3350269947208715,
+              "cagr": 0.2840550387762444,
+              "max_drawdown": -0.571195179710871,
+              "annualized_volatility": 0.5543746418124341,
+              "sharpe_zero_cash": 0.7265755835546011,
+              "mean_exposure": 0.9999999999826705,
+              "turnover_sum": 1.7590774759875293e-11
+            },
+            "cash": {
+              "days": 1238,
+              "total_return": 0.0,
+              "cagr": 0.0,
+              "max_drawdown": 0.0,
+              "annualized_volatility": 0.0,
+              "sharpe_zero_cash": null,
+              "mean_exposure": 0.0,
+              "turnover_sum": 0.0
+            }
+          },
+          "regimes": {
+            "UP_LOW": {
+              "days": 509,
+              "mean_risk_cap": 0.7736738703339883
+            },
+            "UP_HIGH": {
+              "days": 217,
+              "mean_risk_cap": 0.39631336405529954
+            },
+            "DOWN_LOW": {
+              "days": 331,
+              "mean_risk_cap": 0.19637462235649547
+            },
+            "DOWN_HIGH": {
+              "days": 181,
+              "mean_risk_cap": 0.0
+            }
+          },
+          "adaptive_vs_fixed_50": {
+            "status": "EXPLORATORY_DEPENDENT_BLOCK_BOOTSTRAP",
+            "block_days": 30,
+            "samples": 2000,
+            "annualized_log_growth_difference": -0.21392785481737844,
+            "annualized_log_growth_ci95": [
+              -0.4018645331937932,
+              0.04186956562775271
+            ],
+            "one_sided_p": 0.9860069965017492,
+            "warning": "Historical snapshot, selected universe; not evidence for live promotion",
+            "holm_adjusted_p": 1.0
+          }
+        }
+      }
+    }
+  ],
+  "promotion": "BLOCKED_SNAPSHOT_DATA_AND_FORWARD_VALIDATION",
+  "limitations": [
+    "Reference prices are not exchange fills; no intraday liquidity model",
+    "Two-day signal lag is an assumption, not archived availability proof",
+    "No macro benefit is claimed by a price-only run",
+    "Cash yield, tax and FX omitted; two fixed USD assets, no shorting or leverage",
+    "VPD, FAST and Q strategies require their own aligned net-return histories"
+  ],
+  "sources": [
+    {
+      "asset": "BTC",
+      "sha256": "06495ff8e643432e6948b7b4686ce44fc106217287dabdc1b38351d9ddec46c3",
+      "field": "PriceUSD",
+      "source": "https://github.com/coinmetrics/data"
+    },
+    {
+      "asset": "ETH",
+      "sha256": "46b18f3df967405374b1f6ee8a3d11ee1b7a5b176ac9fb4342caf6bf8648f2cc",
+      "field": "PriceUSD",
+      "source": "https://github.com/coinmetrics/data"
+    }
+  ],
+  "protocol": {
+    "experiment": "four-regime-v1",
+    "frozen_before_first_result": "2026-09-21",
+    "assets": [
+      "BTC",
+      "ETH"
+    ],
+    "universe_note": "BTC and ETH selected by the research request; not a survivorship-free all-coin universe",
+    "source": "coinmetrics/data",
+    "source_commit": "f1a36afb962731c387bb03982758ab0103063da5",
+    "price_field": "PriceUSD",
+    "quality": "HISTORICAL_SNAPSHOT",
+    "data_start": "2017-01-01",
+    "evaluation_start": "2020-01-01",
+    "holdout_start": "2023-01-01",
+    "trend_days": 90,
+    "vol_days": 30,
+    "vol_reference_days": 252,
+    "vol_quantile": 0.65,
+    "confirmation_days": 2,
+    "signal_lag_days": 2,
+    "selection_window_days": 365,
+    "minimum_regime_samples": 30,
+    "selection_refit_days": 30,
+    "risk_caps": {
+      "UP_LOW": 0.8,
+      "UP_HIGH": 0.4,
+      "DOWN_LOW": 0.2,
+      "DOWN_HIGH": 0.0
+    },
+    "candidate_strategies": [
+      "cash",
+      "equal",
+      "momentum",
+      "inverse_vol"
+    ],
+    "benchmarks": [
+      "cash",
+      "fixed_50",
+      "buy_hold_100"
+    ],
+    "one_way_cost_bps": [
+      15,
+      30
+    ],
+    "cash_annual_yield": 0,
+    "leverage": 1,
+    "bootstrap_block_days": 30,
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 741,
+    "multiple_testing": "Holm across adaptive-vs-fixed50, 2 periods x 2 cost scenarios",
+    "promotion": "BLOCKED_HISTORICAL_SNAPSHOT_AND_NO_MACRO_PANEL"
+  }
+}
